@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#101827"><meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Prasad Analyst">
+  <link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css"><title>Prasad Apparels Business Analyst</title>
+</head>
+<body>
+  <header class="topbar"><div><div class="eyebrow">PRASAD APPARELS</div><h1>Business Analyst</h1></div><button class="avatar" aria-label="Profile">PA</button></header>
+  <main>
+    <section class="welcome"><div><p class="muted">BUSINESS OVERVIEW</p><h2>Good business starts<br>with clear numbers.</h2><p class="muted small">Your accounts at a glance</p></div><div class="gold-mark">PA</div></section>
+    <div class="section-head"><h3>Overview</h3><span class="demo">DEMO DATA</span></div>
+    <section class="metrics">
+      <article class="metric"><span class="metric-icon">↗</span><p>Today's Sales</p><strong>₹45,000</strong><small>Sample amount</small></article>
+      <article class="metric"><span class="metric-icon">₹</span><p>Receivables</p><strong>₹2,80,000</strong><small>Sample amount</small></article>
+      <article class="metric"><span class="metric-icon">▤</span><p>Purchases</p><strong>₹32,000</strong><small>Sample amount</small></article>
+      <article class="metric"><span class="metric-icon">□</span><p>Stock Value</p><strong>₹8,50,000</strong><small>Sample amount</small></article>
+    </section>
+    <section class="panel"><div class="section-head"><h3>Sales snapshot</h3><span class="muted small">Illustrative</span></div><div class="bars" aria-label="Illustrative sales chart"><div style="height:42%"><i></i><label>Mon</label></div><div style="height:68%"><i></i><label>Tue</label></div><div style="height:54%"><i></i><label>Wed</label></div><div style="height:88%"><i></i><label>Thu</label></div><div style="height:64%"><i></i><label>Fri</label></div><div style="height:96%"><i></i><label>Sat</label></div><div style="height:35%"><i></i><label>Sun</label></div></div></section>
+    <section class="panel"><div class="section-head"><h3>Quick actions</h3></div><div class="actions">
+      <button data-page="sales"><b>＋</b><span>New sales</span></button><button data-page="purchase"><b>＋</b><span>New purchase</span></button><button data-page="parties"><b>♙</b><span>Parties</span></button><button data-page="reports"><b>▥</b><span>Reports</span></button>
+    </div></section>
+    <section class="panel" id="workspace"><div class="section-head"><h3>Recent activity</h3><span class="muted small">Sample</span></div><div class="activity"><span class="dot"></span><div><b>Sales invoice</b><p>Example customer · ₹12,500</p></div><time>Today</time></div><div class="activity"><span class="dot gold"></span><div><b>Purchase voucher</b><p>Example supplier · ₹8,200</p></div><time>Yesterday</time></div></section>
+    <p class="notice">Preview only — not connected to Tally ERP 9. Figures above are fictional demo values. Voucher actions in this starter do not post entries to Tally.</p>
+  </main>
+  <nav class="tabbar"><button class="active" data-page="home"><span>⌂</span>Home</button><button data-page="sales"><span>↗</span>Sales</button><button data-page="parties"><span>♙</span>Parties</button><button data-page="reports"><span>▥</span>Reports</button></nav>
+  <script src="app.js"></script>
+</body></html>
