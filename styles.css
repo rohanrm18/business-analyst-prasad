@@ -24,3 +24,7 @@
 .status-control{display:flex;align-items:center;gap:7px;margin-top:7px;font-size:10px;color:var(--muted)}.status-control select{border:1px solid #e4e9ef;background:#f8fafc;border-radius:8px;padding:6px 8px;color:var(--ink);font-size:11px;max-width:130px}.order-saved{align-items:center}.order-saved>div{min-width:0}.order-saved .secondary{white-space:nowrap;font-size:10px;padding:9px}
 
 .invoice-section-title{font-size:12px;font-weight:800;color:#98763d;margin:18px 0 10px;padding-bottom:7px;border-bottom:1px solid #eee5d5}.invoice-line{border:1px solid #e9edf1;border-radius:12px;padding:11px;margin:10px 0;background:#fcfcfb}.invoice-line-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.invoice-line-grid label{font-size:10px}.invoice-line-grid input,.invoice-line-grid select{width:100%}.invoice-actions{display:flex;gap:6px;flex-wrap:wrap}.invoice-saved{gap:8px}.invoice-saved .secondary{padding:8px 10px;font-size:11px}#invoiceform .primary{margin-top:14px}
+
+
+/* Separate product identity fields on GST invoice lines */
+.invoice-identity-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:9px}.invoice-identity-grid label{font-size:10px}.invoice-identity-grid input{width:100%}.invoice-line>label{font-size:11px}@media(min-width:520px){.invoice-identity-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
