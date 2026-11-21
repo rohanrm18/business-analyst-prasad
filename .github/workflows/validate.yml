@@ -16,3 +16,4 @@ jobs:
         run: |
           node --check app.js
           node --check erp.js
+          node --check compliance.js
