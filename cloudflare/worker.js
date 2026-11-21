@@ -23,7 +23,9 @@ export default {
     if(request.method==="POST"&&url.pathname==="/api/sync"){
       const length=Number(request.headers.get("content-length")||0);
       if(length>1400000)return reply({error:"Payload too large"},413);
-      let body;try{body=await request.json();}catch{return reply({error:"Invalid JSON"},400);}
+      let raw;try{raw=await request.text();}catch{return reply({error:"Invalid request body"},400);}
+      if(raw.length>1400000)return reply({error:"Payload too large"},413);
+      let body;try{body=JSON.parse(raw);}catch{return reply({error:"Invalid JSON"},400);}
       const {company_key,encrypted_payload}=body||{};
       if(!validKey(company_key))return reply({error:"company_key must be a SHA-256 hex identifier"},400);
       if(typeof encrypted_payload!=="string"||encrypted_payload.length<16||encrypted_payload.length>1300000||!/^[A-Za-z0-9+/]+={0,2}$/.test(encrypted_payload))return reply({error:"encrypted_payload must be base64 ciphertext within the size limit"},400);
