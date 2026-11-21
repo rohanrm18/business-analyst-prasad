@@ -1,25 +1,34 @@
-# Prasad Apparels Business Analyst — starter
+# Prasad Apparels Business Analyst
 
-This is a mobile-first installable PWA prototype with the selected navy-and-gold design.
+A mobile-first installable web app for Prasad Apparels, with a simple navy-and-gold interface.
 
-## Important status
-- The figures are fictional demo values.
-- It is NOT connected to Tally ERP 9.
-- The voucher screen only shows a local draft preview; it does NOT create or post Tally vouchers.
-- Do not enter real customer, supplier, or financial data into this prototype.
+## Current app features
+- Dashboard overview with clear Tally connection status.
+- Sales and purchase draft forms saved locally in the current browser/device.
+- Apparel-focused stock analysis plan: style, colour, size, fast/slow movers and reorder watchlist.
+- Customer and supplier management sections for outstanding, payables, ledgers and follow-ups.
+- Business report catalogue for sales, purchases, profit, ageing and inventory.
+- Responsive layout and installable PWA support.
 
-## Test locally
-Open `index.html` in a browser. Service-worker installation requires HTTPS or localhost.
+## Important: before Tally integration
+This version is a front-end preview. It is **not connected to Tally**. Dashboard figures and live balances are not loaded. Local sales/purchase drafts are stored only in browser local storage; they are not accounting vouchers and are not synced to Tally. Do not use it as the accounting record or enter sensitive real financial data until secure backend storage and access controls are implemented.
 
-## Publish from an iPhone
-A simple phone-friendly route is GitHub Pages:
-1. Sign in to GitHub in Safari and create a new public repository named `prasad-apparels-business-analyst`.
-2. Upload the contents of this folder (not the enclosing folder) to the repository.
-3. In repository Settings → Pages, choose Deploy from a branch, select `main` and `/ (root)`, then Save.
-4. Open the published HTTPS address in Safari on your iPhone.
-5. Tap Share → Add to Home Screen.
+## Publish this existing repository with GitHub Pages
+1. Open this repository's **Settings → Pages**.
+2. Under Build and deployment, choose **Deploy from a branch**.
+3. Select branch `main` and folder `/ (root)`, then Save.
+4. Wait for GitHub Pages to publish, then open the Pages URL on your phone.
+5. In Safari, use Share → Add to Home Screen.
 
-GitHub's mobile interface may make multi-file uploads awkward. If so, use GitHub's web upload flow or a ZIP extraction/file manager app.
+Do not create another repository; this project is already `rohanrm18/business-analyst-prasad`.
 
-## Before real Tally integration
-The office Windows PC must be available. We will need to confirm the exact Tally.ERP 9 release, company configuration, and whether XML/HTTP integration is enabled. A secure office-side connector should initiate an outbound encrypted connection; never expose Tally's port directly to the public internet. Add authenticated API endpoints, authorization, audit logging, backups, and validation before enabling voucher creation.
+## Tally connection phase
+Before enabling live data or voucher posting, confirm:
+- Whether the office computer runs Tally.ERP 9 or TallyPrime and the exact release.
+- Which company is to be connected and whether the operator can enable Tally's supported integration interface.
+- Whether the office computer can run a small local connector service.
+
+The planned design is an office-side connector that initiates an outbound encrypted connection to an authenticated backend. Never expose Tally's XML/HTTP port directly to the public internet. Implement user roles, least-privilege access, audit logs, backups, validation, and explicit confirmation before posting vouchers. Test against a copy/backup company before live use.
+
+## Reference
+The feature direction is inspired by common Tally companion workflows such as live reports, ledger/outstanding review, transaction entry, invoice sharing and team access. This is an independent Prasad Apparels project, not affiliated with Biz Analyst or Tally.
