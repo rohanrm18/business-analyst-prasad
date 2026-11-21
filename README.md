@@ -86,3 +86,15 @@ The movement register currently calculates balances by the exact item text enter
 7. Expenses, cash/bank, worker/contractor payments, cost sheets, stock valuation, profit reports, GST checks and then Tally integration.
 
 Do not connect Tally or enable voucher posting until the operational workflows, security, audit and test-company validation are complete.
+
+
+## Fabric, cutting and accessory traceability
+
+The unified app now has an initial material-tracking workflow:
+- Fabric inward in **meters**, with type (plain, design/jacquard, printed), item code, design/print reference, unique roll number, colour/shade, width, GSM, supplier and supplier lot.
+- Cutting issue linked to a production order and exact fabric roll. Records meters issued, consumed, reusable leftover returned, wastage/scrap, marker reference and pieces cut. Validation requires consumed + returned + wastage to reconcile to issued meters; only reusable returned meters increase the roll balance.
+- Button, brooch and other trim item codes with garment category, colour/finish, size/specification and opening/inward quantity.
+- Order-wise accessory issue and unused return, with category matching and an expected requirement check based on order quantity × pieces per garment.
+- These records are included in local backup/restore.
+
+This is still a local-first foundation. The fabric and trim ledgers are not yet connected to formal purchase orders/GRNs, full BOM reservations, barcode scanning, warehouse locations or multi-device shared stock. The current category match is a text match and requires the operator to enter the same approved category wording. Those integrations and user/device synchronization remain in the next development stages.
