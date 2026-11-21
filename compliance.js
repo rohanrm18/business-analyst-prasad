@@ -10,7 +10,7 @@ const card=(t,s,b)=>'<section class="card"><div class="cardhead"><div><h3>'+t+'<
 const field=(n,l,v='',type='text')=>'<label>'+l+'<input name="'+n+'" type="'+type+'" value="'+esc(v)+'" required></label>';
 const sel=(n,l,arr)=>'<label>'+l+'<select name="'+n+'">'+arr.map(x=>'<option>'+esc(x)+'</option>').join('')+'</select></label>';
 const orders=()=>R('pa_manufacturing_v1',{orders:[]}).orders||[];
-function quarterInfo(date){const d=new Date(date+'T12:00:00'),m=d.getMonth(),q=m<3?4:Math.floor(m/3)+1,fy=m<3?d.getFullYear()-1:d.getFullYear(),due=q===1?new Date(fy,6,31):q===2?new Date(fy,9,31):q===3?new Date(fy+1,0,31):new Date(fy+1,4,31);return {quarter:'Q'+q,financialYear:fy+'-'+String(fy+1).slice(-2),dueDate:due.toISOString().slice(0,10)};}
+function quarterInfo(date){const d=new Date(date+'T12:00:00'),m=d.getMonth(),q=m<3?4:Math.floor(m/3)+1,fy=m<3?d.getFullYear()-1:d.getFullYear(),due=q===1?new Date(Date.UTC(fy,6,31)):q===2?new Date(Date.UTC(fy,9,31)):q===3?new Date(Date.UTC(fy+1,0,31)):new Date(Date.UTC(fy+1,4,31));return {quarter:'Q'+q,financialYear:fy+'-'+String(fy+1).slice(-2),dueDate:due.toISOString().slice(0,10)};}
 function jobPage(){
  const os=orders();
  return '<div class="heading"><div><small>OUTSOURCING & CONTRACTOR CONTROL</small><h2>Job work & TDS</h2></div><span class="tag">LOCAL RECORDS</span></div>'+
