@@ -23,8 +23,14 @@ def probe():
         root = ET.fromstring(raw)
         names = []
         for node in root.iter():
-            if node.tag.upper() in ("NAME", "SVCURRENTCOMPANY") and node.text:
-                value = node.text.strip()
+            tag = node.tag.split("}")[-1].upper()
+            candidates = []
+            if tag == "COMPANY":
+                candidates.append(node.attrib.get("NAME", ""))
+            if tag in ("NAME", "SVCURRENTCOMPANY") and node.text:
+                candidates.append(node.text)
+            for candidate in candidates:
+                value = candidate.strip()
                 if value and value not in names:
                     names.append(value)
         status_nodes = [n.text.strip() for n in root.iter()
