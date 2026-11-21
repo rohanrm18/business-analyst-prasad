@@ -112,3 +112,14 @@ The **Bill of Materials (BOM)** page is available from More. Add one component r
 Important operating rule: use the same style identifier in the BOM and production order, register fabric inward against the exact fabric item code (and shade where specified), and create accessory masters before adding them to a BOM. Add multiple BOM rows for multiple fabrics, button types, brooches or other trims.
 
 This is an initial local-device BOM control. It is not yet a reserved/committed stock ledger, multi-user shared stock, purchase/GRN-linked material planning, size-specific BOM, or full production costing. BOM availability is a live check against the current local fabric and accessory balances; it does not reserve materials when the check is run.
+
+
+## Size-wise BOM
+
+BOM components can now be configured for **ALL SIZES** or for one exact garment size. Add separate rows for each size when fabric consumption or button/brooch quantity differs by size. For example, the same style can have fabric usage of 0.85 m for size 20, 0.95 m for size 22 and 1.05 m for size 24.
+
+Production orders already have a size-wise plan field. Enter it in the format `20:10, 22:20, 24:30` (size:pieces). The BOM requirement is calculated per selected size from that plan, including its wastage allowance. A size-specific BOM cannot pass the pre-cut check if the production order has no readable size plan. Cutting remains blocked when a size-wise quantity is missing or material stock is insufficient.
+
+For a component with identical usage across all sizes, use the ALL SIZES option. Do not add both an ALL SIZES row and a size-specific row for the same material unless the intention is to add both quantities together.
+
+This is still a local-device availability check, not a reservation ledger. Production order size-plan totals are not yet automatically reconciled against the order's total quantity; operators should ensure the size quantities add up to the production order quantity.
