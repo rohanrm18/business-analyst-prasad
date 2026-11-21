@@ -4,6 +4,8 @@ A mobile-first installable web app for Prasad Apparels, with a simple navy-and-g
 
 ## Current app features
 - Dashboard overview with clear Tally connection status.
+- Barcode-assisted Sales Orders: scan a garment label (Code 128, EAN and QR supported by the camera library), add one unit per scan, and adjust quantities.
+- Sales order drafts saved locally in the current browser/device; they are not posted to Tally.
 - Sales and purchase draft forms saved locally in the current browser/device.
 - Apparel-focused stock analysis plan: style, colour, size, fast/slow movers and reorder watchlist.
 - Customer and supplier management sections for outstanding, payables, ledgers and follow-ups.
@@ -53,3 +55,7 @@ Do not expose port 9000 publicly. Remote access from the phone is a later phase 
 ## Free-first cloud sync foundation
 
 The `cloudflare/` folder contains an initial Cloudflare Worker + D1 backend foundation. It has authenticated endpoints for uploading and retrieving encrypted snapshot strings. It does **not** yet connect to Tally, implement encryption/decryption, or provide phone offline sync. Follow `cloudflare/README.md` for setup. Do not upload real accounting data until client-side encryption, device authorization, recovery and backups are implemented and tested.
+
+
+## Barcode sales orders (preview)
+Open the **Orders** tab, enter the customer and date, then tap **Scan item barcode** and allow camera access. Each successful scan adds one unit; scanning the same barcode again increases its quantity. Quantities can be adjusted with plus/minus, and the barcode can also be entered manually. The scanner library is loaded from a public CDN when the camera is started, so internet access is needed for the first scanner load. Barcode-to-stock-item lookup, item rates and customer/item master sync are not connected yet; scanned rows remain local drafts and are not posted to Tally.
