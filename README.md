@@ -60,3 +60,29 @@ The `cloudflare/` folder contains an initial Cloudflare Worker + D1 backend foun
 ## Barcode sales orders (preview)
 Open the **Orders** tab, enter the customer and date, then tap **Scan item barcode** and allow camera access. Each successful scan adds one unit; scanning the same barcode again increases its quantity. Quantities can be adjusted with plus/minus, and the barcode can also be entered manually. The scanner library is loaded from a public CDN when the camera is started, so internet access is needed for the first scanner load. Barcode-to-stock-item lookup, item rates and customer/item master sync are not connected yet; scanned rows remain local drafts and are not posted to Tally. Label Studio now records each successful print in a local barcode-history list (including barcode, style, model, colour, size and timestamp) and exports `prasad-barcode-history.json`. In the Orders screen, import that JSON once; subsequent scans can resolve the imported style/colour/size details. This is a file-based first bridge, not automatic cloud sync. Existing labels printed before history recording was added cannot be reconstructed from the sequence counter alone.
 \n\n### Share sales orders\nSaved sales orders include a Share / WhatsApp action. On supported phones it opens the native share sheet (WhatsApp, Messages, email and other installed apps); otherwise it opens WhatsApp with a prefilled order summary. Shared summaries show customer, date, item names, barcode values, quantities and notes. They are order summaries, not GST invoices.\n
+
+## ERP expansion — Windows + phone foundation
+
+The app now includes an initial unified operations layer:
+- **Inward/outward movement register:** dated IN/OUT records with purpose, party/location, reference/challan, lot/batch note, unit and a calculated balance per entered item name. Outward entries are blocked when they exceed that recorded balance.
+- **Production control tower:** order-stage overview plus an issue/hold register for material shortage, quality, machine, contractor, approval, alteration, transport and quantity problems. Open holds can be marked resolved.
+- **Integrated garment label centre:** save label batches and reprint them from inside this same app. Label layouts include Prasad Apparels, style, product, colour, size, optional MRP and Code 128 barcode generation. Barcode rendering loads JsBarcode from a public CDN; internet is required when printing. Print through the browser/system print dialog and select the correct thermal printer, paper size and darkness/alignment settings.
+- **Wider desktop layout:** responsive workspace for Windows screens, tablets and phones.
+
+### Important limits — this is not yet a complete live ERP
+
+These additions are a first operational foundation, not a completed production-grade system. Records still live in the current browser/device local storage. They do **not** automatically synchronize between Windows and phones. Use the backup/restore function to move a snapshot manually, and do not treat separate browser copies as one shared database.
+
+The movement register currently calculates balances by the exact item text entered; it is not yet linked to supplier purchase orders, GRNs, material masters, warehouse/bin/lot stock, production consumption, finished-goods SKUs, sales dispatch or accounting. Do not use these balances as audited stock figures yet. The production hold tracker records exceptions, but full stage-to-stage quantity reconciliation, bundles, job-work challans, material issue/return, wages, QC/rework and production costing are still to be implemented. Label printing is integrated in the app, but direct Bluetooth printer control from every browser/device is not guaranteed; the current method uses the system print dialog.
+
+### Remaining build plan
+
+1. Shared data foundation, business masters, login/roles, audit trail, secure cloud sync and validated backup/recovery.
+2. Item/style/size/colour/material masters, suppliers, customers, workers, contractors, warehouses and BOM/size-set costing.
+3. Purchase orders, inward GRN, inspection/accepted/rejected quantities, purchase invoices/returns, supplier balances and raw-material stock ledger.
+4. Production routing and size-wise plans, material reservation/issue/return, cutting markers, bundles, stitching, in-house work and outsourced challans/receipts/shortages.
+5. Finishing, accessories, ironing, measurement/QC, alteration/rework, packing, cartons, barcode labels and QC-approved finished-goods stock.
+6. Sales quotations/orders, finished-stock reservation, picking, dispatch challans/LR/e-way-bill workflow, GST invoices, returns, collections and customer balances.
+7. Expenses, cash/bank, worker/contractor payments, cost sheets, stock valuation, profit reports, GST checks and then Tally integration.
+
+Do not connect Tally or enable voucher posting until the operational workflows, security, audit and test-company validation are complete.
