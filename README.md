@@ -98,3 +98,17 @@ The unified app now has an initial material-tracking workflow:
 - These records are included in local backup/restore.
 
 This is still a local-first foundation. The fabric and trim ledgers are not yet connected to formal purchase orders/GRNs, full BOM reservations, barcode scanning, warehouse locations or multi-device shared stock. The current category match is a text match and requires the operator to enter the same approved category wording. Those integrations and user/device synchronization remain in the next development stages.
+
+
+## Style BOM and pre-cut material gate
+
+The **Bill of Materials (BOM)** page is available from More. Add one component row per style for every required material:
+- Fabric: fabric item code, optional shade, meters required per garment and wastage percentage. Available meters are totalled from matching inward fabric rolls, less cutting issues and reusable returns.
+- Buttons, brooches and other accessories: select the registered accessory item and enter pieces required per garment plus any allowance.
+- For a production order, the system multiplies per-garment usage by the order quantity and applies the wastage allowance. It displays required quantity, current available quantity and shortage for each BOM component.
+- The cutting form now blocks a cutting entry if the order has no matching style BOM or any BOM component is short.
+- BOM records are included in manual backup/restore.
+
+Important operating rule: use the same style identifier in the BOM and production order, register fabric inward against the exact fabric item code (and shade where specified), and create accessory masters before adding them to a BOM. Add multiple BOM rows for multiple fabrics, button types, brooches or other trims.
+
+This is an initial local-device BOM control. It is not yet a reserved/committed stock ledger, multi-user shared stock, purchase/GRN-linked material planning, size-specific BOM, or full production costing. BOM availability is a live check against the current local fabric and accessory balances; it does not reserve materials when the check is run.
