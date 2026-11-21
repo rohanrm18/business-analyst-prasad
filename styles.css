@@ -28,3 +28,21 @@
 
 /* Separate product identity fields on GST invoice lines */
 .invoice-identity-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:9px}.invoice-identity-grid label{font-size:10px}.invoice-identity-grid input{width:100%}.invoice-line>label{font-size:11px}@media(min-width:520px){.invoice-identity-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+
+/* Desktop and tablet workspace */
+@media(min-width:900px){
+ body{padding-bottom:88px}
+ main{max-width:1180px;margin:0 auto;padding:0 18px}
+ .top{padding-left:max(24px,calc((100% - 1140px)/2));padding-right:max(24px,calc((100% - 1140px)/2))}
+ .hero{margin-left:0;margin-right:0}
+ .connection{margin-left:0;margin-right:0}
+ .heading{margin-left:2px;margin-right:2px}
+ .metricgrid{grid-template-columns:repeat(4,minmax(0,1fr));margin-left:0;margin-right:0}
+ .card{margin-left:0;margin-right:0;padding:20px}
+ .nav{max-width:none;justify-content:center;gap:42px}
+ .nav button{font-size:11px;min-width:70px}
+ .nav i{font-size:22px}
+ .two{grid-template-columns:repeat(2,minmax(0,1fr));max-width:900px}
+ form label{max-width:100%}
+}
+@media(min-width:1200px){.dashboard-quick{grid-template-columns:repeat(4,minmax(0,1fr))}.reportgrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
