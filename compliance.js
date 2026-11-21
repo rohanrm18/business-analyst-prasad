@@ -2,8 +2,8 @@
 (()=>{
 'use strict';
 const $=id=>document.getElementById(id), R=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(d))}catch(e){return d}}, S=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
-const K={contractors:'pa_contractors_v1',jobs:'pa_jobwork_v1',bills:'pa_purchase_bills_v1',tds:'pa_tds_entries_v1',deductor:'pa_tds_deductor_v1'};
-let contractors=R(K.contractors,[]),jobs=R(K.jobs,[]),bills=R(K.bills,[]),tds=R(K.tds,[]);
+const K={contractors:'pa_contractors_v1',jobs:'pa_jobwork_v1',bills:'pa_purchase_bills_v1',tds:'pa_tds_entries_v1',deductor:'pa_tds_deductor_v1',payments:'pa_supplier_payments_v1'};
+let contractors=R(K.contractors,[]),jobs=R(K.jobs,[]),bills=R(K.bills,[]),tds=R(K.tds,[]),payments=R(K.payments,[]);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const today=()=>new Date().toISOString().slice(0,10), money=n=>'₹'+Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
 const card=(t,s,b)=>'<section class="card"><div class="cardhead"><div><h3>'+t+'</h3>'+(s?'<small>'+s+'</small>':'')+'</div></div>'+b+'</section>';
@@ -56,10 +56,23 @@ function readItemRows(){
   return {description:v('description'),hsn:v('hsn'),qty:Number(v('qty')||0),rate:Number(v('rate')||0),taxable:Number(v('taxable')||0),gstRate:Number(v('gstRate')||0)};
  }).filter(x=>x.description||x.hsn||x.qty||x.rate||x.taxable);
 }
+function billPaymentTotals(bill){
+ const rows=payments.filter(p=>p.billId===bill.id);
+ return {paid:rows.reduce((n,p)=>n+Number(p.amountPaid||0),0),tds:rows.reduce((n,p)=>n+Number(p.tdsWithheld||0),0)};
+}
+function billOutstanding(bill){const t=billPaymentTotals(bill);return Math.max(0,Number(bill.total||0)-t.paid-t.tds);}
+function supplierPaymentCard(){
+ const open=bills.filter(b=>billOutstanding(b)>.009);
+ const options=open.map(b=>'<option value="'+esc(b.id)+'">'+esc(b.supplier)+' · '+esc(b.invoiceNo)+' · Due '+money(billOutstanding(b))+'</option>').join('');
+ const rows=bills.slice().reverse().map(b=>{const t=billPaymentTotals(b),due=billOutstanding(b);return '<div class="line"><div><b>'+esc(b.supplier)+' · '+esc(b.invoiceNo)+'</b><small>Bill '+esc(b.invoiceDate)+' · Total '+money(b.total)+'</small><small>Cash paid '+money(t.paid)+' · TDS withheld '+money(t.tds)+' · Balance '+money(due)+'</small></div><span class="tag">'+(due<=.009?'SETTLED':t.paid||t.tds?'PART PAID':'UNPAID')+'</span></div>';}).join('');
+ const history=payments.slice().reverse().slice(0,30).map(p=>'<div class="line"><div><b>'+esc(p.supplier)+' · '+esc(p.invoiceNo)+'</b><small>'+esc(p.date)+' · '+esc(p.mode)+' · Cash '+money(p.amountPaid)+' · TDS '+money(p.tdsWithheld)+'</small><small>'+esc(p.reference||'No reference')+(p.notes?' · '+esc(p.notes):'')+'</small></div></div>').join('');
+ const totalDue=bills.reduce((n,b)=>n+billOutstanding(b),0),totalPaid=payments.reduce((n,p)=>n+Number(p.amountPaid||0),0),totalTds=payments.reduce((n,p)=>n+Number(p.tdsWithheld||0),0);
+ return card('Supplier payments & outstanding',bills.length+' purchase bills · '+money(totalDue)+' outstanding','<div class="line"><span>Total cash paid</span><b>'+money(totalPaid)+'</b></div><div class="line"><span>TDS recorded as withheld</span><b>'+money(totalTds)+'</b></div><form id="supplier-payment-form"><label>Allocate payment to invoice<select name="billId" required '+(!open.length?'disabled':'')+'>'+(options||'<option value="">No outstanding purchase bills</option>')+'</select></label><div class="two">'+field('date','Payment date',today(),'date')+field('amountPaid','Cash / bank paid ₹','0','number')+'</div><div class="two">'+field('tdsWithheld','TDS withheld ₹ (manual)','0','number')+sel('mode','Payment mode',['Bank transfer','UPI','Cheque','Cash','Other'])+'</div><div class="two">'+field('reference','UTR / cheque / reference')+field('notes','Notes (optional)')+'</div><button class="primary" '+(!open.length?'disabled':'')+'>Save invoice allocation</button><p class="hint">Record each payment against the exact supplier invoice. Partial payments are supported. Enter TDS withheld only when actually deducted and verified by your accountant; this screen does not calculate TDS applicability or rates.</p></form><div class="cardhead"><div><h3>Invoice-wise balance</h3><small>Outstanding = bill total − cash paid − TDS withheld recorded here</small></div><button type="button" class="secondary" id="supplier-balance-csv">Export balances</button></div>'+(rows||'<div class="empty compact">No purchase bills.</div>')+'<div class="cardhead"><div><h3>Payment history</h3><small>Latest 30 allocations</small></div><button type="button" class="secondary" id="supplier-payment-csv">Export payments</button></div>'+(history||'<div class="empty compact">No supplier payments recorded.</div>'));
+}
 function capturePage(){
  return '<div class="heading"><div><small>SMART PURCHASE ENTRY</small><h2>Photo bill entry</h2></div><span class="tag">OCR ASSIST</span></div>'+
  card('Upload supplier bill photo','OCR suggests invoice fields and possible item rows. Check the original bill and correct every value before saving.','<form id="photo-form"><label>Take photo / upload image<input id="bill-photo" type="file" accept="image/*" capture="environment" required></label><button class="primary">Read invoice</button></form><p class="hint" id="ocr-status">Good lighting and a flat, clear image improve results. OCR requires internet to load the recognition engine.</p><p class="hint" id="ocr-confidence"></p><form id="ocr-form" hidden><div class="two">'+field('supplier','Supplier name')+'<label>Supplier GSTIN (optional)<input name="gstin" value="'+esc('')+'" maxlength="15" placeholder="15-character GSTIN"></label>'+'</div><div class="two">'+field('invoiceNo','Invoice number')+field('invoiceDate','Invoice date',today(),'date')+'</div><div class="two">'+field('taxable','Taxable value ₹','0','number')+field('cgst','CGST ₹','0','number')+'</div><div class="two">'+field('sgst','SGST ₹','0','number')+field('igst','IGST ₹','0','number')+'</div>'+field('total','Invoice total ₹','0','number')+'<label>Recognised text / correction<textarea name="ocrText" rows="6"></textarea></label><div class="cardhead"><div><h3>Item rows · review required</h3><small>Only likely rows are suggested. HSN, quantity, rate and taxable value may be misread.</small></div><button type="button" class="secondary" id="add-purchase-item">+ Add row</button></div><div class="tablewrap"><table class="data-table"><thead><tr><th>Description</th><th>HSN</th><th>Qty</th><th>Rate ₹</th><th>Taxable ₹</th><th>GST %</th><th></th></tr></thead><tbody id="purchase-item-rows">'+itemRow({})+'</tbody></table></div><p class="hint">No item row is treated as verified. Compare with the supplier invoice; remove incorrect suggestions and add missing lines.</p><button class="primary">Review & save purchase bill</button></form>')+
- card('Saved purchase bills',bills.length+' invoices',bills.length?bills.slice().reverse().map(b=>'<div class="line"><div><b>'+esc(b.supplier)+' · '+esc(b.invoiceNo)+'</b><small>'+esc(b.invoiceDate)+' · '+money(b.total)+' · '+esc(b.gstin)+'</small><small>'+(b.items||[]).length+' item row(s) · '+(b.reviewed?'Reviewed':'Needs review')+'</small></div></div>').join(''):'<div class="empty compact">No purchase bills saved.</div>');
+ card('Saved purchase bills',bills.length+' invoices',bills.length?bills.slice().reverse().map(b=>'<div class="line"><div><b>'+esc(b.supplier)+' · '+esc(b.invoiceNo)+'</b><small>'+esc(b.invoiceDate)+' · '+money(b.total)+' · '+esc(b.gstin)+'</small><small>'+(b.items||[]).length+' item row(s) · '+(b.reviewed?'Reviewed':'Needs review')+'</small></div></div>').join(''):'<div class="empty compact">No purchase bills saved.</div>')+supplierPaymentCard();
 }
 async function bindCapture(){
  const f=$('photo-form');if(f)f.onsubmit=async e=>{
@@ -73,6 +86,15 @@ async function bindCapture(){
  };
  const body=$('purchase-item-rows');if(body)body.onclick=e=>{if(e.target.closest('[data-remove-item]')){e.target.closest('[data-item-row]').remove();}};
  const add=$('add-purchase-item');if(add)add.onclick=()=>body.insertAdjacentHTML('beforeend',itemRow({}));
+ const pf=$('supplier-payment-form');if(pf)pf.onsubmit=e=>{
+  e.preventDefault();const d=Object.fromEntries(new FormData(pf)),bill=bills.find(x=>x.id===d.billId),paid=Number(d.amountPaid||0),withheld=Number(d.tdsWithheld||0);
+  if(!bill||!d.date||!Number.isFinite(paid)||!Number.isFinite(withheld)||paid<0||withheld<0||paid+withheld<=0){alert('Choose an invoice and enter a valid positive payment or TDS amount.');return;}
+  const due=billOutstanding(bill);if(paid+withheld>due+.009){alert('This allocation exceeds the invoice outstanding balance of '+money(due)+'.');return;}
+  payments.push({id:'SP-'+Date.now(),billId:bill.id,supplier:bill.supplier,invoiceNo:bill.invoiceNo,date:d.date,amountPaid:Math.round(paid*100)/100,tdsWithheld:Math.round(withheld*100)/100,mode:d.mode,reference:d.reference,notes:d.notes,createdAt:new Date().toISOString()});
+  S(K.payments,payments);window.render();
+ };
+ const pcsv=$('supplier-payment-csv');if(pcsv)pcsv.onclick=()=>csv('Prasad-Supplier-Payments.csv',['Date','Supplier','Invoice','Mode','Cash Paid','TDS Withheld','Reference','Notes'],payments.map(p=>[p.date,p.supplier,p.invoiceNo,p.mode,p.amountPaid,p.tdsWithheld,p.reference,p.notes]));
+ const bcsv=$('supplier-balance-csv');if(bcsv)bcsv.onclick=()=>csv('Prasad-Supplier-Invoice-Balances.csv',['Supplier','Invoice','Bill Date','Bill Total','Cash Paid','TDS Withheld','Outstanding','Status'],bills.map(b=>{const t=billPaymentTotals(b),due=billOutstanding(b);return [b.supplier,b.invoiceNo,b.invoiceDate,b.total,t.paid,t.tds,due,due<=.009?'Settled':t.paid||t.tds?'Part paid':'Unpaid'];}));
  const r=$('ocr-form');if(r)r.onsubmit=e=>{
   e.preventDefault();const d=Object.fromEntries(new FormData(r)),num=k=>Number(d[k]||0),items=readItemRows();
   if(!d.supplier||!d.invoiceNo||num('total')<=0){alert('Supplier, invoice number and total are required.');return;}
