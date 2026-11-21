@@ -43,7 +43,6 @@ function gstChecks(rows,type){
   const label=(x.invoice_no||x.invoiceNo||('Invoice row '+(i+1)))+'';
   const add=m=>issues.push({type,invoice:label,issue:m});
   const gstin=x.buyer_gstin||x.gstin||'';
-  if(type==='Sales'&&!gstin)add('Buyer GSTIN missing — confirm B2B or B2C classification.');
   if(gstin&&!/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(String(gstin).toUpperCase()))add('GSTIN format needs correction.');
   if(!(x.invoice_date||x.invoiceDate))add('Invoice date missing.');
   if(!(x.invoice_no||x.invoiceNo))add('Invoice number missing.');
