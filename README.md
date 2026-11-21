@@ -48,3 +48,8 @@ Official integration references:
 - Integration prerequisites: https://help.tallysolutions.com/pre-requisites-for-integrations/
 
 Do not expose port 9000 publicly. Remote access from the phone is a later phase requiring a secured outbound office agent, authenticated backend, encrypted transport, access control and audit logging. Do not enable voucher posting until tested on a backup/test company.
+
+
+## Free-first cloud sync foundation
+
+The `cloudflare/` folder contains an initial Cloudflare Worker + D1 backend foundation. It has authenticated endpoints for uploading and retrieving encrypted snapshot strings. It does **not** yet connect to Tally, implement encryption/decryption, or provide phone offline sync. Follow `cloudflare/README.md` for setup. Do not upload real accounting data until client-side encryption, device authorization, recovery and backups are implemented and tested.
