@@ -20,3 +20,5 @@
 .dashboard-empty b{font-size:12px;color:#354154}
 .dashboard-empty small{font-size:10px;line-height:1.5;color:var(--muted);max-width:260px;margin-top:5px}
 @media(min-width:480px){.dashboard-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.status-control{display:flex;align-items:center;gap:7px;margin-top:7px;font-size:10px;color:var(--muted)}.status-control select{border:1px solid #e4e9ef;background:#f8fafc;border-radius:8px;padding:6px 8px;color:var(--ink);font-size:11px;max-width:130px}.order-saved{align-items:center}.order-saved>div{min-width:0}.order-saved .secondary{white-space:nowrap;font-size:10px;padding:9px}
