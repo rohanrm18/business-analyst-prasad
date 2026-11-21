@@ -32,3 +32,19 @@ The planned design is an office-side connector that initiates an outbound encryp
 
 ## Reference
 The feature direction is inspired by common Tally companion workflows such as live reports, ledger/outstanding review, transaction entry, invoice sharing and team access. This is an independent Prasad Apparels project, not affiliated with Biz Analyst or Tally.
+
+## Tally integration preparation (ERP 9 + TallyPrime)
+
+Both products support XML over HTTP integration. This repository now includes a **local, read-only Windows diagnostic connector** under `connector/`:
+- `server.py` sends a company-list export request to the configured local Tally HTTP endpoint.
+- `start-connector.bat` starts it with the common default Tally URL `http://127.0.0.1:9000`.
+- `README.md` in the connector folder explains the first test.
+
+The connector listens only on `127.0.0.1:8765`; it is intentionally not exposed to the LAN or internet. It does not create, edit, or delete vouchers. It does not reliably identify the exact Tally product build; confirm the version in Tally's About screen. The initial test verifies XML response and company list only.
+
+Official integration references:
+- Tally.ERP 9 XML interface: https://help.tallysolutions.com/article/DeveloperReference/integration-capabilities/using_XML_interface.htm
+- TallyPrime XML integration: https://help.tallysolutions.com/xml-integration/
+- Integration prerequisites: https://help.tallysolutions.com/pre-requisites-for-integrations/
+
+Do not expose port 9000 publicly. Remote access from the phone is a later phase requiring a secured outbound office agent, authenticated backend, encrypted transport, access control and audit logging. Do not enable voucher posting until tested on a backup/test company.
