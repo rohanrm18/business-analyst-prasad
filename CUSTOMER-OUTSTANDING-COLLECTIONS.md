@@ -241,3 +241,5 @@ This is not yet a complete production receivables ledger. It is local to one bro
 
 ### Dispute and collection pause controls
 Invoices can be marked Active, Disputed or On Hold with a reason. Disputed/on-hold balances remain in receivables totals and ageing, but are excluded from reminder preparation until resumed. Reminder preparation blocks paid or paused invoices and duplicate invoice/stage/date actions. History records a prepared reminder, not a sent or delivered message.
+
+- Added a CSV export of the receivables register with customer, invoice/opening reference, invoice/due dates, original value, receipts, credit adjustments, balance, overdue days and collection status. CSV cells are quoted and formula-like leading characters are escaped to reduce spreadsheet formula injection risk.
