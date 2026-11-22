@@ -231,3 +231,8 @@ The sales tax invoice form now requires an HSN/SAC entry in 4, 6 or 8 digit nume
 ## Supplier advance settlement safeguard — 22 November 2026
 - Supplier payment posting now subtracts PO advance allocations already applied to a purchase bill when calculating its remaining payable balance. This prevents a subsequent cash/TDS settlement from ignoring an earlier advance allocation and exceeding the bill's net outstanding amount.
 - The control remains browser-local. Reconcile supplier advances, purchase bills, TDS timing and ledger balances with the CA before operational reliance; advance payments may themselves require separate TDS review depending on the facts and applicable law.
+
+
+## Supplier advance and style-cost backup coverage — 22 November 2026
+- Manual business backups now include supplier advance-to-bill allocations and effective-dated style cost history. Restore allow-list accepts both datasets and applies the existing array-shape validation before replacing records. Compliance backup wrapper inherits the expanded allowed-key list.
+- Backups remain manual, browser-local and unencrypted; store them in a private secure location. Restore replaces local records and should be preceded by a fresh backup.
