@@ -310,3 +310,13 @@ The sales tax invoice form now requires an HSN/SAC entry in 4, 6 or 8 digit nume
 - Existing Manufacturing Orders without a snapshot can lock the currently approved style revision when cutting is first attempted; if none is approved, cutting remains blocked until a valid approved BOM is attached through the controlled workflow. This legacy first-cut lock should be reviewed against the actual order/style before use.
 - BOM approval and snapshot records are stored in the existing `pa_style_bom_v1` and `pa_manufacturing_v1` local browser records, both already covered by the manual backup. No new backup key was introduced.
 - Limitations: approval identity and timestamps are local-device data, not secure multi-user approvals; no role enforcement or immutable server audit; no formal BOM revision comparison screen; no automatic attachment of a revised BOM to an already-created MO. Functional simulation and live UI/build tests remain pending.
+
+
+## Manufacturing material reservations and issue controls — 22 November 2026
+- Added a material reservation ledger inside the existing `pa_manufacturing_v1` record, covered by existing manual backup/restore.
+- An MO can reserve all remaining BOM materials atomically against its locked BOM snapshot and valid size plan. If any material is short after other active reservations, no reservation is saved. The same recorded stock cannot be reserved by two different active MOs.
+- MO cards show issued, reserved and remaining material quantities, with explicit reserve-all and release actions. Released reservations no longer reduce stock available to other orders.
+- Fabric cutting issue and accessory OUT movements now require an active matching MO reservation and cannot exceed its remaining reserved quantity. Existing reusable fabric returns and accessory IN returns remain recorded and quantity-checked.
+- Purchase planning displays active reservations separately while retaining aggregate stock/demand shortage calculation. Reservations do not themselves deduct physical stock; issues do.
+- This remains a browser-local prototype. Existing pre-reservation issue history is retained; old orders may require review before new issues. Reservation identity/approval is not secure, and no multi-device concurrency, server audit, role enforcement or physical stock reconciliation is implemented.
+- Consolidated acceptance testing remains pending for two-order contention, partial issues, returns, release, closed orders, procurement calculations and backup/restore.
