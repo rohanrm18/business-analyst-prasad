@@ -155,3 +155,16 @@ The **More → Purchase Orders & procurement** workflow can convert a saved vend
 - New contractor, job-work, purchase-bill and TDS records are included in manual backup/restore.
 
 **Not yet enabled:** Shared cloud sync and user login. The app remains browser-local; the new compliance records do not sync between devices. Cloud sync requires a secured backend, authentication and row-level access controls, which must be configured and tested before moving business records online. Do not place service-role secrets in this public static repository.
+
+
+## Purchase order, GRN and incoming QC workflow
+
+- Convert a vendor purchase request into a draft Purchase Order, enter material rates/GST, and explicitly approve it.
+- Receive against an approved PO line using one or more GRNs. Partial deliveries are supported; over-receipt is blocked.
+- GRNs remain in quality inspection and do not increase usable stock.
+- QC records accepted and rejected quantities separately. Only accepted fabric meters or accessory pieces are posted to their corresponding stock registers. Fabric roll, shade, width, GSM and supplier-lot details are retained; partial QC acceptance adds to the same GRN roll.
+- Accessory receipt and QC quantities must be whole pieces. Fabric quantities can be fractional meters.
+- Supplier-level PO payment/advance records use a separate storage key from invoice-wise supplier payment allocations. The PO payment summary is a procurement tracker, not a statutory accounts-payable ledger.
+- Purchase bills captured by photo OCR still require review and are not automatically linked to GRNs or posted to stock.
+- These procurement records remain local to the current browser/device and are included in manual backup; cross-device cloud sync is not active.
+- This is an initial workflow and has not yet had a complete live-business acceptance test. Check every material, quantity, lot and QC result before using it for operational decisions.
