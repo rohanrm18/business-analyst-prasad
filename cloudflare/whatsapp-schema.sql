@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS wa_reminder_jobs (
   provider_response TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
-  UNIQUE(customer_ref, invoice_ref, stage, scheduled_at),
+  UNIQUE(customer_ref, invoice_ref, stage),
   FOREIGN KEY(customer_ref) REFERENCES wa_customer_contacts(customer_ref)
 );
 CREATE INDEX IF NOT EXISTS idx_wa_jobs_due ON wa_reminder_jobs(status, scheduled_at);
