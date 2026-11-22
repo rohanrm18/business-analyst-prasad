@@ -168,3 +168,9 @@ The **More → Purchase Orders & procurement** workflow can convert a saved vend
 - Purchase bills captured by photo OCR still require review and are not automatically linked to GRNs or posted to stock.
 - These procurement records remain local to the current browser/device and are included in manual backup; cross-device cloud sync is not active.
 - This is an initial workflow and has not yet had a complete live-business acceptance test. Check every material, quantity, lot and QC result before using it for operational decisions.
+
+
+## TDS working pack for CA (not statutory filing)
+The **More → Job work & contractor TDS** page includes a CA handover working pack. It exports an Excel-compatible workbook with TDS transaction details, supplier summary, quarter summary and a CA-review worksheet. It includes supplier invoice payment records where job-work / contract-service nature was selected, including records with no TDS withheld so the CA can review them. The internal tracker records whether the working file was sent to the CA, the handover date and CA remarks.
+
+This feature is **only internal TDS working and handover**. The app does not prepare or file the statutory TDS return, does not submit anything to the Income Tax portal, and does not certify legal applicability or calculations. The CA must verify the source records and determine the correct statutory treatment and file the return. Exports are generated from local browser/device records; they are not automatically shared or cloud-synced. The workbook is an Excel 2003 XML .xls file that opens in Excel; use Save As .xlsx if a newer workbook format is required.
