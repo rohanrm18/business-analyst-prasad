@@ -42,7 +42,7 @@ function enhance(){
  const suggestBase=()=>{const b=currentBill();if(!b||$('sp-base').dataset.manual==='1')return;const due=outstanding(b),left=remainingBase(b),cash=Number(paid.value||0),rate=$('sp-type').value==='Individual / HUF'?1:2,tdsOn=$('sp-applicable').value==='Yes'&&isContractWork($('sp-nature').value),denom=due-(tdsOn?left*rate/100:0);const suggested=due>0&&cash>0&&denom>0?Math.min(left,round(left*cash/denom)):0;$('sp-base').value=suggested.toFixed(2);calc();};\n const match=()=>{const b=currentBill();if(!b)return;const c=contractors.find(x=>(b.gstin&&x.gstin&&String(x.gstin).toUpperCase()===String(b.gstin).toUpperCase())||String(x.name||'').trim().toLowerCase()===String(b.supplier||'').trim().toLowerCase());if(c){if(c.pan)$('sp-pan').value=String(c.pan).toUpperCase();if(c.type)$('sp-type').value=c.type==='Individual / HUF'?'Individual / HUF':'Other entity';}
   $('sp-base').dataset.manual='0';suggestBase();};
  [billSelect,form.elements.date,$('sp-nature'),$('sp-applicable'),$('sp-type'),$('sp-pan'),$('sp-base')].forEach(el=>el&&el.addEventListener('change',()=>{if(el===billSelect)match();else calc();}));
- $('sp-pan').addEventListener('input',calc);$('sp-base').addEventListener('input',calc);match();
+ paid.addEventListener('input',suggestBase);$('sp-pan').addEventListener('input',calc);$('sp-base').addEventListener('input',()=>{$('sp-base').dataset.manual='1';calc();});match();
 }
 document.addEventListener('submit',e=>{
  const form=e.target;if(!form||form.id!=='supplier-payment-form')return;
