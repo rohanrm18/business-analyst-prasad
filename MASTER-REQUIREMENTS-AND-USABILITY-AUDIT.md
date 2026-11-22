@@ -226,3 +226,8 @@ The sales tax invoice form now requires an HSN/SAC entry in 4, 6 or 8 digit nume
 - Supplier GSTIN format now requires a two-digit numeric prefix and 15 total alphanumeric characters; when the seller state name is recognised, its state code must match the GSTIN prefix. Buyer GSTIN format receives the same structural check.
 - Invoice saving now blocks when the seller state, seller GSTIN state code or place-of-supply state/UT cannot be mapped to the supported GST state/UT reference; it no longer falls back to free-text equality for unknown locations. This avoids silently saving a tax split based on spelling differences or unsupported territory labels. Add or verify any special/other-territory treatment with the CA before enabling it.
 - This is a consistency aid only, not GSTIN checksum/registration verification or a legal place-of-supply determination. CA must review the tax split, place of supply, exemptions and applicable rules before issue. No GST filing is enabled.
+
+
+## Supplier advance settlement safeguard — 22 November 2026
+- Supplier payment posting now subtracts PO advance allocations already applied to a purchase bill when calculating its remaining payable balance. This prevents a subsequent cash/TDS settlement from ignoring an earlier advance allocation and exceeding the bill's net outstanding amount.
+- The control remains browser-local. Reconcile supplier advances, purchase bills, TDS timing and ledger balances with the CA before operational reliance; advance payments may themselves require separate TDS review depending on the facts and applicable law.
