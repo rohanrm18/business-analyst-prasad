@@ -187,3 +187,10 @@ Before calling the app ready, test as one connected workflow on an Android phone
 - Added a reversal action for an incorrectly entered receipt. Reversal requires a reason, retains the original record and restores the invoice balance rather than deleting payment history.
 
 - Follow-up hardening: a single customer receipt can now be allocated across multiple distinct open invoices; each allocation is checked against that invoice's remaining balance, and the receipt total is calculated from allocation rows. Added responsive mobile layout, customer credit-setting auto-fill when editing, due-date validation (cannot precede invoice date), and stricter receipt/credit validation during backup restore. Reminder labels now distinguish the scheduled dates (3 days before, due date, 3 days overdue, 7 days overdue, then every 15 days after day 7) from other upcoming/overdue dates.
+
+## Receivables ledger extension — opening balances and credit adjustments
+- Added per-customer, per-reference opening balance entries with original due date; opening items participate in ageing, customer balances, statements and receipt allocation.
+- Added reference-only credit note / approved credit adjustment records against a specific open invoice or opening item. Credit adjustments reduce receivables, have reference/reason/date, and can be reversed with a reason. This does not create a GST credit note or post to Tally.
+- Opening balance entries can be reversed with a reason only when no receipt or credit adjustment is linked; linked records must be reversed first.
+- Receipts, opening balances and credit adjustment records are included in backup/restore. Restore validates invoice references and prevents combined receipts/credit adjustments exceeding original invoice value.
+- These are still browser-local controls. No shared backend, bank feed, Tally posting/reconciliation, GST document generation or multi-user permissions are active.
