@@ -194,3 +194,4 @@ Before calling the app ready, test as one connected workflow on an Android phone
 - Opening balance entries can be reversed with a reason only when no receipt or credit adjustment is linked; linked records must be reversed first.
 - Receipts, opening balances and credit adjustment records are included in backup/restore. Restore validates invoice references and prevents combined receipts/credit adjustments exceeding original invoice value.
 - These are still browser-local controls. No shared backend, bank feed, Tally posting/reconciliation, GST document generation or multi-user permissions are active.
+- Added manual bank-statement matching on each customer receipt. A user must compare the receipt against the bank statement, enter the bank reference and confirm; the app records who/when only as a local timestamp (no bank API/feed is connected).
