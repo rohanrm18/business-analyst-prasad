@@ -1,4 +1,4 @@
-name: Validate web app JavaScript
+name: Validate Prasad Business app
 on:
   push:
     branches: [main]
@@ -12,8 +12,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Check JavaScript syntax
+      - name: Check all application JavaScript syntax
         run: |
-          node --check app.js
-          node --check erp.js
-          node --check compliance.js
+          set -e
+          for file in app.js erp.js compliance.js supplier-ledger.js tds-ca-handover.js; do
+            echo "Checking $file"
+            node --check "$file"
+          done
