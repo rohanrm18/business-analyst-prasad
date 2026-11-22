@@ -213,3 +213,14 @@ Until these foundations and a messaging provider are configured, reminders must 
 ## Design principle
 
 Make collections easy and trustworthy: **See Who Owes → Open Invoice Details → Preview Due Message → Send/Automate with Consent → Record Receipt → Allocate Payment → Outstanding Updates.**
+
+
+## Implementation status — 22 Nov 2026
+A first browser-local working screen is now present under **Parties** in Prasad Business:
+- Customer invoice balances and due-date ageing are calculated from saved sales tax invoices.
+- Part-payments are allocated to one invoice per receipt entry. For one bank receipt split across invoices, enter separate allocations with the same reference.
+- Customer credit limit and credit days can be configured. The invoice due date defaults to the configured terms (30 days if no terms exist), and a new invoice prompts before exceeding the configured limit.
+- Collection reminders can be prepared and shared manually through WhatsApp; reminder actions are recorded locally.
+- Receipt, credit and reminder records are included in manual backup/restore.
+
+This is not yet a complete production receivables ledger. It is local to one browser/device, not connected to Tally or bank feeds, and does not include opening balance migration, credit/debit notes, returns, write-offs, multi-user approvals, customer-level phone consent UI or automated WhatsApp sending. Existing invoices without a due date fall back to invoice date. Reconcile all figures with Tally and test with sample transactions before relying on the balances.
