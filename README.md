@@ -249,3 +249,6 @@ Official Meta documentation: https://developers.facebook.com/documentation/busin
 
 ### Important production boundary
 The current Prasad app stores customer, invoice and receipt data in browser localStorage. It does not yet have secure shared customer/invoice storage, a user-login/role system or a trusted server-side reminder scheduler that calculates live balances. Therefore **automatic customer reminders are not yet enabled**: this commit provides the protected provider/queue/webhook foundation only. Do not send real reminders until the shared backend reads reconciled invoice-wise balances, checks consent and duplicate rules, applies customer reminder preferences/quiet hours, and builds the approved template parameters. Manual WhatsApp share remains the fallback. A successful API acceptance is not proof of delivery; use webhook status.
+
+
+Setup instructions for Meta onboarding, template approval, Cloudflare secrets and go-live checks: [`WHATSAPP-CLOUD-API-SETUP.md`](WHATSAPP-CLOUD-API-SETUP.md).
