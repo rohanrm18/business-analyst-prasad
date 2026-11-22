@@ -195,3 +195,6 @@ Before calling the app ready, test as one connected workflow on an Android phone
 - Receipts, opening balances and credit adjustment records are included in backup/restore. Restore validates invoice references and prevents combined receipts/credit adjustments exceeding original invoice value.
 - These are still browser-local controls. No shared backend, bank feed, Tally posting/reconciliation, GST document generation or multi-user permissions are active.
 - Added manual bank-statement matching on each customer receipt. A user must compare the receipt against the bank statement, enter the bank reference and confirm; the app records who/when only as a local timestamp (no bank API/feed is connected).
+
+- Added invoice-level collection statuses: Active, Disputed and On Hold. Disputed/on-hold invoices remain visible in outstanding balances but are excluded from collection reminders until resumed. Every status change records a reason and timestamp; backup restore validates invoice references/status values.
+- Reminder preparation now blocks paid/disputed/on-hold invoices and duplicate same-invoice/same-stage reminders on the same date. Reminder history records `prepared`, not sent/delivered; the customer still must press Send in WhatsApp.
