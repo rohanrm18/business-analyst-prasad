@@ -152,7 +152,7 @@ The **More → Purchase Orders & procurement** workflow can convert a saved vend
 **Important limits:** This is an initial browser-local procurement workflow, not a production-grade shared ERP or statutory accounting system. Records remain on the current browser/device and do not sync automatically to other devices. It does not yet create supplier purchase invoices, debit notes, purchase returns, e-way bills, Tally vouchers or bank reconciliation. Rates, GST and quantities must be checked against the supplier's actual tax invoice. Supplier invoice payments now allocate cash and any confirmed contractor TDS against the selected purchase bill. Partial settlement updates that invoice's outstanding balance; TDS deductions are linked into the existing quarterly TDS register. Records remain local to this browser/device. Use a backup and test with sample records before relying on it operationally.
 
 
-## Job work, TDS, photo purchase entry and GST returns workspace (initial)
+## Job work, TDS, photo purchase entry and GST working for CA (initial)
 
 - **Job work:** Contractor master (PAN/GSTIN/contact/operations), production-order linked challans, quantities sent/received, good and rejected/rework quantities. This initial register does not yet create a full statutory delivery challan, job-work material ledger or contractor payment settlement.
 - **TDS:** Contractor bill register records bill/credit dates, TDS base, constitution, earlier FY payments and an indicative 1% / 2% calculation. Supplier invoice settlement also offers an automatic contractor/job-work TDS suggestion after the operator selects the payment nature, confirms applicability, enters a valid supplier PAN and reviews the TDS base. Cash paid and TDS withheld are saved against the same purchase invoice; the linked deduction appears in the existing monthly due tracker and quarterly Form 140 working calendar/export. Goods purchases are not automatically treated as contractor payments. The app distinguishes pre-1 April 2026 transactions (Income-tax Act, 1961, section 194C) from later transactions (Income-tax Act, 2025, section 393(1), Table 6(i)). These are review aids, not statutory advice or filing: deductor eligibility, threshold interpretation, PAN consequences, GST exclusion and Form 16A are not fully automated. Have the accountant/CA verify before deduction or filing.
@@ -175,6 +175,14 @@ The **More → Purchase Orders & procurement** workflow can convert a saved vend
 - These procurement records remain local to the current browser/device and are included in manual backup; cross-device cloud sync is not active.
 - This is an initial workflow and has not yet had a complete live-business acceptance test. Check every material, quantity, lot and QC result before using it for operational decisions.
 
+
+
+
+## GST working for CA only — no filing in this phase
+
+The **More → GST Working & CA Export** screen is for preparing monthly working files and basic data-quality checks for the CA. It can export outward invoice working, an indicative purchase-tax summary and a review checklist from locally saved sales invoices and reviewed purchase bills. These exports are working CSVs only; they are not validated GST portal JSON or official offline-tool upload files. The current data scope does not yet cover every GST adjustment, credit/debit note, return, amendment, GSTR-2B reconciliation or full Tally book reconciliation. The CA must verify and reconcile all figures before use.
+
+**No GST portal filing, return submission or automatic filing is included now.** GST filing can be considered later as a separate approved phase. The app must never claim that a GST return has been filed.
 
 ## TDS working pack for CA (not statutory filing)
 The **More → Job work & contractor TDS** page includes a CA handover working pack. It exports an Excel-compatible workbook with TDS transaction details, supplier summary, quarter summary and a CA-review worksheet. It includes supplier invoice payment records where job-work / contract-service nature was selected, including records with no TDS withheld so the CA can review them. The internal tracker records whether the working file was sent to the CA, the handover date and CA remarks.
@@ -258,3 +266,8 @@ Customer profitability, gross-margin, style-performance and payment-behaviour ro
 ## Purchase cost entry and style cost history
 
 See [Purchase Cost Entry & Style Cost History](PURCHASE-COST-AND-STYLE-HISTORY.md) for the approved workflow specification covering supplier-bill cost capture, manual verified style costs, effective-dated history, landed-cost allocation, costing-method safeguards and integration with customer/style/month profitability reports. This is a roadmap, not a live feature yet. Effective-dated style costs must be labelled as estimated COGS until batch or reconciled stock traceability supports actual cost matching.
+
+
+## Master requirements and usability checklist
+
+See [Master Requirements Register & Usability Audit](MASTER-REQUIREMENTS-AND-USABILITY-AUDIT.md) for the complete owner-approved feature checklist, what is currently prototype code versus specification/foundation only, GST-for-CA-only scope, and the usability and final acceptance requirements. This register must be kept current as implementation progresses.
