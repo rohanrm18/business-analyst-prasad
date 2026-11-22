@@ -5,17 +5,17 @@
 A mobile-first installable web app for Prasad Apparels, with a simple navy-and-gold interface.
 
 ## Current app features
-- Dashboard overview with clear Tally connection status.
+- Dashboard overview for the Prasad Business primary workspace.
 - Barcode-assisted Sales Orders: scan a garment label (Code 128, EAN and QR supported by the camera library), add one unit per scan, and adjust quantities.
-- Sales order drafts saved locally in the current browser/device; they are not posted to Tally.
+- Sales order drafts saved locally in the current browser/device; they are not yet part of a shared company ledger.
 - Sales and purchase draft forms saved locally in the current browser/device.
 - Apparel-focused stock analysis plan: style, colour, size, fast/slow movers and reorder watchlist.
 - Customer and supplier management sections for outstanding, payables, ledgers and follow-ups.
 - Business report catalogue for sales, purchases, profit, ageing and inventory.
 - Responsive layout and installable PWA support.
 
-## Important: before Tally integration
-This version is a front-end preview. It is **not connected to Tally**. Dashboard figures and live balances are not loaded. Local sales/purchase drafts are stored only in browser local storage; they are not accounting vouchers and are not synced to Tally. Do not use it as the accounting record or enter sensitive real financial data until secure backend storage and access controls are implemented.
+## Important: current app status
+This version is a front-end preview with many local-first workflows. Dashboard figures and live balances are not yet verified company-wide. Most records are stored in this browser/device and are not yet part of a secure shared ledger. Do not use it as the sole accounting record or upload sensitive real bank statements until authenticated shared storage, access controls, encrypted document storage, audit logs, backups and recovery are implemented. Prasad Business is intended to become the primary system; historical information will be imported after the app's core workflows are ready. A live Tally integration is not planned.
 
 ## Publish this existing repository with GitHub Pages
 1. Open this repository's **Settings → Pages**.
@@ -26,7 +26,7 @@ This version is a front-end preview. It is **not connected to Tally**. Dashboard
 
 Do not create another repository; this project is already `rohanrm18/business-analyst-prasad`.
 
-## Tally connection phase
+## previous accounting system connection phase
 Before enabling live data or voucher posting, confirm:
 - Whether the office computer runs Tally.ERP 9 or TallyPrime and the exact release.
 - Which company is to be connected and whether the operator can enable Tally's supported integration interface.
@@ -91,7 +91,7 @@ The movement register currently calculates balances by the exact item text enter
 6. Sales quotations/orders, finished-stock reservation, picking, dispatch challans/LR/**customer invoice-linked E-Way Bill workflow**, GST invoices, returns, collections and customer balances.
 7. Expenses, cash/bank, worker/contractor payments, cost sheets, stock valuation, profit reports, GST checks and then Tally integration.
 
-Do not connect Tally or enable voucher posting until the operational workflows, security, audit and test-company validation are complete.
+Do not add a live Tally integration. Build the operational workflows, security, audit and historical data migration into Prasad Business.
 
 
 ## Fabric, cutting and accessory traceability
