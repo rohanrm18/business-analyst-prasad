@@ -14,6 +14,9 @@ A mobile-first installable web app for Prasad Apparels, with a simple navy-and-g
 - Business report catalogue for sales, purchases, profit, ageing and inventory.
 - Responsive layout and installable PWA support.
 
+## Security and user access
+The approved model is one app with individual logins and Owner-controlled roles (Owner, Accountant, CA, Manager and Worker). See `SECURITY-AND-ACCESS-CONTROL.md` and `cloudflare/migrations/0002_security.sql`. The migration is a schema foundation only; authentication, MFA, server-side permission middleware and deployment are not yet active. Do not treat the app as production-secure or move real financial data to shared cloud storage until all security acceptance tests pass.
+
 ## Packing before billing — prototype\nSales invoices are now gated behind an approved packing slip for a saved sales order. The app confirms packing, creates a local packing-slip record, prints a price-free carton copy, caps invoice quantities to the approved packed quantities and prevents invoicing the same order twice. This is an early local prototype; it does not yet provide partial packing, shared multi-user controls, transporter/customer invoice copies, LR workflow, courier envelope or E-Way Bill duplex printing.\n\n## Important: current app status
 This version is a front-end preview with many local-first workflows. Dashboard figures and live balances are not yet verified company-wide. Most records are stored in this browser/device and are not yet part of a secure shared ledger. Do not use it as the sole accounting record or upload sensitive real bank statements until authenticated shared storage, access controls, encrypted document storage, audit logs, backups and recovery are implemented. Prasad Business is intended to become the primary system; historical information will be imported after the app's core workflows are ready. A live Tally integration is not planned.
 
