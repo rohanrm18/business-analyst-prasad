@@ -322,3 +322,11 @@ The sales tax invoice form now requires an HSN/SAC entry in 4, 6 or 8 digit nume
 - Consolidated acceptance testing remains pending for two-order contention, partial issues, returns, release, closed orders, procurement calculations and backup/restore.
 
 - Follow-up safeguard: active reservations are automatically released when an MO is marked Completed, Cancelled or Delivered; closed orders cannot create new reservations. MO material status distinguishes fully issued from merely reserved.
+
+
+## GRN quality-inspection stock posting retry protection — 22 November 2026
+- Confirmed the existing procurement path: approved PO line → GRN receipt → pending quality inspection → accepted/rejected quantities. Accepted fabric is posted to the fabric-roll register; accepted accessories are posted as accessory inward movements. Rejected quantities do not enter usable stock.
+- Strengthened accepted-stock posting with a stable inspection ID derived from the GRN and next inspection sequence. A retry after a page interruption reuses the same ID until the inspection record is saved.
+- Fabric GRN stock records retain QC posting IDs and quantities; accessory inward movements retain the QC posting ID. Replaying the same inspection cannot add the accepted quantity twice.
+- This protects the local browser prototype against duplicate retries within its sequential save flow. It is not a substitute for a server-side transaction/unique constraint in the later multi-user cloud phase.
+- Remaining acceptance tests: fabric first and partial acceptance, accessory acceptance, rejected-only inspection, interrupted-save retry, duplicate retry, PO over-receipt prevention, procurement backup/restore and physical stock reconciliation. No live browser/device test or hosted build is claimed.
