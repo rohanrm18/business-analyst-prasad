@@ -238,7 +238,7 @@ function manufacturing(){
   const progress=MFG_STAGES.map(s=>s+': '+Number((o.progress||{})[s]||0)+'/'+o.qty).join(' · ');
   return '<div class="line"><div><b>'+esc(o.style)+' · '+esc(o.product)+'</b><small>'+o.qty+' pcs · '+esc(o.due||'No target date')+'</small></div><span class="tag">'+esc(o.status||'In production')+'</span></div><div class="featurelist"><small>'+progress+'</small></div><form class="mfg-stage" data-id="'+esc(o.id)+'"><label>Operation<select name="stage">'+MFG_STAGES.map(s=>'<option>'+s+'</option>').join('')+'</select></label><div class="two"><label>Completed now<input name="qty" type="number" min="1" step="1" required></label><label>Work type<select name="mode"><option>In-house</option><option>Outsourced job work</option></select></label></div><div class="two"><label>Worker / contractor<input name="worker"></label><label>Rate per piece ₹<input name="rate" type="number" min="0" step="0.01"></label></div><label>Remarks<input name="notes"></label><button class="secondary">Save stage update</button></form>';
  }).join('');
- return '<div class="heading"><div><small>END-TO-END APPAREL PRODUCTION</small><h2>Manufacturing</h2></div><span class="tag">LOCAL</span></div>'
+ return '<div class="heading"><div><small>END-TO-END APPAREL PRODUCTION</small><h2>Production & Samples</h2></div><span class="tag">LOCAL</span></div>'
  +card('Production overview',os.length+' orders · '+pieces+' planned pieces',overview)
  +card('Create production order','Assign operations to your own team or outside contractors.',orderForm)
  +card('Sampling & approvals',ss.length+' sample records',sampleForm+sampleRows)
