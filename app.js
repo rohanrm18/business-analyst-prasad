@@ -25,10 +25,10 @@ function validateInvoiceDraft(totals,form){
   if(!Number.isFinite(d)||d<0||d>q*r)return 'Item '+(i+1)+': discount must be between zero and the gross line amount.';
   if(!Number.isFinite(g)||g<0||g>100)return 'Item '+(i+1)+': enter a GST rate from 0 to 100.';
  }
- const mobile=String(form.get('buyer_mobile')||'').replace(/[\\s()+-]/g,'');
- if(mobile&&!/^\\d{10,15}$/.test(mobile))return 'Enter a valid buyer mobile number (10 to 15 digits), or leave it blank.';
+ const mobile=String(form.get('buyer_mobile')||'').replace(/[\s()+-]/g,'');
+ if(mobile&&!/^\d{10,15}$/.test(mobile))return 'Enter a valid buyer mobile number (10 to 15 digits), or leave it blank.';
  const pin=String(form.get('buyer_pin')||'').trim();
- if(pin&&!/^\\d{6}$/.test(pin))return 'Enter a valid 6-digit PIN code, or leave it blank.';
+ if(pin&&!/^\d{6}$/.test(pin))return 'Enter a valid 6-digit PIN code, or leave it blank.';
  const cartons=Number(form.get('carton_count')||1);
  if(!Number.isInteger(cartons)||cartons<1)return 'Number of cartons must be a whole number of at least 1.';
  return '';
