@@ -276,3 +276,16 @@ See [Master Requirements Register & Usability Audit](MASTER-REQUIREMENTS-AND-USA
 ## Garment stock and inventory control
 
 See [Garment Stock & Inventory Control](GARMENT-STOCK-INVENTORY-CONTROL.md) for the approved style/colour/size stock ledger workflow, supplier inward/GRN, production movements, reservations, dispatch, returns, transfers, physical counts, costing safeguards and Tally.ERP 9 accounting-only boundary. This is a workflow specification; the complete stock screens, movement engine and shared ledger are not yet implemented.
+
+
+## Supplier purchase workflow — linked records (implementation update)
+
+The supplier workflow now has a first linked path across existing browser-local screens:
+1. Supplier Master stores supplier contact, GSTIN, PAN, constitution, payment terms and materials supplied.
+2. Approved Purchase Orders and GRNs can be selected when reviewing a supplier purchase bill.
+3. A bill link is validated against the selected PO supplier and the selected GRN's PO; a GRN cannot be linked to a second bill.
+4. The GRN link is a document relationship only. Physical stock is still posted only by the QC-acceptance workflow, not by entering a bill.
+5. Invoice-wise supplier payments are allocated to a specific purchase bill. Confirmed contractor/job-work TDS is captured in the same payment workflow and appears in the TDS working register / CA export.
+6. PO-level advances remain separately labelled from invoice-wise accounts-payable allocations; do not add both figures together as a single supplier balance until advance-to-invoice allocation is implemented.
+
+This is a browser-local workflow improvement, not a shared multi-user ledger. It does not post purchase vouchers to Tally, verify GSTIN/PAN with government services, file GST/TDS returns, or replace CA review. Supplier PAN/constitution defaults are aids only; applicability and deduction must be verified by the CA.
