@@ -132,6 +132,7 @@ async function bindCapture(){
   if(d.poId&&!linkedPO){alert('The selected Purchase Order could not be found. Refresh and select it again.');return;}
   if(linkedPO&&String(linkedPO.vendor||'').trim().toLowerCase()!==String(d.supplier||'').trim().toLowerCase()&&!(d.gstin&&String(linkedPO.gstin||'').toUpperCase()===String(d.gstin).toUpperCase())){alert('The supplier name on this bill does not match the selected Purchase Order. Verify the supplier before linking.');return;}
   if(d.grnId&&(!linkedGRN||!linkedPO||linkedGRN.poId!==linkedPO.id)){alert('The selected GRN must belong to the selected Purchase Order.');return;}
+  if(linkedGRN&&(linkedGRN.billId||bills.some(x=>x.grnId===linkedGRN.id))){alert('This GRN is already linked to a supplier bill. Use the existing bill record instead of linking it twice.');return;}
   const itemSum=items.reduce((n,x)=>n+x.taxable,0);
   if(items.length&&Math.abs(itemSum-num('taxable'))>Math.max(2,num('taxable')*.01)&&!confirm('Item taxable total ('+money(itemSum)+') differs from bill taxable value ('+money(num('taxable'))+'). Save only after checking the original bill. Continue?'))return;
   if(!confirm('You have reviewed the supplier, invoice, tax values and '+items.length+' item row(s). Save this bill as reviewed? No stock will be posted automatically.'))return;
