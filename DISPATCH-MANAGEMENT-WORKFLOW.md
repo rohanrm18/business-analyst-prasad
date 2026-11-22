@@ -201,3 +201,8 @@ Dispatch records are included in manual backup/restore. Limitations: one dispatc
 ## Invoice carton-count field — 22 November 2026
 
 The invoice entry form includes **No. of Packages (Cartons)** as a required whole-number field, defaulting to 1. The saved count is displayed on the main tax invoice, Carton Copy, Customer Copy, Transporter Copy, and the prepared invoice share text. It records physical parcels/cartons, not garment-piece quantity. It is an additional logistics detail and does not replace the GST invoice goods-quantity field. Existing invoices without a saved carton count display 1 as a compatibility fallback; review and correct the count before dispatch if that fallback is not accurate.
+
+
+## Invoice item detail update — 22 November 2026
+
+The main tax invoice and dispatch Carton/Customer/Transporter print templates now show Design Number, Category, HSN Code, quantity and Piece Amount per item. Piece Amount is the unit rate used in the taxable-value calculation; line discount and GST remain separate. Legacy item-number data is used as a display fallback so older invoices continue to print. Confirm HSN and GST rate with the CA before issue. This update has not yet been physically printer-tested.
