@@ -251,3 +251,13 @@ The sales tax invoice form now requires an HSN/SAC entry in 4, 6 or 8 digit nume
 - Updated README to make the security boundary explicit.
 - **Not yet implemented/deployed:** authentication endpoints, password verification, MFA enrollment/verification, session middleware, server-side business API authorisation, D1 migration execution, encryption/key management, frontend login/permission UI, and end-to-end security tests.
 - Existing browser-local business records and shared-token sync foundation must not be described as production-secure. Real financial data must remain out of shared deployment until all controls are implemented and tested.
+
+
+## Garment stock movement ledger — 22 November 2026
+
+- Replaced the stock-analysis placeholder with a working device-local garment stock ledger grouped by design/style, colour and size.
+- Supports opening balances, production receipts, purchase inward, dispatch/sale issues, customer returns, and reason-required positive/negative stock adjustments.
+- Dispatch/sale issues and stock-adjustment-out movements are blocked when they exceed the available saleable quantity for that exact style/colour/size.
+- Customer returns enter a separate quarantine balance and do not become saleable until an explicit QC-pass release action is confirmed.
+- Shows saleable pieces, quarantined returns, variant balances and movement history. Each movement stores its date, style, colour, size, quantity, reference, reason and timestamp.
+- This is a standalone manual ledger prototype. It is not yet automatically posted by manufacturing, GRN, packing or dispatch; avoid entering the same source movement twice. It is browser-local and not a production shared stock ledger. Opening quantities must be physically reconciled; valuation, reservations, carton-level allocation, stock costing and cross-module automatic posting remain future work.
