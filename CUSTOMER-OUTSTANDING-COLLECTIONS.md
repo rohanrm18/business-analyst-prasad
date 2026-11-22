@@ -230,3 +230,9 @@ This is not yet a complete production receivables ledger. It is local to one bro
 - Customer credit settings are loaded when editing an existing customer; invoice due dates cannot be earlier than the invoice date.
 - Backup restore validates receipt allocation totals and invoice references plus customer credit settings before replacing local data.
 - Reminder schedule labels now distinguish exact scheduled follow-up dates from general upcoming or overdue statuses.
+
+## Additional receivables controls implemented
+- Customer opening balances can be entered as separate old-invoice/reference items with an original due date. They participate in ageing, statement totals and receipt allocation.
+- A reference-only credit note / approved credit adjustment can be allocated to an open invoice or opening item, with date, reference and reason. It reduces receivables and can be reversed with a reason. This is not a GST credit note and is not posted to Tally.
+- Opening items can be reversed only before any receipt or credit adjustment is linked. Backup/restore includes these records and checks that settlements do not exceed original invoice value.
+- Current customer receivables data remains local to the browser/device. There is no shared company ledger, automatic bank matching or Tally reconciliation yet.
