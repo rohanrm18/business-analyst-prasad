@@ -151,7 +151,6 @@ Until those foundations are implemented, label local-only records and document s
 
 Keep the daily workflow simple: **Select Customer Order → Pick & Pack by Size/Carton → Approve Packing Slip → Print Carton Copy → Create Sales Invoice → Print Invoice Copy → Dispatch → Track Delivery.**
 
-
 ## 13. Transporter invoice copy and E-Way Bill print
 
 The **Invoice — Transporter Copy** must include the genuine E-Way Bill number and relevant date/validity/QR reference when an E-Way Bill has been generated and linked. Also provide a separate print/attachment of the actual E-Way Bill document for the transporter. Never invent an E-Way Bill number, QR code or generated status. If no E-Way Bill is legally required, show an internal reviewed status and do not print a dummy number.
@@ -162,3 +161,29 @@ Use the configurable screening defaults in [E-Way Bill Applicability](E-WAY-BILL
 - Other States/UTs must use their own effective-dated intra-State thresholds and exemptions; never apply Maharashtra's ₹1 lakh threshold nationwide.
 
 Check consignment value on the statutory basis, movement purpose, goods, route/distance, transport mode and applicable exceptions. Some special movements may require an E-Way Bill regardless of value, and some may be exempt. Treat the threshold result as an applicability warning/review aid, not a legal guarantee. Final dispatch release should require a genuine E-Way Bill when required or an authorised, reasoned and audited exception review. Live generation requires the authorised GSP integration and explicit confirmation.
+
+## 14. Duplex print — E-Way Bill on the back of the Transporter Invoice Copy
+
+The user's required default document layout is a **single two-sided sheet**:
+- **Front (side 1):** Tax Invoice — Transporter Copy.
+- **Back (side 2):** The actual, genuine E-Way Bill document/details, linked to that same invoice/dispatch. Include the official E-Way Bill number, generated date, validity, relevant parties/transport details and the authentic QR code/barcode exactly as supplied by the authorised E-Way Bill service. Do not recreate, approximate or fabricate official QR/barcode data.
+
+Printing requirements:
+- Provide a dedicated **Print Transporter Copy (Invoice + E-Way Bill Back)** action.
+- Generate a duplex-ready PDF/document with the invoice on page 1 and E-Way Bill on page 2, aligned for front/back printing on one sheet.
+- Offer a clear double-sided/duplex print instruction and printer setting guidance; do not assume every printer supports automatic duplex.
+- Provide a manual two-pass printing fallback for printers without duplex: print front, reinsert the same sheet in the correct orientation, then print the back. Show a preview/orientation guide to avoid upside-down or misaligned printing.
+- Allow print preview, paper size, scaling, margins and back-side alignment adjustment. Preserve the original official E-Way Bill layout and QR readability; do not shrink it below a scannable/readable size.
+- If an E-Way Bill is applicable but not yet genuinely generated/linked, do not present the transporter document as complete; show a clear pending warning and prevent the final combined print action until the document is available, except through a logged authorised exception where legally permitted.
+- If an E-Way Bill is not required after applicability review, print the invoice on the front and an optional clearly marked **“E-Way Bill Not Required”** review slip on the back, or leave the back blank according to the user's selected print setting. Never print a fake E-Way Bill.
+- The Customer Invoice Copy and Invoice — Carton Copy remain separate one-sided copies unless the user explicitly chooses otherwise. The duplex requirement applies to the **Transporter Copy**.
+- Keep the E-Way Bill file/document linked to the invoice and dispatch so reprints always use the correct official document.
+
+Acceptance tests:
+1. Print preview shows invoice front and genuine E-Way Bill back for the same dispatch.
+2. Verify official E-Way Bill number, dates, validity and QR/barcode match the linked generated document exactly.
+3. Verify automatic duplex output is correctly oriented and aligned.
+4. Verify manual two-pass instructions and orientation guide for a non-duplex printer.
+5. Verify a pending/unlinked E-Way Bill cannot be mistaken for a valid transporter copy.
+6. Verify the no-E-Way-Bill-required path never fabricates an E-Way Bill and follows the selected blank/review-slip setting.
+7. Verify carton and customer invoice copies are not accidentally changed by transporter duplex settings.
