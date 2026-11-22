@@ -236,3 +236,5 @@ This is not yet a complete production receivables ledger. It is local to one bro
 - A reference-only credit note / approved credit adjustment can be allocated to an open invoice or opening item, with date, reference and reason. It reduces receivables and can be reversed with a reason. This is not a GST credit note and is not posted to Tally.
 - Opening items can be reversed only before any receipt or credit adjustment is linked. Backup/restore includes these records and checks that settlements do not exceed original invoice value.
 - Current customer receivables data remains local to the browser/device. There is no shared company ledger, automatic bank matching or Tally reconciliation yet.
+
+- Added manual bank statement matching to receipt history. The user checks the statement, enters the bank reference and confirms the match; this is a manual control, not a live bank feed or automatic reconciliation.
