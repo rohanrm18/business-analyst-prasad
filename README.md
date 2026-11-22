@@ -1,3 +1,5 @@
+> **Current product direction (supersedes older Tally roadmap text below):** Prasad Business is being built as the primary business system. Do not plan a live Tally integration or make app completion depend on Tally. After the app is ready, existing records will be migrated/imported into Prasad Business. Bank statement PDF/photo uploads must be read with OCR and reviewed before import. Approved packing slip is mandatory before billing, with one carton copy inside the box and one invoice copy accompanying the shipment. See `PRODUCT-DIRECTION-DECISIONS.md`, `BANK-STATEMENT-IMPORT.md`, and `SALES-PACKING-SLIP.md`.
+
 # Prasad Apparels Business Analyst
 
 A mobile-first installable web app for Prasad Apparels, with a simple navy-and-gold interface.
