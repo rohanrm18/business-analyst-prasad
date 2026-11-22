@@ -8,13 +8,13 @@ A mobile-first installable web app for Prasad Apparels, with a simple navy-and-g
 - Dashboard overview for the Prasad Business primary workspace.
 - Barcode-assisted Sales Orders: scan a garment label (Code 128, EAN and QR supported by the camera library), add one unit per scan, and adjust quantities.
 - Sales order drafts saved locally in the current browser/device; they are not yet part of a shared company ledger.
-- Sales and purchase draft forms saved locally in the current browser/device.
+- Sales and purchase draft forms saved locally in the current browser/device.\n- First mandatory packing-slip prototype: confirm packed sales order, print price-free carton packing slip, then create a linked tax invoice within packed quantities.
 - Apparel-focused stock analysis plan: style, colour, size, fast/slow movers and reorder watchlist.
 - Customer and supplier management sections for outstanding, payables, ledgers and follow-ups.
 - Business report catalogue for sales, purchases, profit, ageing and inventory.
 - Responsive layout and installable PWA support.
 
-## Important: current app status
+## Packing before billing — prototype\nSales invoices are now gated behind an approved packing slip for a saved sales order. The app confirms packing, creates a local packing-slip record, prints a price-free carton copy, caps invoice quantities to the approved packed quantities and prevents invoicing the same order twice. This is an early local prototype; it does not yet provide partial packing, shared multi-user controls, transporter/customer invoice copies, LR workflow, courier envelope or E-Way Bill duplex printing.\n\n## Important: current app status
 This version is a front-end preview with many local-first workflows. Dashboard figures and live balances are not yet verified company-wide. Most records are stored in this browser/device and are not yet part of a secure shared ledger. Do not use it as the sole accounting record or upload sensitive real bank statements until authenticated shared storage, access controls, encrypted document storage, audit logs, backups and recovery are implemented. Prasad Business is intended to become the primary system; historical information will be imported after the app's core workflows are ready. A live Tally integration is not planned.
 
 ## Publish this existing repository with GitHub Pages
