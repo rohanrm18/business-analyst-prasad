@@ -276,3 +276,11 @@ The sales tax invoice form now requires an HSN/SAC entry in 4, 6 or 8 digit nume
 - Prevent duplicate PO numbers for the same customer. Only Confirmed POs can convert; conversion creates one linked sales order and prevents duplicate conversion. PO remains a separate record and conversion does not create an invoice, packing slip, production order or dispatch.
 - Customer PO records are included in manual JSON backup and restore allow-lists with array validation.
 - Local prototype limitation: no customer PO document attachment, partial conversion, PO amendment/revision history, automatic stock allocation, automatic manufacturing order creation, server sync or multi-user approval yet. Sales order conversion is one-time and full-quantity.
+
+
+## Sales order to manufacturing order link — 22 November 2026
+- Added per-line production planning actions to saved customer sales orders. The app displays ordered quantity, linked production quantity and remaining unplanned quantity for each sales-order line.
+- A user can create a Manufacturing Order directly from an open sales-order line, choose a whole-piece quantity up to the remaining unplanned demand, and retain links to the sales order, source line index, customer, originating customer PO and PO number where present.
+- Duplicate/over-planning is guarded per sales-order line; closed/cancelled or delivered orders cannot create new production. Cancelled manufacturing orders are excluded from planned quantity.
+- Manufacturing Orders remain visible in the existing Production screen and continue to use the existing stage-progress workflow. Independent stock-replenishment and sample-related production orders remain possible.
+- Important boundary: this link does not calculate stock shortages, reserve stock, split available stock vs production, validate approved sample versions/BOM/material availability, or post finished goods to stock. Stock allocation and automatic inventory posting remain later work. Records remain browser-local; no server sync or role enforcement.
