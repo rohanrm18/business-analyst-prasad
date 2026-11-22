@@ -80,3 +80,16 @@ Reprints must be marked **DUPLICATE / REPRINT** and must not create a new invoic
 
 ## Daily operator flow
 **Customer Order → Pick & Pack → Approve Packing Slip → Print 1 Packing Slip Carton Copy → Put inside carton → Create Tax Invoice → Print 1 Invoice Carton Copy + 1 Transporter Copy → Dispatch & enter LR number → Prepare customer invoice copy → Send by courier / WhatsApp / email → Print courier envelope.**
+
+
+## Current prototype implementation note — 22 November 2026
+
+A first local-device packing-slip gate is now present in `app.js`:
+- Saved sales orders show whether an approved packing slip exists.
+- The operator must explicitly confirm that garments have been physically picked, checked and packed.
+- The app creates a numbered packing-slip record from the saved order and opens a printable **carton copy** showing garment/style/category/colour/size/quantity only, with no prices or GST.
+- A tax invoice can be launched from that order only after an approved packing slip exists.
+- The invoice is linked to the order and packing-slip record, cannot exceed the packed quantity for a matching item/variant, and the same order cannot be invoiced twice.
+- Packing-slip records are included in manual backup/restore; restore checks that each slip links to a saved order and that invoices reference an approved slip.
+
+**Limitations still open:** this is a browser-local prototype, not a shared multi-user packing ledger. It currently approves the entire saved order quantity in one step; partial packing, carton-wise contents, separate packing-slip revision/reversal, user identity/audit permissions, mandatory physical printer confirmation, invoice carton/transporter/customer copy controls, LR-triggered customer copy, courier envelope and E-Way Bill duplex printing are not yet implemented. A browser print dialog opening is not proof that paper physically printed. Do not treat this as production-ready until the remaining controls and device print tests are complete.
