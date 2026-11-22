@@ -24,16 +24,16 @@ function cell(v){const n=typeof v==='number'&&Number.isFinite(v);return '<Cell><
 function sheet(name,heads,rows){return '<Worksheet ss:Name="'+xml(name)+'"><Table><Row>'+heads.map(cell).join('')+'</Row>'+rows.map(r=>'<Row>'+r.map(cell).join('')+'</Row>').join('')+'</Table></Worksheet>';}
 function exportExcel(){
  const rows=filtered(),[fy,q]=selected(),sup=summary(rows,r=>r.supplier+' | '+r.pan),quarter=summary(rows,r=>r.fy+' '+r.q),review=rows.filter(r=>r.status.includes('REVIEW')||!r.pan);
- const txHeads=['Payment date','Supplier / contractor','PAN','Invoice no','Invoice date','Nature','Section / reference','Gross paid / credited','TDS base','Rate %','TDS deducted','Net cash paid','Payment mode','Reference','Working status','FY','Quarter','Source'];
+ const deductor=read('pa_tds_deductor_v1',{}),deposits=read('pa_tds_deposits_v1',[]),allocations=read('pa_tds_allocations_v1',[]),tdsRegister=read('pa_tds_entries_v1',[]);\n const txHeads=['Payment date','Supplier / contractor','PAN','Invoice no','Invoice date','Nature','Section / reference','Gross paid / credited','TDS base','Rate %','TDS deducted','Net cash paid','Payment mode','Reference','Working status','FY','Quarter','Source'];
  const tx=rows.map(r=>[r.date,r.supplier,r.pan,r.invoice,r.invoiceDate,r.nature,r.section,r.gross,r.base,r.rate,r.tds,r.net,r.mode,r.reference,r.status,r.fy,r.q,r.source]);
  const supRows=sup.map(x=>[x.key,x.count,x.gross,x.base,x.tds,x.net]);
  const qRows=quarter.map(x=>[x.key,x.count,x.gross,x.base,x.tds,x.net]);
  const reviewRows=review.map(r=>[r.date,r.supplier,r.pan,r.invoice,r.nature,r.gross,r.base,r.tds,r.status]);
  const book='<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">'+
- sheet('TDS Transactions',txHeads,tx)+
+ sheet('Deductor Details',['Field','Value'],[['Legal name',deductor.legalName||''],['Constitution',deductor.constitution||''],['TAN',deductor.tan||''],['Firm PAN',deductor.pan||'']])+\n sheet('TDS Transactions',txHeads,tx)+
  sheet('Supplier Summary',['Supplier | PAN','Records','Gross','TDS base','TDS deducted','Net cash'],supRows)+
  sheet('Quarter Summary',['Period','Records','Gross','TDS base','TDS deducted','Net cash'],qRows)+
- sheet('CA Review Required',['Date','Supplier','PAN','Invoice','Nature','Gross','TDS base','TDS','Review note'],reviewRows)+'</Workbook>';
+ sheet('CA Review Required',['Date','Supplier','PAN','Invoice','Nature','Gross','TDS base','TDS','Review note'],reviewRows)+\n sheet('TDS Challans',['Deposit date','Amount','BSR code','Challan serial','Reference','Allocated amount','Unallocated amount'],deposits.map(d=>{const allocated=allocations.filter(a=>a.depositId===d.id).reduce((n,a)=>n+Number(a.amount||0),0);return [d.date,Number(d.amount||0),d.bsr||'',d.serial||'',d.reference||'',allocated,Math.max(0,Number(d.amount||0)-allocated)];}))+\n sheet('Bill Allocations',['Challan date','BSR','Challan serial','Deduction date','Supplier / contractor','PAN','Bill no','TDS amount','Allocated amount'],allocations.map(a=>{const d=deposits.find(x=>x.id===a.depositId)||{},t=tdsRegister.find(x=>x.id===a.tdsId)||{};return [d.date||'',d.bsr||'',d.serial||'',t.date||'',t.contractor||'',t.pan||'',t.billNo||'',Number(t.tds||0),Number(a.amount||0)];}))+'</Workbook>';
  const blob=new Blob([book],{type:'application/vnd.ms-excel;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Prasad-Apparels-TDS-CA-Working-'+(fy||'All-FY')+'-'+(q||'All-quarters')+'.xls';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);
 }
 function panel(){
