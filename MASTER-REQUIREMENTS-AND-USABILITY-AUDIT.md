@@ -261,3 +261,5 @@ The sales tax invoice form now requires an HSN/SAC entry in 4, 6 or 8 digit nume
 - Customer returns enter a separate quarantine balance and do not become saleable until an explicit QC-pass release action is confirmed.
 - Shows saleable pieces, quarantined returns, variant balances and movement history. Each movement stores its date, style, colour, size, quantity, reference, reason and timestamp.
 - This is a standalone manual ledger prototype. It is not yet automatically posted by manufacturing, GRN, packing or dispatch; avoid entering the same source movement twice. It is browser-local and not a production shared stock ledger. Opening quantities must be physically reconciled; valuation, reservations, carton-level allocation, stock costing and cross-module automatic posting remain future work.
+
+- The garment stock movement array is also included in the existing manual backup export and restore allow-list, with array-shape validation. Cloud backups remain deferred to the final infrastructure phase.
