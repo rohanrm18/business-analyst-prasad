@@ -320,3 +320,5 @@ The sales tax invoice form now requires an HSN/SAC entry in 4, 6 or 8 digit nume
 - Purchase planning displays active reservations separately while retaining aggregate stock/demand shortage calculation. Reservations do not themselves deduct physical stock; issues do.
 - This remains a browser-local prototype. Existing pre-reservation issue history is retained; old orders may require review before new issues. Reservation identity/approval is not secure, and no multi-device concurrency, server audit, role enforcement or physical stock reconciliation is implemented.
 - Consolidated acceptance testing remains pending for two-order contention, partial issues, returns, release, closed orders, procurement calculations and backup/restore.
+
+- Follow-up safeguard: active reservations are automatically released when an MO is marked Completed, Cancelled or Delivered; closed orders cannot create new reservations. MO material status distinguishes fully issued from merely reserved.
