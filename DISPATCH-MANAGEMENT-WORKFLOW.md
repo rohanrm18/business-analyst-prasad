@@ -150,3 +150,15 @@ Until those foundations are implemented, label local-only records and document s
 ## Design principle
 
 Keep the daily workflow simple: **Select Customer Order → Pick & Pack by Size/Carton → Approve Packing Slip → Print Carton Copy → Create Sales Invoice → Print Invoice Copy → Dispatch → Track Delivery.**
+
+
+## 13. Transporter invoice copy and E-Way Bill print
+
+The **Invoice — Transporter Copy** must include the genuine E-Way Bill number and relevant date/validity/QR reference when an E-Way Bill has been generated and linked. Also provide a separate print/attachment of the actual E-Way Bill document for the transporter. Never invent an E-Way Bill number, QR code or generated status. If no E-Way Bill is legally required, show an internal reviewed status and do not print a dummy number.
+
+Use the configurable screening defaults in [E-Way Bill Applicability](E-WAY-BILL-APPLICABILITY.md):
+- Inter-State movement: normally flag when consignment value exceeds ₹50,000.
+- Intra-State movement within Maharashtra: normally flag when consignment value exceeds ₹1,00,000, reflecting Maharashtra Notification No. 15E/2018-State Tax dated 29 June 2018.
+- Other States/UTs must use their own effective-dated intra-State thresholds and exemptions; never apply Maharashtra's ₹1 lakh threshold nationwide.
+
+Check consignment value on the statutory basis, movement purpose, goods, route/distance, transport mode and applicable exceptions. Some special movements may require an E-Way Bill regardless of value, and some may be exempt. Treat the threshold result as an applicability warning/review aid, not a legal guarantee. Final dispatch release should require a genuine E-Way Bill when required or an authorised, reasoned and audited exception review. Live generation requires the authorised GSP integration and explicit confirmation.
