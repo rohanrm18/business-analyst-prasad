@@ -2,7 +2,7 @@
 (()=>{
 'use strict';
 const $=id=>document.getElementById(id), R=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(d))}catch(e){return d}}, S=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
-const K={contractors:'pa_contractors_v1',jobs:'pa_jobwork_v1',bills:'pa_purchase_bills_v1',tds:'pa_tds_entries_v1',deductor:'pa_tds_deductor_v1',payments:'pa_supplier_payments_v1',deposits:'pa_tds_deposits_v1',allocations:'pa_tds_allocations_v1'};
+const K={contractors:'pa_contractors_v1',jobs:'pa_jobwork_v1',bills:'pa_purchase_bills_v1',tds:'pa_tds_entries_v1',deductor:'pa_tds_deductor_v1',payments:'pa_supplier_payments_v1',deposits:'pa_tds_deposits_v1',allocations:'pa_tds_allocations_v1',caHandover:'pa_tds_ca_handover_v1'};
 let contractors=R(K.contractors,[]),jobs=R(K.jobs,[]),bills=R(K.bills,[]),tds=R(K.tds,[]),payments=R(K.payments,[]),deposits=R(K.deposits,[]),allocations=R(K.allocations,[]);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const today=()=>new Date().toISOString().slice(0,10), money=n=>'₹'+Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
