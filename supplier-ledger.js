@@ -19,7 +19,7 @@ function enhance(){
  '<p class="hint" id="sp-tds-preview">TDS is not calculated until the payment nature and applicability are confirmed. Goods purchases are not automatically treated as contractor payments.</p>';
  const tdsLabel=tdsField.closest('label');tdsField.readOnly=true;tdsField.setAttribute('aria-readonly','true');if(tdsLabel){tdsLabel.firstChild.textContent='Auto TDS withheld ₹ (calculated)';}
  const modeLabel=form.elements.mode?.closest('label');if(modeLabel)modeLabel.parentElement.insertAdjacentElement('afterend',panel);else form.appendChild(panel);
- const bills=read('pa_purchase_bills_v1',[]),payments=read('pa_supplier_payments_v1',[]),tds=read('pa_tds_entries_v1',[]),contractors=read('pa_contractors_v1',[]);
+ const bills=read('pa_purchase_bills_v1',[]),payments=read('pa_supplier_payments_v1',[]),tds=read('pa_tds_entries_v1',[]),contractors=read('pa_contractors_v1',[]),suppliers=read('pa_suppliers_v1',[]);
  function currentBill(){return bills.find(b=>b.id===billSelect.value);}
  function outstanding(b){const ps=payments.filter(p=>p.billId===b.id);return Math.max(0,Number(b.total||0)-ps.reduce((n,p)=>n+Number(p.amountPaid||0)+Number(p.tdsWithheld||0),0));}
  function remainingBase(b){const used=payments.filter(p=>p.billId===b.id).reduce((n,p)=>n+Number(p.tdsBase||0),0);return Math.max(0,Number(b.taxable||b.total||0)-used);}
@@ -39,7 +39,7 @@ function enhance(){
   return {b,nature,applies,type,pan,base,rate,amount,prior,threshold};
  }
  const suggestBase=()=>{const b=currentBill();if(!b||$('sp-base').dataset.manual==='1')return;const due=outstanding(b),left=remainingBase(b),cash=Number(paid.value||0),rate=$('sp-type').value==='Individual / HUF'?1:2,tdsOn=$('sp-applicable').value==='Yes'&&isContractWork($('sp-nature').value),denom=due-(tdsOn?left*rate/100:0);const suggested=due>0&&cash>0&&denom>0?Math.min(left,round(left*cash/denom)):0;$('sp-base').value=suggested.toFixed(2);calc();};
- const match=()=>{const b=currentBill();if(!b)return;const c=contractors.find(x=>(b.gstin&&x.gstin&&String(x.gstin).toUpperCase()===String(b.gstin).toUpperCase())||String(x.name||'').trim().toLowerCase()===String(b.supplier||'').trim().toLowerCase());if(c){if(c.pan)$('sp-pan').value=String(c.pan).toUpperCase();if(c.type)$('sp-type').value=c.type==='Individual / HUF'?'Individual / HUF':'Other entity';}
+ const match=()=>{const b=currentBill();if(!b)return;const c=[...suppliers,...contractors].find(x=>(b.gstin&&x.gstin&&String(x.gstin).toUpperCase()===String(b.gstin).toUpperCase())||String(x.name||'').trim().toLowerCase()===String(b.supplier||'').trim().toLowerCase());if(c){if(c.pan)$('sp-pan').value=String(c.pan).toUpperCase();if(c.type)$('sp-type').value=c.type==='Individual / HUF'?'Individual / HUF':'Other entity';}
   $('sp-base').dataset.manual='0';suggestBase();};
  [billSelect,form.elements.date,$('sp-nature'),$('sp-applicable'),$('sp-type'),$('sp-pan'),$('sp-base')].forEach(el=>el&&el.addEventListener('change',()=>{if(el===billSelect)match();else calc();}));
  paid.addEventListener('input',suggestBase);$('sp-pan').addEventListener('input',calc);$('sp-base').addEventListener('input',()=>{$('sp-base').dataset.manual='1';calc();});match();
