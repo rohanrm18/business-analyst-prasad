@@ -187,3 +187,12 @@ Acceptance tests:
 5. Verify a pending/unlinked E-Way Bill cannot be mistaken for a valid transporter copy.
 6. Verify the no-E-Way-Bill-required path never fabricates an E-Way Bill and follows the selected blank/review-slip setting.
 7. Verify carton and customer invoice copies are not accidentally changed by transporter duplex settings.
+
+
+## Dispatch module implementation update — 22 November 2026
+
+A first browser-local dispatch workspace has been added after invoice creation. It records transporter, LR/consignment number and date, courier company, AWB/tracking number and booking date. Saving an LR unlocks Customer Copy actions. It provides separate printable Carton and Customer invoice copies, customer invoice share-message preparation, and courier-envelope printing. The return address is read from the saved seller business address; recipient mobile and PIN remain fill-in fields because the existing customer/invoice record does not yet store them.
+
+The transporter duplex action is blocked until E-Way Bill review is completed. If marked required, the user must attach a genuine official E-Way Bill PDF/image; the original attachment is placed on the reverse side without recreating its QR. If reviewed as not required, a reasoned “E-Way Bill Not Required” slip is printed on the back. The file limit is 1.2 MB and the attachment is stored in this browser's local storage; this is a prototype only and must not be used for sensitive document storage on a shared/public device. Duplex orientation and actual printer output have not been device-tested.
+
+Dispatch records are included in manual backup/restore. Limitations: one dispatch record per invoice, no partial/multiple dispatch allocation, no customer mobile/PIN master fields yet, no automatic courier booking/tracking API, no automatic WhatsApp/email attachment delivery, no live E-Way Bill generation/GSP, and no shared multi-user ledger or role/audit identity. A prepared share message is not proof of sending/delivery.
