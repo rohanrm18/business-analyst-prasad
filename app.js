@@ -113,7 +113,8 @@ function bindCustomerMaster(){
  document.querySelectorAll('[data-customer-edit]').forEach(b=>b.onclick=()=>{const c=customerMaster.find(x=>x.id===b.dataset.customerEdit);if(!c)return;Object.keys(c).forEach(k=>{if(f.elements[k])f.elements[k].value=c[k]??''});f.scrollIntoView({behavior:'smooth',block:'start'})});
  f.onsubmit=e=>{e.preventDefault();const d=Object.fromEntries(new FormData(f));d.name=String(d.name||'').trim();d.mobile=String(d.mobile||'').replace(/[^0-9+]/g,'');d.gstin=String(d.gstin||'').trim().toUpperCase();d.creditDays=Number(d.creditDays||0);d.creditLimit=Number(d.creditLimit||0);d.id=d.id||'CUS-'+Date.now();if(!d.name||!Number.isInteger(d.creditDays)||d.creditDays<0||d.creditDays>365||!Number.isFinite(d.creditLimit)||d.creditLimit<0){alert('Check customer name, credit days and credit limit.');return;}if(d.mobile&&!/^\+?[0-9]{10,15}$/.test(d.mobile)){alert('Enter a valid customer mobile number (10–15 digits).');return;}if(d.pincode&&!/^[0-9]{6}$/.test(d.pincode)){alert('PIN code must contain 6 digits.');return;}if(d.gstin&&!/^[0-9A-Z]{15}$/.test(d.gstin)){alert('GSTIN must contain 15 letters/numbers.');return;}const duplicate=customerMaster.find(x=>x.id!==d.id&&x.name.trim().toLowerCase()===d.name.toLowerCase());if(duplicate){alert('A customer with this name already exists. Edit the existing customer instead of creating a duplicate.');return;}const index=customerMaster.findIndex(x=>x.id===d.id);if(index>=0)customerMaster[index]=d;else customerMaster.push(d);localStorage.setItem(CUSTOMER_MASTER_KEY,JSON.stringify(customerMaster));reset();render();alert('Customer details saved on this device.');};
 }
-\nfunction parties(){return customerMasterView()+customerOutstandingView()}
+
+function parties(){return customerMasterView()+customerOutstandingView()}
 
 /* CUSTOMER / STYLE / MONTH PROFITABILITY — estimate-only until stock and invoice reconciliation */
 const PROFIT_COST_KEY='pa_style_cost_history_v1';
