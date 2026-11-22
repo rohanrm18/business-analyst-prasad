@@ -284,3 +284,11 @@ The sales tax invoice form now requires an HSN/SAC entry in 4, 6 or 8 digit nume
 - Duplicate/over-planning is guarded per sales-order line; closed/cancelled or delivered orders cannot create new production. Cancelled manufacturing orders are excluded from planned quantity.
 - Manufacturing Orders remain visible in the existing Production screen and continue to use the existing stage-progress workflow. Independent stock-replenishment and sample-related production orders remain possible.
 - Important boundary: this link does not calculate stock shortages, reserve stock, split available stock vs production, validate approved sample versions/BOM/material availability, or post finished goods to stock. Stock allocation and automatic inventory posting remain later work. Records remain browser-local; no server sync or role enforcement.
+
+
+## Approved sample version control and production reference — 22 November 2026
+- Sample creation now creates a numbered draft version per style (V1, V2, etc.); it no longer allows a sample to be directly created as Approved. Drafts move through Submitted for approval and explicit confirmation before approval.
+- Approval records a timestamp and local-user placeholder, and the approved version is retained unchanged. A revision creates a new draft version linked to the previous version rather than overwriting the approved reference.
+- Manufacturing orders can select an approved sample version matching the entered style. If no approved sample is selected, a documented repeat-style/approval exception reason is required. Sales-order-linked manufacturing also selects a matching approved sample or requires a documented exception; the chosen sample ID/version is stored on the MO.
+- Existing historical sample and MO records are retained. Existing older sample records without version/approval metadata are not treated as valid approved references until reviewed/re-entered.
+- Local prototype limitation: approval identity is not authenticated, and there is no role separation, photo/spec/measurement attachment, digital signature, immutable server audit, BOM validation or cloud sync. The exception field is a local record, not a secure approval workflow. CA/security phase remains later; no live user testing/build confirmation yet.
