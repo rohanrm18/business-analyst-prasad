@@ -51,7 +51,7 @@ function panel(){
  '<div class="line"><span>Saved handover status</span><b>'+esc(state.status||'Not sent')+'</b></div><div class="line"><span>Last handover date</span><b>'+esc(state.sentAt||'—')+'</b></div></section>';
 }
 function enhance(){
- const page=$('page');if(!page||!page.innerText.includes('Job work & TDS'))return;
+ const page=$('page');if(!page||!$('tds-form'))return;
  const old=$('tds-ca-handover');if(old)old.remove();page.insertAdjacentHTML('beforeend',panel());
  const select=$('ca-period');if(select)select.onchange=()=>{enhance();};
  const ex=$('ca-export');if(ex)ex.onclick=exportExcel;
