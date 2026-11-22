@@ -46,3 +46,5 @@
  form label{max-width:100%}
 }
 @media(min-width:1200px){.dashboard-quick{grid-template-columns:repeat(4,minmax(0,1fr))}.reportgrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+
+.ar-allocation{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;align-items:end}.ar-allocation label{min-width:0}.ar-allocation [data-ar-remove-allocation]{grid-column:1/-1;width:100%;margin:0}
