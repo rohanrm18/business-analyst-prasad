@@ -40,7 +40,7 @@ Status meanings:
 | Customer profitability | Profit by customer, style and month; rankings and collection behaviour | Specification recorded in CUSTOMER-PROFITABILITY-ANALYSIS.md; requires verified costs and reconciled invoices/receipts |
 | Purchase cost history | Simple purchase-cost entry, style/variant cost history and landed-cost allocation | Specification recorded in PURCHASE-COST-AND-STYLE-HISTORY.md; entry screens and costing engine not yet implemented |
 | Garment stock control | Track finished stock by style/colour/size, inward, production, reservation, dispatch, returns and physical counts | Specification recorded in GARMENT-STOCK-INVENTORY-CONTROL.md; complete movement ledger and shared stock UI not yet implemented |
-| Supplier procurement | Supplier master, supplier PO, inward GRN, inspection, accepted/rejected quantities and supplier payment | Initial local procurement and photo-bill workflow code exists; links between PO, GRN, bills, stock and accounts remain incomplete |
+| Supplier procurement | Supplier master, supplier PO, inward GRN, inspection, accepted/rejected quantities, purchase bills, invoice-wise supplier payments and TDS working | Local linked path now connects supplier master PAN/constitution, approved PO/GRN selection on reviewed purchase bills, duplicate GRN-link prevention, invoice-wise payments and TDS CA working. Still browser-local; PO advances remain separate from invoice allocations, and shared accounts reconciliation is incomplete |
 | Photo purchase entry | Photograph supplier bill and OCR fields | OCR-assisted local entry exists; line extraction needs human review and is not guaranteed |
 | Supplier payments | Allocate payments invoice-wise and show supplier balances | Local supplier-ledger/payment workflow code exists; requires reconciliation and testing before accounts reliance |
 | TDS | Calculate working TDS for relevant contractor/job-work payments and send working to CA | Local TDS register and CA handover workbook exist; CA must verify applicability; no statutory filing |
@@ -54,6 +54,10 @@ Status meanings:
 | Cloud sync | Share data between office and phones | Cloudflare Worker/D1 snapshot foundation exists only; encryption/decryption, device identity, real application data sync and deployment are not complete |
 | Security | Login, roles, audit, backup, recovery and secure attachments | Not complete; required before live multi-user financial use |
 | Reports | Sales, purchases, customer/supplier balances, stock, GST, TDS and profit | Some local reports/exports exist; not all are reconciled to one verified data source |
+
+## Supplier workflow implementation note
+
+Supplier Master now captures PAN and constitution for TDS working defaults. Reviewed supplier bills can be linked to an approved PO and its GRN; a GRN cannot be linked to multiple bills. Invoice-wise payments and confirmed contractor/job-work TDS are saved against the supplier bill and included in CA working. PO-level advances remain a separate procurement tracker and must not be double-counted with invoice-wise balances. All these records remain browser-local until secure shared storage and reconciliation are implemented.
 
 ## GST scope — current approved boundary
 
