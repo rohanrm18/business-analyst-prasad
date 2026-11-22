@@ -196,3 +196,8 @@ A first browser-local dispatch workspace has been added after invoice creation. 
 The transporter duplex action is blocked until E-Way Bill review is completed. If marked required, the user must attach a genuine official E-Way Bill PDF/image; the original attachment is placed on the reverse side without recreating its QR. If reviewed as not required, a reasoned “E-Way Bill Not Required” slip is printed on the back. The file limit is 1.2 MB and the attachment is stored in this browser's local storage; this is a prototype only and must not be used for sensitive document storage on a shared/public device. Duplex orientation and actual printer output have not been device-tested.
 
 Dispatch records are included in manual backup/restore. Limitations: one dispatch record per invoice, no partial/multiple dispatch allocation, no customer master/alternate address management, no automatic courier booking/tracking API, no automatic WhatsApp/email attachment delivery, no live E-Way Bill generation/GSP, and no shared multi-user ledger or role/audit identity. A prepared share message is not proof of sending/delivery.
+
+
+## Invoice carton-count field — 22 November 2026
+
+The invoice entry form includes **No. of Packages (Cartons)** as a required whole-number field, defaulting to 1. The saved count is displayed on the main tax invoice, Carton Copy, Customer Copy, Transporter Copy, and the prepared invoice share text. It records physical parcels/cartons, not garment-piece quantity. It is an additional logistics detail and does not replace the GST invoice goods-quantity field. Existing invoices without a saved carton count display 1 as a compatibility fallback; review and correct the count before dispatch if that fallback is not accurate.
