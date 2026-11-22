@@ -82,14 +82,17 @@ Track status history with date/time and user. Allow delivery confirmation with r
 
 ## 7. Documents and sharing
 
-Provide printable/downloadable:
-- Delivery challan
-- Packing list
-- Dispatch summary
+Provide printable/downloadable documents with separate copy tracking:
+- Packing Slip — Carton Copy (1), placed inside the carton; no prices or GST.
+- Tax Invoice — Carton Copy (1), placed inside the carton.
+- Tax Invoice — Transporter Copy (1), handed to the transporter.
+- Customer Tax Invoice Copy, made available after LR/consignment number is entered and saved.
+- Delivery challan, dispatch summary and packing list as applicable.
+- Courier envelope/address label for the customer.
 
-Documents should show Prasad Apparels business details, customer and ship-to details, document number/date, item/size/quantity breakdown, package totals, transport details and linked invoice/PO/E-Way Bill references where applicable.
+After LR entry, provide customer invoice-copy delivery actions: courier, WhatsApp and email. Courier records company, AWB/tracking number, booking date and status. WhatsApp/email must use the saved customer contact and invoice attachment where supported; otherwise provide a clear manual download/share fallback. Record prepared/sent/delivered/failed separately and never claim sent or delivered without provider confirmation. Prevent accidental duplicate sends and log intentional resends.
 
-Allow a dispatch summary to be shared with the customer (including a WhatsApp-ready message) after the user reviews it. Do not automatically send messages or documents without an explicit user action.
+The courier envelope/label must print customer/business name, optional contact person, complete delivery address, city/state, PIN code and mobile number. Support saved or one-time alternate delivery addresses, preview, configurable paper size/alignment/scaling, and a return address from configured company settings. Do not overwrite the customer master address silently.
 
 ## 8. Dashboard and search
 
@@ -112,7 +115,7 @@ Provide search and filters by customer, PO number, sales order, invoice, challan
 
 ## 10. Mandatory packing-slip and invoice sequence
 
-Dispatch must use the approved packing slip and the linked invoice. The packing slip is a prerequisite to sales billing, not an optional dispatch attachment. Print one packing-slip carton copy for placement inside the carton and one tax invoice shipment copy. The carton copy must not show prices or GST. Invoice quantities must be drawn from approved packed quantities and must not be invoiced twice. See `SALES-PACKING-SLIP.md` for the complete required workflow.
+Dispatch must use the approved packing slip and the linked invoice. The packing slip is a prerequisite to sales billing, not an optional dispatch attachment. Print one packing-slip carton copy and place it inside the carton. Print two invoice copies: one Invoice — Carton Copy to place inside the carton, and one Invoice — Transporter Copy to hand to the transporter. After LR number entry, enable the Customer Invoice Copy for courier, WhatsApp or email. Also provide courier-envelope printing with customer name, address, mobile number and PIN code. The packing slip carton copy must not show prices or GST. Invoice quantities must be drawn from approved packed quantities and must not be invoiced twice. See `SALES-PACKING-SLIP.md` for complete rules and acceptance tests.
 
 ## 11. Current architecture and production requirements
 
