@@ -204,3 +204,48 @@ The user has approved adding a direct E-Way Bill action to each saved sales tax 
 - Keep a human review and confirmation step before submission. Log who confirmed, when, the submitted invoice snapshot, GSP request reference and government response.
 - Do not assume a saved local invoice is securely available across devices. Before live production use, implement authenticated backend storage, access controls, encrypted transport, backups and recovery. Until then, this feature must remain a non-submitting preview/demo.
 - Do not hard-code the ₹50,000 threshold as the only rule. Apply current central/state rules, exemptions, transaction type and applicable exceptions, and require operator review where applicability is uncertain.
+
+
+## Official WhatsApp Business Platform — reminder delivery foundation
+
+The Worker now includes a **server-side WhatsApp Cloud API adapter**. It is intentionally not live until Meta onboarding, D1 migration and secrets are configured, and a secure application backend is connected.
+
+### What this foundation supports
+- Queueing approved WhatsApp template reminders through an authenticated server-to-server endpoint.
+- Customer opt-in records and opt-out handling (STOP / UNSUBSCRIBE).
+- A 15-minute scheduled queue worker with limited retries and duplicate protection.
+- Meta webhook verification using the configured verify token and signed webhook requests using the Meta app secret.
+- Message status updates (accepted, sent, delivered, read, failed) linked to provider message IDs.
+- No WhatsApp access token or app secret in browser code or Git.
+
+### Required Meta assets
+1. A Meta business portfolio.
+2. A WhatsApp Business Account (WABA).
+3. A business phone number connected to the WhatsApp Cloud API.
+4. A permanent/system-user access token with the required WhatsApp messaging permissions.
+5. An approved **UTILITY** message template for payment reminders in each language used.
+6. A Meta app webhook subscription for WhatsApp message/status events.
+
+Official Meta documentation: https://developers.facebook.com/documentation/business-messaging/whatsapp/overview
+
+### Cloudflare setup
+1. Apply `cloudflare/whatsapp-schema.sql` to the existing D1 database (it includes the original `sync_snapshots` table, so it can also initialise a fresh database).
+2. Configure these Worker secrets with Wrangler; never commit them:
+   - `WHATSAPP_SERVICE_TOKEN` — long random server-to-server credential used only by a trusted backend job/service.
+   - `WHATSAPP_ACCESS_TOKEN` — Meta Cloud API access token.
+   - `WHATSAPP_PHONE_NUMBER_ID` — Meta phone-number ID.
+   - `WHATSAPP_VERIFY_TOKEN` — random value entered in Meta webhook configuration.
+   - `WHATSAPP_APP_SECRET` — Meta app secret used to verify webhook signatures.
+3. Optionally set Worker variable `WHATSAPP_GRAPH_API_VERSION` to a currently supported Graph API version. The code defaults to `v27.0`; confirm the version available to your Meta app before production.
+4. Deploy the Worker. Configure the Meta webhook callback URL as `https://YOUR-WORKER-DOMAIN/api/whatsapp/webhook` and subscribe to the WhatsApp account's message/status webhook field.
+5. Create and get Meta approval for a payment reminder template. Template name and parameter order must exactly match the approved template.
+6. Test with Meta's test number and opted-in test recipient before any real customer messaging.
+
+### Internal API contract (server-to-server only)
+- `POST /api/whatsapp/consent` — authenticated with `WHATSAPP_SERVICE_TOKEN`; body: `{ "customer_ref": "CUST-001", "phone_e164": "919876543210", "opted_in": true, "consent_source": "signed customer form, 2026-11-22" }`. Use `opted_in:false` to record opt-out.
+- `POST /api/whatsapp/reminders` — authenticated with `WHATSAPP_SERVICE_TOKEN`; body: `{ "reminder_id": "REM-001", "customer_ref": "CUST-001", "invoice_ref": "INV-001", "stage": "due_today", "template_name": "prasad_payment_reminder", "language_code": "en", "parameters": ["Customer", "Invoice", "₹ amount", "Due date", "Total due"], "scheduled_at": "2026-11-22T10:00:00.000Z" }`.
+- These endpoints are **not for browser calls**. Do not put `WHATSAPP_SERVICE_TOKEN` in app JavaScript, localStorage, GitHub Pages or the mobile device. Only a trusted authenticated backend should call them.
+- `GET /api/whatsapp/webhook` handles Meta subscription verification; `POST` verifies the Meta signature and records message status callbacks and opt-out keywords.
+
+### Important production boundary
+The current Prasad app stores customer, invoice and receipt data in browser localStorage. It does not yet have secure shared customer/invoice storage, a user-login/role system or a trusted server-side reminder scheduler that calculates live balances. Therefore **automatic customer reminders are not yet enabled**: this commit provides the protected provider/queue/webhook foundation only. Do not send real reminders until the shared backend reads reconciled invoice-wise balances, checks consent and duplicate rules, applies customer reminder preferences/quiet hours, and builds the approved template parameters. Manual WhatsApp share remains the fallback. A successful API acceptance is not proof of delivery; use webhook status.
