@@ -254,3 +254,7 @@ The current Prasad app stores customer, invoice and receipt data in browser loca
 Setup instructions for Meta onboarding, template approval, Cloudflare secrets and go-live checks: [`WHATSAPP-CLOUD-API-SETUP.md`](WHATSAPP-CLOUD-API-SETUP.md).
 
 Customer profitability, gross-margin, style-performance and payment-behaviour roadmap: [`CUSTOMER-PROFITABILITY-ANALYSIS.md`](CUSTOMER-PROFITABILITY-ANALYSIS.md).
+
+## Purchase cost entry and style cost history
+
+See [Purchase Cost Entry & Style Cost History](PURCHASE-COST-AND-STYLE-HISTORY.md) for the approved workflow specification covering supplier-bill cost capture, manual verified style costs, effective-dated history, landed-cost allocation, costing-method safeguards and integration with customer/style/month profitability reports. This is a roadmap, not a live feature yet. Effective-dated style costs must be labelled as estimated COGS until batch or reconciled stock traceability supports actual cost matching.
