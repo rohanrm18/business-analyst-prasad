@@ -218,3 +218,10 @@ Dispatch print actions now distinguish the statutory goods-invoice copy designat
 ## Invoice input validation hardening — 22 November 2026
 
 The sales tax invoice form now requires an HSN/SAC entry in 4, 6 or 8 digit numeric form for each line and validates item description, positive quantity, non-negative piece amount, discount not exceeding gross line amount, GST rate between 0 and 100, seller state/place of supply, carton count as a positive whole number, optional buyer mobile as 10–15 digits, and optional Indian PIN as 6 digits. This is input-format validation only: it does not verify HSN classification, GST rate, GSTIN registration/status, place-of-supply treatment, tax exemptions or legal invoice applicability. CA review remains required. Invalid entries are blocked before local invoice save.
+
+
+## GST state-code consistency hardening — 22 November 2026
+
+- Added an India GST state/UT code reference for common state names and abbreviations. Invoice tax-split classification now prefers the supplier GSTIN's first two-digit registration-state code compared with the entered place-of-supply state code, rather than relying only on free-text spelling equality. This correctly handles equivalent entries such as the GST code `27` and `Maharashtra` when the place-of-supply field is a recognised state name/code.
+- Supplier GSTIN format now requires a two-digit numeric prefix and 15 total alphanumeric characters; when the seller state name is recognised, its state code must match the GSTIN prefix. Buyer GSTIN format receives the same structural check.
+- This is a consistency aid only, not GSTIN checksum/registration verification or a legal place-of-supply determination. Unknown/other-territory entries retain a conservative text-comparison fallback; CA must review the tax split, place of supply, exemptions and applicable rules before issue. No GST filing is enabled.
