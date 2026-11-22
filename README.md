@@ -58,8 +58,12 @@ The `cloudflare/` folder contains an initial Cloudflare Worker + D1 backend foun
 
 
 ## Barcode sales orders (preview)
-Open the **Orders** tab, enter the customer and date, then tap **Scan item barcode** and allow camera access. Each successful scan adds one unit; scanning the same barcode again increases its quantity. Quantities can be adjusted with plus/minus, and the barcode can also be entered manually. The scanner library is loaded from a public CDN when the camera is started, so internet access is needed for the first scanner load. Barcode-to-stock-item lookup, item rates and customer/item master sync are not connected yet; scanned rows remain local drafts and are not posted to Tally. Label Studio now records each successful print in a local barcode-history list (including barcode, style, model, colour, size and timestamp) and exports `prasad-barcode-history.json`. In the Orders screen, import that JSON once; subsequent scans can resolve the imported style/colour/size details. This is a file-based first bridge, not automatic cloud sync. Existing labels printed before history recording was added cannot be reconstructed from the sequence counter alone.
-\n\n### Share sales orders\nSaved sales orders include a Share / WhatsApp action. On supported phones it opens the native share sheet (WhatsApp, Messages, email and other installed apps); otherwise it opens WhatsApp with a prefilled order summary. Shared summaries show customer, date, item names, barcode values, quantities and notes. They are order summaries, not GST invoices.\n
+Open the **Orders** tab, enter the customer and date, then tap **Scan item barcode** and allow camera access. Each successful scan adds one unit; scanning the same barcode again increases its quantity. Quantities can be adjusted with plus/minus, and the barcode can also be entered manually. The scanner library is loaded from a public CDN when the camera is started, so internet access is needed for the first scanner load. Barcode-to-stock-item lookup, item rates and customer/item master sync are not connected yet; scanned rows remain local drafts and are not posted to Tally. Label Studio now records each successful print in a local barcode-history list (including barcode, style, model, colour, size and timestamp) and exports `prasad-barcode-history.json`. In the Orders screen, import that JSON once; subsequent scans can resolve the imported style/colour/size details. This is a file-based first bridge, not automatic cloud sync.
+
+
+### Share sales orders
+Saved sales orders include a Share / WhatsApp action. On supported phones it opens the native share sheet (WhatsApp, Messages, email and other installed apps); otherwise it opens WhatsApp with a prefilled order summary. Shared summaries show customer, date, item names, barcode values, quantities and notes. They are order summaries, not GST invoices.
+
 
 ## ERP expansion — Windows + phone foundation
 
@@ -82,7 +86,7 @@ The movement register currently calculates balances by the exact item text enter
 3. Purchase orders, inward GRN, inspection/accepted/rejected quantities, purchase invoices/returns, supplier balances and raw-material stock ledger.
 4. Production routing and size-wise plans, material reservation/issue/return, cutting markers, bundles, stitching, in-house work and outsourced challans/receipts/shortages.
 5. Finishing, accessories, ironing, measurement/QC, alteration/rework, packing, cartons, barcode labels and QC-approved finished-goods stock.
-6. Sales quotations/orders, finished-stock reservation, picking, dispatch challans/LR/e-way-bill workflow, GST invoices, returns, collections and customer balances.
+6. Sales quotations/orders, finished-stock reservation, picking, dispatch challans/LR/**customer invoice-linked E-Way Bill workflow**, GST invoices, returns, collections and customer balances.
 7. Expenses, cash/bank, worker/contractor payments, cost sheets, stock valuation, profit reports, GST checks and then Tally integration.
 
 Do not connect Tally or enable voucher posting until the operational workflows, security, audit and test-company validation are complete.
@@ -126,10 +130,12 @@ This is still a local-device availability check, not a reservation ledger. Produ
 
 
 ## Automated purchase planning (initial)
+
 The **More → Automated purchase planning** screen totals BOM requirements across open production orders, groups matching materials, compares the total against the current fabric-roll/accessory balances and calculates shortages. It supports both BOM approaches: common **ALL SIZES** usage multiplied by the order quantity, and size-specific/per-garment usage multiplied by each size quantity in the production plan. It creates a reviewable purchase-request draft and can open WhatsApp with the vendor, item, shade, shortage quantity and delivery instructions prefilled. The request is an enquiry/draft only; the user must review and send it, and vendor confirmation/approval is still manual. Purchase request history is saved only in the current browser/device. Supplier master linkage, automatic vendor selection, formal PO approval, PO-to-GRN stock posting and shared cloud records are not yet implemented. Planning is only as accurate as the entered production orders, BOM and local stock records; it is not a reserved-stock or audited procurement ledger.
 
 
 ## Supplier master and vendor-aware purchase planning
+
 The **More → Supplier master** page stores supplier/firm name, WhatsApp number (with country code), GSTIN, comma-separated materials supplied / material codes, payment terms, address and notes. Supplier records can be edited or deleted; purchase-request history remains in the local device record. The automated purchase planner matches BOM material type/code/name/colour against supplier keywords, preselects the strongest match, and lets the user override the vendor per shortage line. It groups shortage lines into separate supplier requests and opens WhatsApp with each vendor's request prefilled. Requests remain drafts/enquiries and require human review and sending; this does not place a purchase order, verify GSTIN against government records, negotiate rates, or confirm vendor availability. Supplier master and purchase requests are included in manual backup/restore, but remain browser-local until a shared backend is implemented.
 
 
@@ -174,3 +180,27 @@ The **More → Purchase Orders & procurement** workflow can convert a saved vend
 The **More → Job work & contractor TDS** page includes a CA handover working pack. It exports an Excel-compatible workbook with TDS transaction details, supplier summary, quarter summary and a CA-review worksheet. It includes supplier invoice payment records where job-work / contract-service nature was selected, including records with no TDS withheld so the CA can review them. The internal tracker records whether the working file was sent to the CA, the handover date and CA remarks.
 
 This feature is **only internal TDS working and handover**. The app does not prepare or file the statutory TDS return, does not submit anything to the Income Tax portal, and does not certify legal applicability or calculations. The CA must verify the source records and determine the correct statutory treatment and file the return. Exports are generated from local browser/device records; they are not automatically shared or cloud-synced. The workbook is an Excel 2003 XML .xls file that opens in Excel; use Save As .xlsx if a newer workbook format is required.
+
+
+## Approved next feature — E-Way Bill from saved sales tax invoice
+
+The user has approved adding a direct E-Way Bill action to each saved sales tax invoice. This is a **planned feature, not yet implemented or connected to the government system**.
+
+### Intended workflow
+1. Open a saved sales tax invoice and tap **Generate E-Way Bill**.
+2. The app prepares a review screen using the saved invoice data: invoice number/date, supplier and recipient GSTIN/details, dispatch and delivery addresses, item descriptions, HSN, quantity, taxable value, tax and total consignment value.
+3. The user enters or confirms the required transport information: supply/transaction type, transporter ID/GSTIN where applicable, transport mode, vehicle number/type or transport document/LR number and date, and approximate distance.
+4. Run pre-submission checks and clearly list missing, invalid or inconsistent details. Show an applicability review (likely required / likely not required / needs review) using current rules and exemptions; do not present the estimate as a legal determination.
+5. Show the complete E-Way Bill payload summary and require an explicit **Review & Confirm Submission** action before any government submission.
+6. Only after confirmation, send the request from a secure server-side integration to an authorised E-Way Bill GSP. Never put GSP credentials, API secrets or tokens in browser JavaScript, local storage or this public repository.
+7. Save and display only the genuine E-Way Bill number, generated date/time, validity, status and QR code returned by the authorised service. Never fabricate an E-Way Bill number or QR code.
+8. Provide an invoice-linked E-Way Bill register with statuses such as Draft, Review Required, Ready to Submit, Generated, Rejected, Cancelled, Expiring and Expired, plus response/error details and audit history.
+9. Design for supported follow-up operations such as Part-B vehicle/transporter updates, cancellation, validity extension and bulk generation, subject to the selected GSP's API capabilities and government rules.
+
+### Integration and safety prerequisites
+- Prasad Apparels uses **Tally.ERP 9 in accounting-invoice-only mode**. The E-Way Bill workflow must therefore use the saved invoice data in Prasad Business, not depend on ERP 9 inventory-mode E-Way Bill fields.
+- Choose and onboard an authorised GSP; confirm pricing, API coverage, production approval, rate limits and support before enabling live submission. Tally's own GSP credentials are not assumed to be reusable by this independent app.
+- If e-invoicing/IRN is legally required for a particular invoice, enforce the required IRN dependency before or with E-Way Bill generation as applicable.
+- Keep a human review and confirmation step before submission. Log who confirmed, when, the submitted invoice snapshot, GSP request reference and government response.
+- Do not assume a saved local invoice is securely available across devices. Before live production use, implement authenticated backend storage, access controls, encrypted transport, backups and recovery. Until then, this feature must remain a non-submitting preview/demo.
+- Do not hard-code the ₹50,000 threshold as the only rule. Apply current central/state rules, exemptions, transaction type and applicable exceptions, and require operator review where applicability is uncertain.
