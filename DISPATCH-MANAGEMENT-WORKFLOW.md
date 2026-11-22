@@ -4,7 +4,7 @@
 
 Add a dispatch workspace to Prasad Business so Prasad Apparels can pack, document, release and track customer deliveries. Dispatch records must connect to the relevant customer PO, sales order, tax invoice and E-Way Bill where applicable.
 
-This is a product specification and implementation roadmap. It does not mean the feature is already live in the app.
+This is a product specification and implementation roadmap. It does not mean the feature is already live in the app. An approved packing slip is mandatory before sales billing; see `SALES-PACKING-SLIP.md`.
 
 ## 1. Where users start
 
@@ -110,9 +110,9 @@ Provide search and filters by customer, PO number, sales order, invoice, challan
 - Require a reason for cancellation and exceptional quantity changes.
 - Do not delete a dispatch that has already been used for accounting, compliance or customer documentation; use a controlled cancellation/reversal history.
 
-## 10. Tally.ERP 9 compatibility
+## 10. Mandatory packing-slip and invoice sequence
 
-Prasad Apparels uses Tally.ERP 9 and accounting-invoice-only entries. Dispatch Management must therefore work from Prasad Business sales orders, invoices and customer PO records. It must not depend on Tally stock-item/inventory fields being present. Any later Tally export or reconciliation must be explicit and must not claim that dispatch details have been posted into Tally unless that integration is actually implemented.
+Dispatch must use the approved packing slip and the linked invoice. The packing slip is a prerequisite to sales billing, not an optional dispatch attachment. Print one packing-slip carton copy for placement inside the carton and one tax invoice shipment copy. The carton copy must not show prices or GST. Invoice quantities must be drawn from approved packed quantities and must not be invoiced twice. See `SALES-PACKING-SLIP.md` for the complete required workflow.
 
 ## 11. Current architecture and production requirements
 
@@ -146,4 +146,4 @@ Until those foundations are implemented, label local-only records and document s
 
 ## Design principle
 
-Keep the daily workflow simple: **Select Order/Invoice → Check Items & Sizes → Enter Packing/Transport → Review E-Way Bill → Confirm Dispatch → Share Documents → Track Delivery.**
+Keep the daily workflow simple: **Select Customer Order → Pick & Pack by Size/Carton → Approve Packing Slip → Print Carton Copy → Create Sales Invoice → Print Invoice Copy → Dispatch → Track Delivery.**
