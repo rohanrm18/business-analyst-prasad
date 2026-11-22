@@ -99,6 +99,8 @@ function arAge(v){return arDue(v)?Math.floor((new Date().setHours(0,0,0,0)-new D
 function arCaseFor(v){const events=arStatusEvents.filter(e=>e.invoiceId===v.id);return events.length?events[events.length-1]:{status:'active',reason:''}}
 function arOpen(){return arInvoices().filter(v=>v&&v.id&&v.buyer_name&&v.status!=='reversed'&&arBal(v)>.009)}
 function arFmt(n){return '₹'+Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function arCsvCell(v){let x=String(v??'');if(/^[=+@\-\t\r]/.test(x))x="'"+x;return '"'+x.replace(/"/g,'""')+'"'}
+function exportReceivablesCSV(){const rows=[['Customer','Invoice / Opening Ref','Type','Invoice / Balance Date','Due Date','Original Amount','Receipts Allocated','Credit Adjustments','Outstanding','Days Overdue','Collection Status','Status Reason']];arInvoices().forEach(v=>{const cs=arCaseFor(v);rows.push([v.buyer_name,v.invoice_no,v.opening_balance?'Opening balance':'Sales invoice',v.invoice_date,arDue(v),arInvoiceTotal(v),arReceived(v),arCredited(v),arBal(v),Math.max(0,arAge(v)),cs.status,cs.reason||''])});const csv='\\uFEFF'+rows.map(r=>r.map(arCsvCell).join(',')).join('\\r\\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Prasad-Customer-Receivables-'+new Date().toISOString().slice(0,10)+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500)}
 function customerOutstandingView(){
  const os=arOpen(),total=os.reduce((n,v)=>n+arBal(v),0),late=os.filter(v=>arAge(v)>0).reduce((n,v)=>n+arBal(v),0);
  const buckets=[['Not due',v=>arAge(v)<0],['Due today',v=>arAge(v)===0],['1–30 days',v=>arAge(v)>=1&&arAge(v)<=30],['31–60 days',v=>arAge(v)>=31&&arAge(v)<=60],['61–90 days',v=>arAge(v)>=61&&arAge(v)<=90],['Over 90 days',v=>arAge(v)>90]];
@@ -115,9 +117,10 @@ function customerOutstandingView(){
  +card('Customer balances','Customer-wise exposure and limit warning.',customers||'<div class="empty">No customers yet.</div>')
  +card('Invoice-wise balances','Part payments reduce the selected invoice.',invoices||'<div class="empty">No open invoices.</div>')
  +card('Payment history','Saved receipt allocation history.',history||'<div class="empty">No receipts yet.</div>')
- +'<p class="hint">Browser-local only. Not bank-verified, not posted to Tally, not shared across devices. Opening balances and approved credit-adjustment references are local only; returns, write-offs, bank matching and Tally reconciliation are not included.</p><button class="secondary" data-go="collections">Collection reminders</button>';
+ +'<button type="button" class="secondary" id="ar-export">Export receivables CSV</button><p class="hint">Browser-local only. Not bank-verified, not posted to Tally, not shared across devices. Opening balances and approved credit-adjustment references are local only; returns, write-offs, bank matching and Tally reconciliation are not included.</p><button class="secondary" data-go="collections">Collection reminders</button>';
 }
 function bindAR(){
+ let exportButton=document.getElementById('ar-export');if(exportButton)exportButton.onclick=exportReceivablesCSV;
  let f=document.getElementById('ar-receipt');
  if(f){
   const customer=f.elements.customer,container=document.getElementById('ar-allocations'),totalLabel=document.getElementById('ar-receipt-total');
