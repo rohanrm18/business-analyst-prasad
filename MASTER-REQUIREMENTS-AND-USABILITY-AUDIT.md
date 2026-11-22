@@ -269,3 +269,10 @@ The sales tax invoice form now requires an HSN/SAC entry in 4, 6 or 8 digit nume
 - Implemented a device-local customer directory in the Parties screen with create/edit, name duplicate prevention, mobile/PIN/GSTIN format checks, address, state/city, credit days and credit limit.
 - Customer master records are included in the manual JSON backup key list and procurement ERP restore allow-list.
 - This is a local directory only: it does not yet auto-fill sales orders/invoices, merge legacy spellings, sync across devices, enforce user roles, or verify GSTIN registration. Existing receivables remain a separate ledger pending controlled migration/linking.
+
+
+## Customer purchase order implementation — 2026-11-22
+- Added a customer PO register reachable from Sales Orders. Capture customer, buyer PO number, PO date, required delivery date, status, terms and multiple style/colour/size/quantity/rate lines.
+- Prevent duplicate PO numbers for the same customer. Only Confirmed POs can convert; conversion creates one linked sales order and prevents duplicate conversion. PO remains a separate record and conversion does not create an invoice, packing slip, production order or dispatch.
+- Customer PO records are included in manual JSON backup and restore allow-lists with array validation.
+- Local prototype limitation: no customer PO document attachment, partial conversion, PO amendment/revision history, automatic stock allocation, automatic manufacturing order creation, server sync or multi-user approval yet. Sales order conversion is one-time and full-quantity.
