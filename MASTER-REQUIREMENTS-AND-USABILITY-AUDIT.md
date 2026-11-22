@@ -39,6 +39,7 @@ Status meanings:
 | Credit control | Customer credit limit, warnings, approvals and overdue control | Specification recorded in CUSTOMER-CREDIT-CONTROL.md; not reliable company-wide until shared backend and server-side checks exist |
 | Customer profitability | Profit by customer, style and month; rankings and collection behaviour | Specification recorded in CUSTOMER-PROFITABILITY-ANALYSIS.md; requires verified costs and reconciled invoices/receipts |
 | Purchase cost history | Simple purchase-cost entry, style/variant cost history and landed-cost allocation | Specification recorded in PURCHASE-COST-AND-STYLE-HISTORY.md; entry screens and costing engine not yet implemented |
+| Garment stock control | Track finished stock by style/colour/size, inward, production, reservation, dispatch, returns and physical counts | Specification recorded in GARMENT-STOCK-INVENTORY-CONTROL.md; complete movement ledger and shared stock UI not yet implemented |
 | Supplier procurement | Supplier master, supplier PO, inward GRN, inspection, accepted/rejected quantities and supplier payment | Initial local procurement and photo-bill workflow code exists; links between PO, GRN, bills, stock and accounts remain incomplete |
 | Photo purchase entry | Photograph supplier bill and OCR fields | OCR-assisted local entry exists; line extraction needs human review and is not guaranteed |
 | Supplier payments | Allocate payments invoice-wise and show supplier balances | Local supplier-ledger/payment workflow code exists; requires reconciliation and testing before accounts reliance |
@@ -142,6 +143,7 @@ Before calling the app ready, test as one connected workflow on an Android phone
 13. Verify customer reminder preview, opt-in/opt-out, manual share and official WhatsApp delivery statuses.
 14. Verify customer/style/month profitability with complete and missing cost cases.
 15. Verify fabric, BOM, production, job-work, QC, stock movement and finished goods do not double-count quantities.
+16. Verify style/colour/size stock balances, partial inward, reservations, dispatch-once logic, returns quarantine, transfers and physical-count adjustments against the movement ledger.
 16. Verify labels, barcode scans, printer alignment, bulk double-confirmation and cancel-print.
 17. Verify dashboard totals against underlying ledgers and exports.
 18. Verify role permissions, audit logs, sync conflict handling, backup and restore.
@@ -156,6 +158,6 @@ Before calling the app ready, test as one connected workflow on an Android phone
 - GST: working for CA only now; no filing. Automatic filing may be added later if approved.
 - TDS: internal working and CA handover only; no statutory filing.
 - E-Way Bill: authorised API integration with review and explicit confirmation, when properly onboarded.
-- Customer PO, dispatch, outstanding/collections, credit control, customer profitability and style cost history are approved requirements.
+- Customer PO, dispatch, outstanding/collections, credit control, customer profitability, style cost history and garment stock control are approved requirements.
 - Official WhatsApp Business Platform is the intended automatic reminder channel, with manual share fallback, but live sending remains off until fully configured.
 - Gather features first and complete a single consolidated final test pass rather than asking the owner to test after every small change.
