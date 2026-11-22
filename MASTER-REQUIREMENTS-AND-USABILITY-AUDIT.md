@@ -6,8 +6,8 @@ This is the master checklist of requirements approved for Prasad Apparels Busine
 
 ## Non-negotiable business rules
 
-1. **Tally.ERP 9 is the accounting source of truth.** The business uses accounting-invoice-only entries, not stock-item invoices. Do not assume Tally contains garment-level stock valuation or line-item inventory data.
-2. Do not claim Tally is connected until a real, tested integration is deployed and reconciled. The current office connector is a read-only diagnostic foundation.
+1. **Prasad Business is the intended primary business system.** Do not make completion dependent on Tally. The user will migrate/import required historical information from Tally after Prasad Business is ready.
+2. Build validated CSV/XLSX migration templates, row-level preview, duplicate prevention, control-total reconciliation and controlled rollback. No live Tally integration or voucher posting is part of the approved plan.
 3. Do not invent sales, stock, tax, payment, cost, profit, E-Way Bill or message-delivery figures. Show source, sync time and incomplete-data warnings.
 4. Local browser records are device-specific until secure shared storage, authentication, sync, backup and recovery are completed.
 5. **GST is for CA working only in the current phase. No GST portal filing, return submission or automatic filing.** Automatic filing can be considered later as a separate approved phase.
@@ -28,7 +28,7 @@ Status meanings:
 | Smart dashboard | Easy home screen with important figures and quick actions | Prototype dashboard exists; live verified company figures and complete quick actions are not yet connected |
 | Easy everyday use | Anyone should be able to use it without technical knowledge | Not complete; this audit defines the required usability standard below |
 | Phone + desktop | Use on Android/iPhone and office Windows computer | Responsive PWA foundation exists; real device/print acceptance is pending |
-| Tally | Tally.ERP 9, accounting-invoice-only; Tally remains accounting source of truth | Read-only local XML diagnostic connector foundation exists; live Tally data sync and voucher posting are not implemented |
+| Historical data migration | Import existing Tally records after Prasad Business is ready | Import specification recorded; templates, validation, idempotent import, reconciliation and rollback still need implementation. No live Tally integration planned |
 | Sales orders | Create orders, scan garment barcode, share order summary | Local draft/order prototype and barcode scan/share foundation exist; no verified shared customer/style master or Tally posting |
 | Sales tax invoices | Create GST tax invoices with CGST/SGST/IGST, print/share, convert from sales order | Local-device invoice prototype exists; not connected to Tally or shared database; verify invoice/legal setup before live use |
 | Customer PO | Record customer's PO, attach original, convert to orders and track balance | Specification recorded in CUSTOMER-PO-WORKFLOW.md; full linked UI/workflow not confirmed complete |
