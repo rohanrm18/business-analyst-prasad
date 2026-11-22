@@ -252,3 +252,5 @@ The current Prasad app stores customer, invoice and receipt data in browser loca
 
 
 Setup instructions for Meta onboarding, template approval, Cloudflare secrets and go-live checks: [`WHATSAPP-CLOUD-API-SETUP.md`](WHATSAPP-CLOUD-API-SETUP.md).
+
+Customer profitability, gross-margin, style-performance and payment-behaviour roadmap: [`CUSTOMER-PROFITABILITY-ANALYSIS.md`](CUSTOMER-PROFITABILITY-ANALYSIS.md).
