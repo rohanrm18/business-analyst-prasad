@@ -224,3 +224,9 @@ A first browser-local working screen is now present under **Parties** in Prasad 
 - Receipt, credit and reminder records are included in manual backup/restore.
 
 This is not yet a complete production receivables ledger. It is local to one browser/device, not connected to Tally or bank feeds, and does not include opening balance migration, credit/debit notes, returns, write-offs, multi-user approvals, customer-level phone consent UI or automated WhatsApp sending. Existing invoices without a due date fall back to invoice date. Reconcile all figures with Tally and test with sample transactions before relying on the balances.
+
+### Follow-up improvements
+- One receipt can be split across multiple distinct invoices for the same customer; the system sums allocations and validates each against its remaining balance.
+- Customer credit settings are loaded when editing an existing customer; invoice due dates cannot be earlier than the invoice date.
+- Backup restore validates receipt allocation totals and invoice references plus customer credit settings before replacing local data.
+- Reminder schedule labels now distinguish exact scheduled follow-up dates from general upcoming or overdue statuses.
