@@ -16,8 +16,11 @@ function validateInvoiceDraft(totals,form){
  const sellerState=String(form.get('seller_state')||'').trim(),place=String(form.get('place_supply')||'').trim(),sellerGstin=String(form.get('seller_gstin')||'').trim().toUpperCase();
  if(!sellerState||!place)return 'Enter both seller state and place of supply.';
  if(!/^\d{2}[0-9A-Z]{13}$/.test(sellerGstin))return 'Supplier GSTIN must start with a 2-digit GST state code and contain 15 characters. Confirm the GSTIN with your CA.';
- const sellerCode=sellerGstin.slice(0,2),knownSellerState=gstStateCode(sellerState);
- if(knownSellerState&&knownSellerState!==sellerCode)return 'Supplier GSTIN state code does not match the selected seller state. Check the GSTIN and state before saving.';
+ const sellerCode=sellerGstin.slice(0,2),knownSellerState=gstStateCode(sellerState),knownPlaceState=gstStateCode(place);
+ if(!GST_STATE_CODES[sellerCode])return 'Supplier GSTIN has an unrecognised state code. Confirm the GSTIN with your CA before saving.';
+ if(!knownSellerState)return 'Seller state is not recognised in the GST state list. Select a recognised Indian state or Union Territory before saving.';
+ if(knownSellerState!==sellerCode)return 'Supplier GSTIN state code does not match the selected seller state. Check the GSTIN and state before saving.';
+ if(!knownPlaceState)return 'Place of supply is not recognised in the GST state list. Enter the state or Union Territory name/code and confirm it with your CA before saving.';
  if(!totals.items.length)return 'Add at least one valid invoice item.';
  const names=form.getAll('item_name[]'),hsns=form.getAll('item_hsn[]'),qtys=form.getAll('item_qty[]'),rates=form.getAll('item_rate[]'),discounts=form.getAll('item_discount[]'),gsts=form.getAll('item_gst[]');
  for(let i=0;i<names.length;i++){
