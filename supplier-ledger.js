@@ -7,6 +7,7 @@ const round=n=>Math.round((Number(n)+Number.EPSILON)*100)/100;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fyq=date=>{const [y,m]=date.split('-').map(Number),fy=m>=4?y:y-1,q=m>=4?Math.floor((m-4)/3)+1:4;return {quarter:'Q'+q,financialYear:fy+'-'+String(fy+1).slice(-2)};};
 const isContractWork=n=>['Job work','Contract service'].includes(n);
+function isContractWork(n){return ['Job work','Contract service'].includes(n);}
 function enhance(){
  const form=$('supplier-payment-form');if(!form||form.dataset.tdsEnhanced)return;form.dataset.tdsEnhanced='1';
  const billSelect=form.elements.billId,paid=form.elements.amountPaid,tdsField=form.elements.tdsWithheld;
