@@ -172,3 +172,14 @@ Before calling the app ready, test as one connected workflow on an Android phone
 - Added PO advance-to-purchase-bill allocation in the invoice-wise supplier settlement screen. It validates matching supplier names, available unallocated advance and bill outstanding; records a distinct allocation; and reduces invoice outstanding without creating another cash payment.
 - Follow-up source review found and fixed an initialization-order issue in the new allocation panel (bill/payment collections are now loaded before the panel builds its options).
 - The feature remains browser-local, limited to purchase bills linked to a PO, and needs full browser workflow testing and accounting reconciliation before production use. It does not automatically allocate advances or change the PO cash-payment ledger.
+
+
+## Customer outstanding and collections implementation update — 22 Nov 2026
+- Added a browser-local customer receivables screen under **Parties** using saved Prasad sales tax invoices: invoice-wise original value, receipt allocations, remaining balance, customer totals and due-date ageing (not due, due today, 1–30, 31–60, 61–90 and over 90 days).
+- Added invoice due-date entry; default due date uses the saved customer credit days (30 days when no customer terms are configured). Existing invoices without a due date fall back to invoice date and should be reviewed.
+- Added receipt entry with customer/invoice validation, partial receipts, mode, date, UTR/cheque reference and notes. A receipt is allocated to one invoice per entry; a single bank receipt split across invoices is entered as multiple allocations with the same reference.
+- Added customer credit limit and credit-day settings, an over-limit warning at invoice save, and a customer exposure warning in the outstanding view.
+- Added collection reminders with upcoming/due/overdue stages, prepared WhatsApp share links and a local reminder activity history. The user must send the message manually.
+- Added receipt, credit and reminder records to manual backup/restore.
+- **Not production accounting:** all records remain in this browser/device; no Tally import/reconciliation, bank statement matching, opening-balance conversion, credit-note/return/write-off handling, multi-user sync, role-based approvals, audit identity or automatic WhatsApp sending. The receipt form currently supports one invoice allocation per entry. Verify balances against Tally before operational reliance.
+- Acceptance testing remains required for partial/full payments, split receipt references, due-date boundaries, over-limit confirmation, backup/restore and WhatsApp handoff.
