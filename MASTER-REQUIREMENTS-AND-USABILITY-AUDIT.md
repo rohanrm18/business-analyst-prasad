@@ -15,6 +15,12 @@ This is the master checklist of requirements approved for Prasad Apparels Busine
 7. WhatsApp automatic reminders remain disabled until official Meta onboarding, consent, secure shared ledgers, scheduling and delivery-status testing are complete.
 8. Final end-to-end testing should be done as one consolidated review after the approved feature set is gathered.
 
+## End-to-end operating workflow
+
+The canonical business lifecycle and document handoffs are defined in [PRASAD-APPARELS-END-TO-END-WORKFLOW.md](PRASAD-APPARELS-END-TO-END-WORKFLOW.md). This is the target workflow, not a claim that every step is already implemented. It separates samples, customer sales orders, manufacturing orders, supplier procurement, stock, packing, invoices and dispatch, and defines the required links and quantity controls.
+
+Current manufacturing screen is only a basic local prototype: it has a simple production order form, sample status form and stage quantity updates. It does not yet enforce approved sample versions, link customer POs/sales orders to manufacturing orders, reconcile job-work, post QC-passed finished stock, or coordinate partial fulfilment. These remain implementation work.
+
 ## Requirement-by-requirement status
 
 Status meanings:
