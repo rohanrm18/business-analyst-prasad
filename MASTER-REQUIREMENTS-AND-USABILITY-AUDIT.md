@@ -183,3 +183,5 @@ Before calling the app ready, test as one connected workflow on an Android phone
 - Added receipt, credit and reminder records to manual backup/restore.
 - **Not production accounting:** all records remain in this browser/device; no Tally import/reconciliation, bank statement matching, opening-balance conversion, credit-note/return/write-off handling, multi-user sync, role-based approvals, audit identity or automatic WhatsApp sending. The receipt form currently supports one invoice allocation per entry. Verify balances against Tally before operational reliance.
 - Acceptance testing remains required for partial/full payments, split receipt references, due-date boundaries, over-limit confirmation, backup/restore and WhatsApp handoff.
+
+- Added a reversal action for an incorrectly entered receipt. Reversal requires a reason, retains the original record and restores the invoice balance rather than deleting payment history.
