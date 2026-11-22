@@ -271,3 +271,8 @@ See [Purchase Cost Entry & Style Cost History](PURCHASE-COST-AND-STYLE-HISTORY.m
 ## Master requirements and usability checklist
 
 See [Master Requirements Register & Usability Audit](MASTER-REQUIREMENTS-AND-USABILITY-AUDIT.md) for the complete owner-approved feature checklist, what is currently prototype code versus specification/foundation only, GST-for-CA-only scope, and the usability and final acceptance requirements. This register must be kept current as implementation progresses.
+
+
+## Garment stock and inventory control
+
+See [Garment Stock & Inventory Control](GARMENT-STOCK-INVENTORY-CONTROL.md) for the approved style/colour/size stock ledger workflow, supplier inward/GRN, production movements, reservations, dispatch, returns, transfers, physical counts, costing safeguards and Tally.ERP 9 accounting-only boundary. This is a workflow specification; the complete stock screens, movement engine and shared ledger are not yet implemented.
