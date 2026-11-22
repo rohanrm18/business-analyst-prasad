@@ -238,3 +238,6 @@ This is not yet a complete production receivables ledger. It is local to one bro
 - Current customer receivables data remains local to the browser/device. There is no shared company ledger, automatic bank matching or Tally reconciliation yet.
 
 - Added manual bank statement matching to receipt history. The user checks the statement, enters the bank reference and confirms the match; this is a manual control, not a live bank feed or automatic reconciliation.
+
+### Dispute and collection pause controls
+Invoices can be marked Active, Disputed or On Hold with a reason. Disputed/on-hold balances remain in receivables totals and ageing, but are excluded from reminder preparation until resumed. Reminder preparation blocks paid or paused invoices and duplicate invoice/stage/date actions. History records a prepared reminder, not a sent or delivered message.
