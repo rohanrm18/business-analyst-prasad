@@ -14,7 +14,7 @@ function records(){
  return rows.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
 }
 function filtered(){
- const [fy,q]=selected();return records().filter(r=>(!fy||r.fy===fy)&&(!q||r.q===q));
+ const [fy,q]=selected();return records().filter(r=>(!fy||fy==='All'||r.fy===fy)&&(!q||q==='All'||r.q===q));
 }
 function summary(rows,keyFn){
  const m=new Map();rows.forEach(r=>{const k=keyFn(r);if(!m.has(k))m.set(k,{key:k,count:0,gross:0,base:0,tds:0,net:0});const x=m.get(k);x.count++;x.gross+=r.gross;x.base+=r.base;x.tds+=r.tds;x.net+=r.net;});return [...m.values()];
