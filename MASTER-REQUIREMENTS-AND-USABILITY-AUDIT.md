@@ -53,7 +53,7 @@ Status meanings:
 | Production | Track production stages, order progress, holds/problems, job work and returns | Initial local production tracker and job-work challan/TDS screens exist; full stage quantity reconciliation, wages, QC, rework and costing are incomplete |
 | Labels/barcodes | Integrated garment label printing and barcode history/scan bridge | Initial label centre and barcode workflows exist; thermal printer alignment/direct Bluetooth reliability still needs device testing |
 | Cloud sync | Share data between office and phones | Cloudflare Worker/D1 snapshot foundation exists only; encryption/decryption, device identity, real application data sync and deployment are not complete |
-| Security | Login, roles, audit, backup, recovery and secure attachments | Not complete; required before live multi-user financial use |
+| Security | One app with individual accounts and Owner-controlled Owner/Accountant/CA/Manager/Worker permissions, MFA, session control, audit and secure recovery | D1 security schema migration and detailed specification added; authentication, MFA, server-side permission enforcement, deployment and acceptance testing are NOT complete. Browser-local data remains unsuitable for secure multi-user financial use |
 | Reports | Sales, purchases, customer/supplier balances, stock, GST, TDS and profit | Some local reports/exports exist; not all are reconciled to one verified data source |
 
 ## Supplier workflow implementation note
@@ -236,3 +236,12 @@ The sales tax invoice form now requires an HSN/SAC entry in 4, 6 or 8 digit nume
 ## Supplier advance and style-cost backup coverage — 22 November 2026
 - Manual business backups now include supplier advance-to-bill allocations and effective-dated style cost history. Restore allow-list accepts both datasets and applies the existing array-shape validation before replacing records. Compliance backup wrapper inherits the expanded allowed-key list.
 - Backups remain manual, browser-local and unencrypted; store them in a private secure location. Restore replaces local records and should be preceded by a fresh backup.
+
+
+## Security foundation update (2026-11-22)
+
+- Added `cloudflare/migrations/0002_security.sql` for individual users, per-user permissions, sessions, login throttling, audit events and recovery-code hashes.
+- Added `SECURITY-AND-ACCESS-CONTROL.md` with the one-app role matrix, deny-by-default rules and mandatory go-live acceptance tests.
+- Updated README to make the security boundary explicit.
+- **Not yet implemented/deployed:** authentication endpoints, password verification, MFA enrollment/verification, session middleware, server-side business API authorisation, D1 migration execution, encryption/key management, frontend login/permission UI, and end-to-end security tests.
+- Existing browser-local business records and shared-token sync foundation must not be described as production-secure. Real financial data must remain out of shared deployment until all controls are implemented and tested.
