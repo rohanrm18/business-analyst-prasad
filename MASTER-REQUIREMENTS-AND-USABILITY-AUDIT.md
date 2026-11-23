@@ -711,3 +711,13 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Tax account mapping is a configurable chart-code selection, not confirmation of GST input-credit eligibility. CA must confirm account treatment and bill tax data.
 - Browser-local only; no server-side concurrency, verified CA identity, backfill or consolidated browser testing.
 - Syntax validation passed for `advanced-workflows.js` and `compliance.js`. Browser workflow, tax reconciliation and journal trial-balance tests remain pending.
+
+
+## Supplier PO advance payment and bill allocation accounting — 23 November 2026
+
+- Added a supplier PO advance payment entry using the supplier master, PO reference, payment date, amount, payment mode and transaction reference. The advance is recorded separately from invoice-wise supplier payments and does not reduce a bill until allocated.
+- New advances attempt a mapped journal: Supplier Advances asset Dr / selected Cash or Bank Cr. A locally CA-reviewed `supplier_advance_payment` mapping is required; if unavailable or invalid, the advance remains saved with a pending accounting status and cannot be allocated.
+- Advance allocation requires a posted advance journal, matching supplier, PO-linked purchase bill, valid date, available advance and remaining bill balance. It posts Supplier Payable Dr / Supplier Advances Cr as a separate `supplier_advance_allocation` event. It never creates a second cash/bank movement.
+- Stable unique IDs are used for advance and allocation journal source events; the multi-line engine retains idempotent retry/conflict handling. The UI shows remaining advance after allocations.
+- Legacy advances without a verified mapped advance journal are intentionally not auto-allocated by the new flow. Existing historical allocations are not rewritten.
+- This remains local-device accounting. CA must confirm the selected asset, cash/bank and payable accounts. No browser/device, multi-user, bank reconciliation or full trial-balance test has been performed.
