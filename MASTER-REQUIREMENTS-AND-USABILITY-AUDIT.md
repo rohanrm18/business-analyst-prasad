@@ -572,3 +572,13 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 
 - New LR/dispatch dates are now checked against the local financial-year lock before a dispatch record or physical stock issue can be saved. A locked period blocks the new dispatch entry.
 - This does not retroactively validate legacy dispatches, and dispatch still supports only one full dispatch per invoice. Consolidated browser tests and broader period-lock coverage across older sales, invoice, purchase and accounting forms remain outstanding.
+
+## Supplier purchase return → payable integration update (23 November 2026)
+- New purchase returns must select an existing supplier purchase bill and match its supplier.
+- The entered reference must match the bill number, bill ID or linked GRN number.
+- New debit notes are saved as `pending_ca_review`; they do not change supplier payable until the explicit CA-reviewed approval action is confirmed.
+- Approval rechecks the current bill balance, prior cash/TDS payments, allocated PO advances and other approved debit notes. Approval is blocked if the debit note would exceed the remaining balance.
+- Approved debit notes reduce the invoice-wise supplier outstanding and reduce the available balance for subsequent supplier payments and supplier advance allocations.
+- Legacy purchase return records remain visible but are not retroactively applied because they have no verified bill link or CA approval.
+- This is a local-device review workflow, not authenticated CA identity or maker-checker enforcement. It does not post a stock return, GST credit/debit note, or double-entry journal. CA must verify the original supplier document and tax treatment.
+- Validation performed: JavaScript syntax checks passed for `advanced-workflows.js` and `supplier-ledger.js`. No browser/device workflow test or multi-user test performed.
