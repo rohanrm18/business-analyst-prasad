@@ -800,3 +800,12 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Contractor/job-work payments are labelled separately within the supplier payment outflow source. Supplier advances and formal PO settlements remain separate source categories.
 - The report continues to be an operational register summary, not a bank balance or complete cash-flow statement. It cannot establish cleared funds; unknown payment modes remain in Other. Check source-register overlap before relying on totals.
 - JavaScript syntax validation passed for advanced-workflows.js. Browser calculations, representative mixed-mode records, zero-cash TDS cases and source-overlap regression tests remain pending.
+
+
+## Cheque register safeguards — 23 November 2026
+
+- New cheque records validate number, party, date and positive amount; duplicate cheque number + bank + direction is blocked (received and issued are distinct directions).
+- Corrected initial status for non-future received cheques: they start as Received, not Issued. Future-dated cheques start as Post-dated.
+- Added controlled status paths: Post-dated → Received / Issued or Cancelled; Received → Deposited / Bounced / Cancelled; Issued → Cleared / Bounced / Cancelled; Deposited → Cleared / Bounced / Cancelled. Cleared, bounced and cancelled are terminal in this register; replacement cheques require a new record.
+- Status history stores timestamp and optional note. These are operational records only; they do not verify bank clearance, post journals or automatically reverse payments.
+- JavaScript syntax validation passed. Browser interaction, legacy cheque status compatibility and workflow regression tests remain pending.
