@@ -756,3 +756,11 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Added strict amount parsing for comma/currency-formatted values and negative or parenthesized amounts. A negative debit is normalized as a credit and a negative credit as a debit; rows with invalid or conflicting directions are rejected rather than guessed.
 - Corrected the date parser to reliably accept ISO dates and common day/month/year or month/day/year-shaped slash dates. Ambiguous slash-date ordering remains bank-export dependent; verify the imported dates in the review step.
 - Syntax validation passed for `advanced-workflows.js`. Real bank CSV samples from the user's bank, browser import behavior and reconciliation regression tests remain pending.
+
+
+## Bank reconciliation CSV exports — 23 November 2026
+
+- Added an export-all CSV for imported bank statement rows and a separate open-items CSV containing unmatched and suggested/review rows (excluding confirmed and explicitly excluded items).
+- Export includes source statement filename/ID, date, account, narration, reference/UTR, debit, credit, reconciliation status, matched source type/party/ID and exclusion reason.
+- CSV values are quoted and embedded quotes escaped; UTF-8 BOM is included for spreadsheet compatibility. Export is read-only and does not change reconciliation status or accounting records.
+- JavaScript syntax validation passed for advanced-workflows.js. Browser download behavior and spreadsheet opening remain pending manual regression testing.
