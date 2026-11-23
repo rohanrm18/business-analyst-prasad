@@ -189,26 +189,84 @@ function bindCount(){
   counts.push(c);persist();render();
  };
 }
+function purchaseReturnData(){
+ const bills=read('pa_purchase_bills_v1',[]),pos=read('pa_purchase_orders_v1',[]),grns=read('pa_purchase_grns_v1',[]);
+ return {bills,pos,grns};
+}
 function purchaseReturnPage(){
- const bills=(()=>{try{return JSON.parse(localStorage.getItem('pa_purchase_bills_v1')||'[]')}catch(_){return []}})();
+ const {bills,pos,grns}=purchaseReturnData();
  const options=bills.map(b=>'<option value="'+esc(b.id)+'">'+esc(b.invoiceNo||b.id)+' · '+esc(b.supplier)+' · '+money(b.total)+'</option>').join('');
- const rows=purchaseReturns.slice().reverse().map(r=>'<div class="line"><div><b>'+esc(r.noteNo)+' · '+esc(r.supplier)+'</b><small>'+esc(r.date)+' · '+esc(r.reference)+' · '+r.qty+' '+esc(r.unit)+' · '+money(r.amount)+'</small><small>'+esc(r.reason)+' · '+(r.status==='approved'?'CA reviewed · payable reduced':r.status==='pending_ca_review'?'Pending CA review':esc(r.status))+'</small></div>'+(r.status==='pending_ca_review'&&r.billId?'<button class="secondary" data-aw-preturn-approve="'+esc(r.id)+'">CA reviewed — approve debit note</button>':'')+'</div>').join('');
- return card('Supplier purchase return / debit note','Link each return to its original supplier bill. A return reduces payable only after CA review and approval.','<form id="aw-preturn"><label>Original supplier bill<select name="billId" required><option value="">Choose supplier bill</option>'+options+'</select></label><div class="two">'+input('supplier','Supplier name')+input('date','Return date','date','required')+'</div><div class="two">'+input('reference','Supplier bill / GRN reference')+input('item','Item / material')+'</div><div class="two">'+input('qty','Quantity','number','min=".001" step=".001" required')+input('unit','Unit','text','required placeholder="pcs / m / kg"')+'</div><div class="two">'+input('amount','Debit note amount ₹','number','min=".01" step=".01" required')+input('reason','Reason')+'</div><button class="primary">Save for CA review</button></form>')+card('Purchase return register','Approved debit notes reduce the linked supplier invoice outstanding; no automatic GST adjustment or stock reversal is posted.',rows||'<div class="empty">No purchase returns recorded.</div>');
+ const rows=purchaseReturns.slice().reverse().map(r=>{
+  const link=r.grnNumber?' · '+esc(r.grnNumber):r.poLineIndex!==undefined?' · PO line '+(Number(r.poLineIndex)+1):' · LEGACY / UNMATCHED';
+  return '<div class="line"><div><b>'+esc(r.noteNo)+' · '+esc(r.supplier)+'</b><small>'+esc(r.date)+' · '+esc(r.reference)+link+' · '+r.qty+' '+esc(r.unit)+' · '+money(r.amount)+'</small><small>'+esc(r.reason)+' · '+(r.status==='approved'?'CA reviewed · payable reduced':r.status==='pending_ca_review'?'Pending CA review':esc(r.status))+'</small></div>'+(r.status==='pending_ca_review'&&r.billId?'<button class="secondary" data-aw-preturn-approve="'+esc(r.id)+'">CA reviewed — approve debit note</button>':'')+'</div>';
+ }).join('');
+ const lineOptions=pos.flatMap(p=>(p.lines||[]).map((l,i)=>'<option value="'+esc(p.id)+'|'+i+'">'+esc(p.number+' · '+l.code+' · '+l.qty+' '+l.unit)+'</option>')).join('');
+ return card('Supplier purchase return / debit note','Select the original bill, its PO material line and the exact GRN. Only QC-accepted quantity not already returned can be submitted. Debit notes reduce payable only after CA review.','<form id="aw-preturn"><label>Original supplier bill<select name="billId" required><option value="">Choose supplier bill</option>'+options+'</select></label><div class="two">'+input('supplier','Supplier name')+input('date','Return date','date','required')+'</div><label>PO material line<select name="poLine" required><option value="">Choose PO line</option>'+lineOptions+'</select></label><label>Source GRN<select name="grnId" required><option value="">Choose GRN after selecting bill and PO line</option></select></label><div class="two">'+input('reference','Supplier bill / debit reference')+input('item','Item / material')+'</div><div class="two">'+input('qty','Quantity','number','min=".001" step=".001" required')+input('unit','Unit','text','required placeholder="pcs / m / kg"')+'</div><div class="two">'+input('amount','Debit note amount ₹','number','min=".01" step=".01" required')+input('reason','Reason')+'</div><p class="hint" id="aw-preturn-availability">Select a bill and PO line to see QC-accepted returnable quantity.</p><button class="primary">Save for CA review</button></form>')+card('Purchase return register','Approved debit notes reduce the linked supplier invoice outstanding. This workflow does not post stock reversal or automatically adjust GST.',rows||'<div class="empty">No purchase returns recorded.</div>');
 }
 function bindPurchaseReturn(){
- const f=document.getElementById('aw-preturn');
- if(f)f.onsubmit=e=>{e.preventDefault();const d=Object.fromEntries(new FormData(f)),bills=(()=>{try{return JSON.parse(localStorage.getItem('pa_purchase_bills_v1')||'[]')}catch(_){return []}})(),bill=bills.find(x=>x.id===d.billId),qty=Number(d.qty),amount=Math.round(Number(d.amount)*100)/100;
- if(!bill||!d.date||!awDateAllowed(d.date)||!d.supplier.trim()||!d.item.trim()||!d.reference.trim()||!Number.isFinite(qty)||qty<=0||!d.unit.trim()||!Number.isFinite(amount)||amount<=0){alert('Complete the original bill, supplier, date, reference, item, quantity, unit and positive amount.');return;}
- if(String(bill.supplier||'').trim().toLowerCase()!==d.supplier.trim().toLowerCase()){alert('Supplier name does not match the selected original bill.');return;}
- if(![String(bill.invoiceNo||''),String(bill.id||''),String(bill.grnNumber||'')].some(x=>x&&x.trim().toLowerCase()===d.reference.trim().toLowerCase())){alert('Reference must match the selected supplier bill number, bill ID or linked GRN number.');return;}
- const existing=purchaseReturns.filter(x=>x.billId===bill.id&&x.status!=='cancelled').reduce((n,x)=>n+Number(x.amount||0),0),paid=(()=>{try{return JSON.parse(localStorage.getItem('pa_supplier_payments_v1')||'[]')}catch(_){return []}})().filter(x=>x.billId===bill.id).reduce((n,x)=>n+Number(x.amountPaid||0)+Number(x.tdsWithheld||0),0),advances=(()=>{try{return JSON.parse(localStorage.getItem('pa_supplier_advance_allocations_v1')||'[]')}catch(_){return []}})().filter(x=>x.billId===bill.id).reduce((n,x)=>n+Number(x.amount||0),0),due=Math.max(0,Number(bill.total||0)-paid-advances-existing);
- if(amount>due+.009){alert('Debit note exceeds remaining supplier bill balance '+money(due)+'.');return;}
- purchaseReturns.push({id:uid('PR'),noteNo:awNextNo('PR',d.date),...d,billId:bill.id,invoiceNo:bill.invoiceNo,qty,amount,status:'pending_ca_review',createdAt:new Date().toISOString()});persist();render();};
- document.querySelectorAll('[data-aw-preturn-approve]').forEach(btn=>btn.onclick=()=>{const r=purchaseReturns.find(x=>x.id===btn.dataset.awPreturnApprove);if(!r||r.status!=='pending_ca_review')return;const bills=(()=>{try{return JSON.parse(localStorage.getItem('pa_purchase_bills_v1')||'[]')}catch(_){return []}})(),bill=bills.find(x=>x.id===r.billId);if(!bill||String(bill.supplier||'').trim().toLowerCase()!==String(r.supplier||'').trim().toLowerCase()){alert('Linked supplier bill or supplier does not match.');return;}
- const approved=purchaseReturns.filter(x=>x.billId===r.billId&&x.status==='approved'&&x.id!==r.id).reduce((n,x)=>n+Number(x.amount||0),0),paid=(()=>{try{return JSON.parse(localStorage.getItem('pa_supplier_payments_v1')||'[]')}catch(_){return []}})().filter(x=>x.billId===r.billId).reduce((n,x)=>n+Number(x.amountPaid||0)+Number(x.tdsWithheld||0),0),adv=(()=>{try{return JSON.parse(localStorage.getItem('pa_supplier_advance_allocations_v1')||'[]')}catch(_){return []}})().filter(x=>x.billId===r.billId).reduce((n,x)=>n+Number(x.amount||0),0),due=Math.max(0,Number(bill.total||0)-paid-adv-approved);
- if(Number(r.amount)>due+.009){alert('Bill balance changed. Debit note exceeds outstanding '+money(due)+'. It was not approved.');return;}
- if(!confirm('Confirm CA review of debit note '+r.noteNo+' for '+money(r.amount)+' against supplier bill '+(bill.invoiceNo||bill.id)+'? This reduces supplier payable.'))return;
- r.status='approved';r.approvedAt=new Date().toISOString();r.approvalBasis='Manual CA review confirmation on this device';persist();render();});
+ const f=document.getElementById('aw-preturn');if(!f)return;
+ const {bills,pos,grns}=purchaseReturnData(),billSel=f.elements.billId,lineSel=f.elements.poLine,grnSel=f.elements.grnId,availability=document.getElementById('aw-preturn-availability');
+ const norm=s=>String(s||'').trim().toLowerCase();
+ const lineParts=()=>String(lineSel.value||'').split('|');
+ const current=()=>{
+  const bill=bills.find(x=>x.id===billSel.value),[poId,indexText]=lineParts(),lineIndex=Number(indexText),po=pos.find(x=>x.id===poId);
+  return {bill,po,lineIndex,line:po?.lines?.[lineIndex]};
+ };
+ const returnsFor=(test)=>purchaseReturns.filter(r=>r.status!=='cancelled'&&test(r));
+ const loadGrns=()=>{
+  const {bill,po,lineIndex,line}=current();
+  grnSel.innerHTML='<option value="">Choose source GRN</option>';
+  if(!bill||!po||!line||bill.poId!==po.id||norm(bill.supplier)!==norm(po.vendor)){availability.textContent='The bill must be linked to the selected PO and supplier.';return;}
+  const billedQty=(bill.items||[]).filter(x=>Number(x.poLineIndex)===lineIndex).reduce((n,x)=>n+Number(x.qty||0),0);
+  const previouslyReturnedOnBill=returnsFor(r=>r.billId===bill.id&&Number(r.poLineIndex)===lineIndex).reduce((n,r)=>n+Number(r.qty||0),0);
+  const billLeft=Math.max(0,billedQty-previouslyReturnedOnBill);
+  const candidates=grns.filter(g=>g.poId===po.id&&Number(g.lineIndex)===lineIndex&&Number(g.accepted||0)>0);
+  candidates.forEach(g=>{
+   const returned=returnsFor(r=>r.grnId===g.id).reduce((n,r)=>n+Number(r.qty||0),0),left=Math.max(0,Number(g.accepted||0)-returned);
+   if(left>0){const o=document.createElement('option');o.value=g.id;o.textContent=(g.number||g.id)+' · QC accepted '+g.accepted+' · returnable '+left+' '+(line.unit||'');grnSel.appendChild(o);}
+  });
+  grnSel.dataset.billLeft=String(billLeft);
+  availability.textContent='Billed on this PO line: '+billedQty+' '+(line.unit||'')+' · previously returned: '+previouslyReturnedOnBill+' · remaining bill quantity: '+billLeft+'. GRN options show accepted quantity less earlier returns.';
+  if(!candidates.length)availability.textContent+=' No QC-accepted GRN exists for this PO line.';
+  f.elements.supplier.value=bill.supplier||'';f.elements.reference.value=bill.invoiceNo||bill.id;f.elements.item.value=line.code||line.name||'Material';f.elements.unit.value=line.unit||'';
+ };
+ billSel.addEventListener('change',()=>{
+  const bill=bills.find(x=>x.id===billSel.value),po=pos.find(x=>x.id===bill?.poId);
+  f.elements.supplier.value=bill?.supplier||'';
+  lineSel.innerHTML='<option value="">Choose PO line</option>';
+  (po?.lines||[]).forEach((l,i)=>{const o=document.createElement('option');o.value=po.id+'|'+i;o.textContent=(po.number||po.id)+' · '+(l.code||'Material')+' · '+l.qty+' '+(l.unit||'');lineSel.appendChild(o);});
+  loadGrns();
+ });
+ lineSel.addEventListener('change',loadGrns);
+ grnSel.addEventListener('change',()=>{
+  const g=grns.find(x=>x.id===grnSel.value),returned=returnsFor(r=>r.grnId===g?.id).reduce((n,r)=>n+Number(r.qty||0),0);
+  availability.textContent=g?'Selected '+(g.number||g.id)+' · QC accepted '+g.accepted+' · previously returned '+returned+' · currently returnable '+Math.max(0,Number(g.accepted||0)-returned):availability.textContent;
+ });
+ f.onsubmit=e=>{
+  e.preventDefault();const d=Object.fromEntries(new FormData(f)),{bill,po,lineIndex,line}=current(),grn=grns.find(x=>x.id===d.grnId),qty=Number(d.qty),amount=Math.round(Number(d.amount)*100)/100;
+  if(!bill||!po||!line||bill.poId!==po.id||!grn||grn.poId!==po.id||Number(grn.lineIndex)!==lineIndex||!d.date||!awDateAllowed(d.date)||!d.supplier.trim()||!d.item.trim()||!d.reference.trim()||!Number.isFinite(qty)||qty<=0||!d.unit.trim()||!Number.isFinite(amount)||amount<=0){alert('Complete the bill, matching PO line, source GRN, supplier, date, item, quantity, unit and positive amount.');return;}
+  if(norm(bill.supplier)!==norm(d.supplier)||norm(po.vendor)!==norm(d.supplier)){alert('Supplier must match both the original bill and Purchase Order.');return;}
+  if(![String(bill.invoiceNo||''),String(bill.id||'')].some(x=>norm(x)===norm(d.reference))){alert('Reference must match the selected supplier bill number or bill ID.');return;}
+  const billedQty=(bill.items||[]).filter(x=>Number(x.poLineIndex)===lineIndex).reduce((n,x)=>n+Number(x.qty||0),0),alreadyBill=returnsFor(r=>r.billId===bill.id&&Number(r.poLineIndex)===lineIndex).reduce((n,r)=>n+Number(r.qty||0),0),alreadyGRN=returnsFor(r=>r.grnId===grn.id).reduce((n,r)=>n+Number(r.qty||0),0);
+  const billLeft=Math.max(0,billedQty-alreadyBill),grnLeft=Math.max(0,Number(grn.accepted||0)-alreadyGRN);
+  if(billedQty<=0){alert('This supplier bill has no mapped item quantity for the selected PO line. Legacy/unmatched bill rows cannot be returned against a guessed material line.');return;}
+  if(qty>billLeft+.0001||qty>grnLeft+.0001){alert('Return quantity exceeds the available amount. Bill-line balance: '+billLeft+' '+line.unit+'; QC-accepted GRN balance: '+grnLeft+' '+line.unit+'.');return;}
+  const existing=purchaseReturns.filter(x=>x.billId===bill.id&&x.status!=='cancelled').reduce((n,x)=>n+Number(x.amount||0),0),paid=read('pa_supplier_payments_v1',[]).filter(x=>x.billId===bill.id).reduce((n,x)=>n+Number(x.amountPaid||0)+Number(x.tdsWithheld||0),0),advances=read('pa_supplier_advance_allocations_v1',[]).filter(x=>x.billId===bill.id).reduce((n,x)=>n+Number(x.amount||0),0),due=Math.max(0,Number(bill.total||0)-paid-advances-existing);
+  if(amount>due+.009){alert('Debit note exceeds remaining supplier bill balance '+money(due)+'.');return;}
+  if(purchaseReturns.some(x=>x.noteNo&&norm(x.noteNo)===norm(d.noteNo))){alert('Duplicate debit note number.');return;}
+  purchaseReturns.push({id:uid('PR'),noteNo:awNextNo('PR',d.date),billId:bill.id,invoiceNo:bill.invoiceNo,supplier:d.supplier,date:d.date,reference:d.reference,item:d.item,qty,unit:d.unit,amount,reason:d.reason,poId:po.id,poNumber:po.number,poLineIndex:lineIndex,poLineCode:line.code||'',grnId:grn.id,grnNumber:grn.number||grn.id,qcAcceptedAtReturn:Number(grn.accepted||0),status:'pending_ca_review',createdAt:new Date().toISOString()});persist();render();
+ };
+ document.querySelectorAll('[data-aw-preturn-approve]').forEach(btn=>btn.onclick=()=>{
+  const r=purchaseReturns.find(x=>x.id===btn.dataset.awPreturnApprove);if(!r||r.status!=='pending_ca_review')return;
+  const billsNow=read('pa_purchase_bills_v1',[]),billNow=billsNow.find(x=>x.id===r.billId),posNow=read('pa_purchase_orders_v1',[]),poNow=posNow.find(x=>x.id===r.poId),grnsNow=read('pa_purchase_grns_v1',[]),grnNow=grnsNow.find(x=>x.id===r.grnId);
+  if(!billNow||!poNow||!grnNow||billNow.poId!==poNow.id||grnNow.poId!==poNow.id||Number(grnNow.lineIndex)!==Number(r.poLineIndex)||norm(billNow.supplier)!==norm(r.supplier)){alert('Linked bill, PO, GRN or supplier no longer matches. Debit note was not approved.');return;}
+  const returnedGRN=purchaseReturns.filter(x=>x.grnId===r.grnId&&x.status!=='cancelled').reduce((n,x)=>n+Number(x.qty||0),0);
+  if(returnedGRN>Number(grnNow.accepted||0)+.0001){alert('Cumulative returns exceed QC-accepted quantity. Debit note was not approved.');return;}
+  const approved=purchaseReturns.filter(x=>x.billId===r.billId&&x.status==='approved'&&x.id!==r.id).reduce((n,x)=>n+Number(x.amount||0),0),paid=read('pa_supplier_payments_v1',[]).filter(x=>x.billId===r.billId).reduce((n,x)=>n+Number(x.amountPaid||0)+Number(x.tdsWithheld||0),0),adv=read('pa_supplier_advance_allocations_v1',[]).filter(x=>x.billId===r.billId).reduce((n,x)=>n+Number(x.amount||0),0),due=Math.max(0,Number(billNow.total||0)-paid-adv-approved);
+  if(Number(r.amount)>due+.009){alert('Bill balance changed. Debit note exceeds outstanding '+money(due)+'. It was not approved.');return;}
+  if(!confirm('Confirm CA review of debit note '+r.noteNo+' for '+money(r.amount)+' against supplier bill '+(billNow.invoiceNo||billNow.id)+'? This reduces supplier payable.'))return;
+  r.status='approved';r.approvedAt=new Date().toISOString();r.approvalBasis='Manual CA review confirmation on this device';persist();render();
+ });
 }
 function pricesPage(){const rows=priceLists.map(p=>'<div class="line"><div><b>'+esc(p.customer)+' · '+esc(p.style)+'</b><small>'+esc(p.colour||'All colours')+' · '+esc(p.size||'All sizes')+' · '+money(p.rate)+' / pc · '+esc(p.validFrom)+'</small></div></div>').join('');return card('Customer price list','Save negotiated customer/style/variant rates with effective dates. Invoice auto-pricing is not yet connected.','<form id="aw-price"><div class="two">'+input('customer','Customer')+input('style','Style / design')+'</div><div class="two">'+input('colour','Colour (optional)')+input('size','Size (optional)')+'</div><div class="two">'+input('rate','Rate per piece ₹','number','min="0" step=".01" required')+input('validFrom','Effective from','date','required')+'</div><button class="primary">Save price</button></form>')+card('Saved customer prices','Latest entries',rows||'<div class="empty">No price list entries.</div>')}
 function bindPrice(){const f=document.getElementById('aw-price');if(!f)return;f.onsubmit=e=>{e.preventDefault();const d=Object.fromEntries(new FormData(f));if(!d.customer.trim()||!d.style.trim()||!awDateAllowed(d.validFrom)||!Number.isFinite(Number(d.rate))||Number(d.rate)<0||!d.validFrom){alert('Enter customer, style, valid rate and effective date.');return;}priceLists.push({...d,id:uid('PRICE'),rate:Number(d.rate)});persist();render();};}
