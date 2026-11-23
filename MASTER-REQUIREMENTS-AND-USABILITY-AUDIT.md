@@ -783,3 +783,11 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Shows total open receivables, supplier payables and net expected movement, plus up to 30 largest/open due items sorted by due date.
 - Explicitly excludes collection promises, contractor challans, expenses, loan instalments, cheque clearing and bank balances. Net expected movement is not available cash or a guaranteed collection forecast.
 - JavaScript syntax validation passed for advanced-workflows.js. Browser rendering, invoice/payment data reconciliation, date-bucket calculations and full financial regression tests remain pending. Review source registers and due dates before relying on the forecast.
+
+
+## Customer collection promise monitoring — 23 November 2026
+
+- Enhanced the collection promise register to show live linked-invoice balance, current promise status (past date, due today, upcoming, settled, or invoice unavailable), and receipt activity recorded since the promise was logged.
+- Added summary counts for overdue promises with an invoice still open, promises due today, and promises due within seven days.
+- Historical promise entries remain visible; multiple promises for one invoice are not silently merged. Receipt activity since logging is informational and is not treated as a formal receipt-to-promise allocation or proof that a particular promise was fulfilled.
+- JavaScript syntax validation passed for advanced-workflows.js. Browser interaction, receipt-date edge cases, multiple-promise scenarios and financial regression tests remain pending.
