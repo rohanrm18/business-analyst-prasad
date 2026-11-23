@@ -247,7 +247,7 @@ function arInvoices(){return [...taxInvoices,...arOpening]}
 function arFindInvoice(id){return arInvoices().find(v=>v&&v.id===id)}
 function arInvoiceTotal(v){return v.status==='reversed'?0:Number(v.opening_balance?v.openingAmount:v.grand_total||0)}
 function arReceived(v){return arReceipts.filter(r=>r.status!=='reversed').reduce((n,r)=>n+(r.allocations||[]).filter(a=>a.invoiceId===v.id).reduce((m,a)=>m+Number(a.amount||0),0),0)}
-function arCredited(v){return arCreditNotes.filter(c=>c.status!=='reversed'&&c.invoiceId===v.id).reduce((n,c)=>n+Number(c.amount||0),0)}
+function arCredited(v){return arCreditNotes.filter(c=>c.status!=='reversed'&&c.status!=='pending_ca_review'&&c.status!=='draft'&&c.invoiceId===v.id).reduce((n,c)=>n+Number(c.amount||0),0)}
 function arBal(v){return Math.max(0,arInvoiceTotal(v)-arReceived(v)-arCredited(v))}
 function arDue(v){return v.due_date||v.invoice_date||''}
 function arAge(v){return arDue(v)?Math.floor((new Date().setHours(0,0,0,0)-new Date(arDue(v)+'T00:00:00').getTime())/86400000):0}
