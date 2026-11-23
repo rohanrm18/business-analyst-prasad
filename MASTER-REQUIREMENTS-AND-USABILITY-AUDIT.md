@@ -966,3 +966,8 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Excludes reversed sales invoices, uses invoice-linked customer receipt allocations, keeps supplier-payment TDS separate from contractor TDS, and deducts only CA-approved supplier debit notes in the supplier balance check.
 - Review aid only: does not post journals, close/lock a period, certify statutory figures or replace CA/Tally/bank/source-document reconciliation. Local browser data only; full browser and live-data regression tests remain pending.
 - Validation: `new Function(compliance.js)` syntax check passed; index and service-worker compliance asset versions refreshed. GitHub Actions and Pages deployment must be checked separately.
+
+
+## Windows desktop and print layout foundation — 23 November 2026
+- Expanded the desktop workspace width for large Windows monitors, improved wide-table/form handling and added browser print CSS to remove navigation and app chrome from printed pages.
+- This is responsive/print stylesheet support only. Windows Edge/Chrome interaction, invoice/report print output, physical printer drivers, barcode scanner and thermal printer connectivity have not been device-tested; printer-specific paper size, margins, darkness, gap/feed and cutter settings remain to be validated on the actual hardware.
