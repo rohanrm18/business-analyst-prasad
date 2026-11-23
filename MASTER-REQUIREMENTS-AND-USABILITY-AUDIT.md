@@ -721,3 +721,5 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Stable unique IDs are used for advance and allocation journal source events; the multi-line engine retains idempotent retry/conflict handling. The UI shows remaining advance after allocations.
 - Legacy advances without a verified mapped advance journal are intentionally not auto-allocated by the new flow. Existing historical allocations are not rewritten.
 - This remains local-device accounting. CA must confirm the selected asset, cash/bank and payable accounts. No browser/device, multi-user, bank reconciliation or full trial-balance test has been performed.
+
+- Storage isolation correction: supplier PO advances use dedicated `pa_supplier_advance_payments_v1`; they are not mixed with `pa_procurement_supplier_payments_v1` (formal PO settlement records). This prevents advances from inflating purchase-order paid totals before allocation.
