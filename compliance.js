@@ -144,8 +144,25 @@ async function bindCapture(){
   if(items.length&&Math.abs(itemSum-num('taxable'))>Math.max(2,num('taxable')*.01)&&!confirm('Item taxable total ('+money(itemSum)+') differs from bill taxable value ('+money(num('taxable'))+'). Save only after checking the original bill. Continue?'))return;
   if(!confirm('You have reviewed the supplier, invoice, tax values and '+items.length+' item row(s). Save this bill as reviewed? No stock will be posted automatically.'))return;
   const billId='PB-'+Date.now();
-  const savedBill={...d,id:billId,poId:d.poId||'',poNumber:linkedPO?.number||'',grnId:d.grnId||'',grnNumber:linkedGRN?.number||'',taxable:num('taxable'),cgst:num('cgst'),sgst:num('sgst'),igst:num('igst'),total:num('total'),items,ocrConfidence:$('ocr-confidence')?.textContent||'',reviewed:true,reviewedAt:new Date().toISOString(),stockPosted:false};
+  const taxable=Math.round(num('taxable')*100)/100,cgst=Math.round(num('cgst')*100)/100,sgst=Math.round(num('sgst')*100)/100,igst=Math.round(num('igst')*100)/100,total=Math.round(num('total')*100)/100;
+  if([taxable,cgst,sgst,igst,total].some(v=>!Number.isFinite(v)||v<0)||total<=0){alert('Enter valid non-negative taxable/GST values and a positive invoice total.');return;}
+  const taxTotal=Math.round((taxable+cgst+sgst+igst)*100)/100;
+  const savedBill={...d,id:billId,poId:d.poId||'',poNumber:linkedPO?.number||'',grnId:d.grnId||'',grnNumber:linkedGRN?.number||'',taxable,cgst,sgst,igst,total,items,ocrConfidence:$('ocr-confidence')?.textContent||'',reviewed:true,reviewedAt:new Date().toISOString(),stockPosted:false,accountingPosting:{status:'pending',reason:'Awaiting mapped accounting checks'}};
   bills.push(savedBill);S(K.bills,bills);
+  const maps=R('pa_account_posting_maps_v1',[]),mapping=maps.find(x=>x.event==='purchase'),postLines=[];
+  if(!mapping||mapping.status!=='CA reviewed')savedBill.accountingPosting={status:'pending',reason:'Purchase mapping is not marked CA reviewed'};
+  else if(Math.abs(taxTotal-total)>0.01)savedBill.accountingPosting={status:'pending',reason:'Taxable value plus GST does not equal invoice total; review freight, discount, cess or rounding separately'};
+  else if((cgst>0&&!mapping.inputCgstCode)||(sgst>0&&!mapping.inputSgstCode)||(igst>0&&!mapping.inputIgstCode))savedBill.accountingPosting={status:'pending',reason:'Configure a separate input-tax account for each GST component present on this bill'};
+  else{
+   if(taxable>0)postLines.push({account:mapping.debitCode,debit:taxable,credit:0});
+   if(cgst>0)postLines.push({account:mapping.inputCgstCode,debit:cgst,credit:0});
+   if(sgst>0)postLines.push({account:mapping.inputSgstCode,debit:sgst,credit:0});
+   if(igst>0)postLines.push({account:mapping.inputIgstCode,debit:igst,credit:0});
+   postLines.push({account:mapping.creditCode,debit:0,credit:total});
+   try{if(typeof window.prasadPostMappedJournalLines!=='function')throw Error('Multi-line accounting engine is unavailable');const result=window.prasadPostMappedJournalLines('purchase',savedBill.id,savedBill.invoiceDate,postLines,'Supplier purchase bill · '+savedBill.invoiceNo,savedBill.supplier);savedBill.accountingPosting={status:result.created?'posted':'already-posted',journalId:result.journal.id,postedAt:new Date().toISOString()};}
+   catch(err){savedBill.accountingPosting={status:'pending',reason:String(err.message||err).slice(0,240)};}
+  }
+  S(K.bills,bills);
   if(linkedGRN){linkedGRN.billId=billId;linkedGRN.billNumber=savedBill.invoiceNo;linkedGRN.billLinkedAt=new Date().toISOString();localStorage.setItem('pa_purchase_grns_v1',JSON.stringify(formalGRNs));}
   window.render();
  };
