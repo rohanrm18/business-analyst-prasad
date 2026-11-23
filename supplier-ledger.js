@@ -107,7 +107,7 @@ document.addEventListener('submit',e=>{
  }else{payment.accountingPosting.cash=cash>0?'pending-engine-unavailable':'not-applicable';payment.accountingPosting.tds=withheld>0?'pending-engine-unavailable':'not-applicable';}
  save('pa_supplier_payments_v1',payments);
  if(withheld>0){const q=fyq(d),after=d>='2026-04-01';tds.push({id:'TDS-'+id,source:'Supplier invoice payment',paymentId:id,billId:b.id,jobId:'',contractorId:'',contractor:b.supplier,pan,billNo:b.invoiceNo,date:d,gross:round(cash+withheld),base:round(base),rate,tds:withheld,net:round(cash),section:after?'Income-tax Act 2025 s.393(1), Table 6(i)':'Income-tax Act 1961 s.194C',...q,threshold:true,applicable:true,createdAt:new Date().toISOString()});save('pa_tds_entries_v1',tds);}
- alert('Payment saved against '+b.invoiceNo+'. Cash: '+money(cash)+'. TDS: '+money(withheld)+'. Supplier outstanding and TDS register updated.');
+ const cashStatus=payment.accountingPosting.cash,tdsStatus=payment.accountingPosting.tds;alert('Payment saved against '+b.invoiceNo+'. Cash: '+money(cash)+'. TDS: '+money(withheld)+'.\\nAccounting — cash/bank: '+cashStatus+'; TDS payable: '+tdsStatus+'.'+((cash>0&&!['posted','already-posted'].includes(cashStatus))||(withheld>0&&!['posted','already-posted'].includes(tdsStatus))?'\\nWARNING: One or more journal entries are pending. Review the CA-approved account mappings before relying on the accounting ledger.':'')+'\\nSupplier outstanding and TDS register updated.');
  location.reload();
 },true);
 const oldRender=window.render;window.render=function(){oldRender();enhance();};
