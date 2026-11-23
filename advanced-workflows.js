@@ -277,6 +277,7 @@ const coreNavigate=window.navigate;window.navigate=function(p){coreNavigate(p);i
 const coreRender=window.render;
 window.render=function(){if(page==='advanced'){document.getElementById('page').innerHTML=advancedPage();document.querySelectorAll('[data-aw-tab]').forEach(b=>b.onclick=()=>{awTab=b.dataset.awTab;render()});if(awTab==='returns')bindReturn();if(awTab==='jobwork')bindJob();if(awTab==='ledger'){bindPostingMap();bindLedger();}if(awTab==='counts')bindCount();if(awTab==='purchaseReturns')bindPurchaseReturn();if(awTab==='prices')bindPrice();if(awTab==='promises')bindPromise();if(awTab==='qc')bindQC();if(awTab==='cutting')bindCutting();if(awTab==='search')bindSearch();if(awTab==='financial')bindFinancial();if(awTab==='cheques')bindCheque();if(awTab==='capital')bindCapital();if(awTab==='import')bindImport();if(awTab==='matrix')bindMatrix();return;}coreRender();};
 window.backupKeys=(()=>{const prior=window.backupKeys;return function(){return [...new Set([...prior(),...Object.values(KEY)])]}})();
-window.prasadPostMappedJournal=postMappedJournal;\nwindow.__prasadAdvancedWorkflows={version:3,keys:Object.values(KEY),accountingPostingEngine:'mapped-v1'};
+window.prasadPostMappedJournal=postMappedJournal;
+window.__prasadAdvancedWorkflows={version:3,keys:Object.values(KEY),accountingPostingEngine:'mapped-v1'};
 render();
 })();
