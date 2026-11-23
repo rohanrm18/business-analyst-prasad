@@ -255,11 +255,38 @@ function bindFinancial(){
  document.querySelectorAll('[data-aw-fy-unlock]').forEach(b=>b.onclick=()=>{const y=financialYears.find(x=>x.id===b.dataset.awFyUnlock);if(!y||y.status!=='Locked')return;const reason=prompt('Reason to unlock '+y.name+':');if(!reason||!reason.trim())return;y.status='Open';y.unlockedAt=new Date().toISOString();y.unlockReason=reason.trim();persist();render();});
 }
 function chequePage(){
- const rows=cheques.slice().reverse().map(x=>'<div class="line"><div><b>'+esc(x.number)+' · '+esc(x.party)+'</b><small>'+esc(x.kind)+' · '+money(x.amount)+' · '+esc(x.date)+' · '+esc(x.status)+'</small><small>'+esc(x.bank||'')+' · '+esc(x.reference||'')+'</small></div><button class="secondary" data-aw-cheque="'+esc(x.id)+'">Update status</button></div>').join('');
- return card('Cheque register','Track post-dated, issued, received, deposited, cleared, bounced and cancelled cheques. No bank feed or automatic accounting reversal is connected.','<form id="aw-cheque"><div class="two">'+input('number','Cheque number')+input('party','Party / payee')+'</div><div class="two"><label>Type<select name="kind"><option>Received</option><option>Issued</option></select></label><label>Cheque date<input name="date" type="date" required></label></div><div class="two">'+input('amount','Amount ₹','number','min=".01" step=".01" required')+input('bank','Bank name')+'</div>'+input('reference','Linked invoice / bill / UTR')+'<button class="primary">Save cheque</button></form>')+card('Cheque register history','Status changes are stored locally.',rows||'<div class="empty">No cheque records.</div>');
+ const rows=cheques.slice().reverse().map(x=>{
+  const next=chequeNextStatuses(x);
+  return '<div class="line"><div><b>'+esc(x.number)+' · '+esc(x.party)+'</b><small>'+esc(x.kind)+' · '+money(x.amount)+' · '+esc(x.date)+' · '+esc(x.status)+'</small><small>'+esc(x.bank||'Bank not specified')+' · '+esc(x.reference||'No linked reference')+'</small><small>Last update: '+esc(x.history&&x.history.length?x.history[x.history.length-1].at:'Not recorded')+'</small></div><div>'+(next.length?'<button class="secondary" data-aw-cheque="'+esc(x.id)+'">Update status</button>':'<span class="hint">Final status</span>')+'</div></div>';
+ }).join('');
+ return card('Cheque register','Track received and issued cheques with controlled status changes. Status updates are a register record only: they do not confirm bank clearance or create accounting entries.','<form id="aw-cheque"><div class="two">'+input('number','Cheque number','text','required maxlength="30"')+input('party','Party / payee','text','required maxlength="100"')+'</div><div class="two"><label>Type<select name="kind"><option>Received</option><option>Issued</option></select></label><label>Cheque date<input name="date" type="date" required></label></div><div class="two">'+input('amount','Amount ₹','number','min=".01" step=".01" required')+input('bank','Bank name','text','maxlength="100"')+'</div>'+input('reference','Linked invoice / bill / UTR','text','maxlength="100"')+'<button class="primary">Save cheque</button></form>')+card('Cheque register history','Duplicate cheque numbers are blocked within the same bank and cheque direction. Cleared, bounced and cancelled records are terminal; create a new record for a replacement cheque.',rows||'<div class="empty">No cheque records.</div>');
 }
-function bindCheque(){const f=document.getElementById('aw-cheque');if(f)f.onsubmit=e=>{e.preventDefault();const d=Object.fromEntries(new FormData(f));if(!d.number.trim()||!d.party.trim()||!Number.isFinite(Number(d.amount))||Number(d.amount)<=0||!d.date||!awDateAllowed(d.date))return;cheques.push({id:uid('CHQ'),number:d.number,party:d.party,kind:d.kind,date:d.date,amount:Number(d.amount),bank:d.bank,reference:d.reference,status:d.date>today()?'Post-dated':'Issued',history:[{status:d.date>today()?'Post-dated':'Issued',at:new Date().toISOString()}]});persist();render();};
- document.querySelectorAll('[data-aw-cheque]').forEach(b=>b.onclick=()=>{const x=cheques.find(v=>v.id===b.dataset.awCheque);if(!x)return;const status=prompt('New status: Post-dated, Issued, Deposited, Cleared, Bounced, Cancelled',x.status);if(!status)return;const allowed=['Post-dated','Issued','Deposited','Cleared','Bounced','Cancelled'];if(!allowed.includes(status)){alert('Choose a listed cheque status.');return;}x.status=status;x.history.push({status,at:new Date().toISOString()});persist();render();});
+function chequeNextStatuses(x){
+ if(x.status==='Post-dated')return [x.kind==='Received'?'Received':'Issued','Cancelled'];
+ if(x.status==='Received')return ['Deposited','Bounced','Cancelled'];
+ if(x.status==='Issued')return ['Cleared','Bounced','Cancelled'];
+ if(x.status==='Deposited')return ['Cleared','Bounced','Cancelled'];
+ return [];
+}
+function bindCheque(){
+ const f=document.getElementById('aw-cheque');
+ if(f)f.onsubmit=e=>{
+  e.preventDefault();const d=Object.fromEntries(new FormData(f)),number=String(d.number||'').trim(),bank=String(d.bank||'').trim(),party=String(d.party||'').trim(),amount=Number(d.amount);
+  if(!number||!party||!Number.isFinite(amount)||amount<=0||!d.date||!awDateAllowed(d.date)){alert('Enter a cheque number, party, valid date and positive amount.');return;}
+  const duplicate=cheques.find(x=>String(x.number||'').trim().toLowerCase()===number.toLowerCase()&&String(x.bank||'').trim().toLowerCase()===bank.toLowerCase()&&x.kind===d.kind);
+  if(duplicate){alert('This cheque number is already recorded for the same bank and cheque direction. Open the existing record instead of creating a duplicate.');return;}
+  const status=d.date>today()?'Post-dated':d.kind==='Received'?'Received':'Issued';
+  cheques.push({id:uid('CHQ'),number,party,kind:d.kind,date:d.date,amount:Math.round((amount+Number.EPSILON)*100)/100,bank,reference:String(d.reference||'').trim(),status,history:[{status,at:new Date().toISOString(),note:'Cheque registered'}],createdAt:new Date().toISOString()});
+  persist();render();
+ };
+ document.querySelectorAll('[data-aw-cheque]').forEach(b=>b.onclick=()=>{
+  const x=cheques.find(v=>v.id===b.dataset.awCheque);if(!x)return;
+  const allowed=chequeNextStatuses(x);if(!allowed.length){alert('This cheque is already in a final status.');return;}
+  const status=prompt('Choose next status: '+allowed.join(', '),allowed[0]);if(!status)return;
+  if(!allowed.includes(status)){alert('Invalid status transition. Allowed next status: '+allowed.join(', '));return;}
+  const note=prompt('Optional status note / bank reference:','');if(note===null)return;
+  x.status=status;x.history=Array.isArray(x.history)?x.history:[];x.history.push({status,at:new Date().toISOString(),note:note.trim()});persist();render();
+ });
 }
 function capitalPage(){
  const rows=capitalRows.slice().reverse().map(x=>'<div class="line"><div><b>'+esc(x.number)+' · '+esc(x.kind)+' · '+money(x.amount)+'</b><small>'+esc(x.date)+' · '+esc(x.account||'')+' · '+esc(x.notes||'')+'</small></div></div>').join('');
