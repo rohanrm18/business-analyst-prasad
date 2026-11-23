@@ -25,7 +25,7 @@ function enhance(){
  if(!document.getElementById('supplier-advance-allocation-form'))form.parentElement.insertAdjacentElement('afterend',allocationBox);
  function validateAdvanceAllocation(p,b,amt,date,available,billDue,existing){
   if(!p||!b||!b.poId)return 'Choose a valid supplier advance and a bill linked to a PO.';
-  const validDate=typeof date==='string'&&/^\\d{4}-\\d{2}-\\d{2}$/.test(date)&&!Number.isNaN(Date.parse(date+'T00:00:00'))&&new Date(date+'T00:00:00').toISOString().slice(0,10)===date;
+  const validDate=typeof date==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(date)&&!Number.isNaN(Date.parse(date+'T00:00:00'))&&new Date(date+'T00:00:00').toISOString().slice(0,10)===date;
   if(!validDate)return 'Enter a valid allocation date.';
   if(!Number.isFinite(amt)||amt<=0)return 'Allocation amount must be greater than zero.';
   if(!Number.isFinite(available)||amt>available+0.009)return 'Allocation exceeds the available supplier advance.';
