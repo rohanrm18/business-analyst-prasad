@@ -978,3 +978,10 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Consolidated the checklist rows into one shared month-filtered calculation used by both the on-screen checklist and CSV export, so the exported findings/statuses now match the displayed checklist.
 - CSV now includes all eight checklist areas and their record counts, findings and status labels. It remains a review aid, not a statutory close.
 - Validation: compliance.js syntax check passed; browser click/download regression remains pending.
+
+
+## Month-end as-of balance correction — 23 November 2026
+- Customer receivables and supplier payables now consider all non-reversed sales invoices and supplier bills dated on or before the selected month-end, not only invoices raised in that month.
+- Receipts, approved customer credits, supplier payments, advance allocations and purchase returns dated/recorded through the selected period-end are considered in the as-of balance. Monthly sales, purchase activity, bank movement, TDS and dispatch checks remain scoped to the selected month.
+- This is still an operational estimate from local app registers. Opening balances, unlinked receipts/payments, unapplied credits, missing transaction dates and source-system differences require manual reconciliation; the app does not certify a complete debtor/creditor control account.
+- Validation: compliance.js syntax and a synthetic prior-month outstanding balance test passed; full browser regression remains pending.
