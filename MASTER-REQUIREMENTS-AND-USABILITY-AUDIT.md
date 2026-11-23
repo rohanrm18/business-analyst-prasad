@@ -941,3 +941,12 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Each posting is recorded in `pa_purchase_return_stock_v1` with source debit note, PO line, GRN, material, quantity and timestamp. This ledger is included in the app's existing local backup key set.
 - Legacy/unmatched purchase returns cannot post stock automatically. No automatic accounting journal or GST adjustment is generated. Physical receipt by supplier and actual dispatch still require source-document confirmation.
 - Validation: JavaScript syntax check passed for `advanced-workflows.js`; browser/device regression and stock-ledger reconciliation remain pending.
+
+
+## Supplier bill reconciliation — 23 Nov 2026
+- Added a Supplier reconciliation tab in the Business Control Centre with one row per recorded supplier purchase bill.
+- Displays bill total, cash/bank paid, TDS withheld, allocated supplier advances, CA-approved debit notes, pending CA debit notes, net balance and settlement status.
+- Formula: bill total less cash/bank, TDS, allocated advances and approved debit notes. Pending debit notes are shown separately and do not reduce payable until approved.
+- Keeps negative balances visible as supplier credit/overpayment; unallocated advance cash is shown separately and is not counted as bill settlement.
+- Provides supplier/invoice search and CSV export. Records without matching bill IDs are flagged for manual matching; supplier-name matching is not used to silently allocate legacy records.
+- Local-register report only. It is not bank-confirmed, not a statutory statement, and requires review of supplier-name mismatches and legacy records. Browser/device regression testing remains pending.
