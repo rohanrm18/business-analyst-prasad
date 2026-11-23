@@ -866,3 +866,10 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Legacy records remain visibly unverified; report is not proof of physical delivery, E-Way Bill validity, transporter settlement or customer receipt.
 - Updated `advanced-workflows.js` asset to v41 and service-worker cache to `prasad-analyst-v140-dispatch-control`.
 - JavaScript syntax check passed with `new Function()` before commit. Browser-level report checks, representative transaction reconciliation and full regression testing remain pending.
+
+
+## 23 November 2026 — Customer returns and credit-note control report
+- Added a Business Control Centre report for customer-return records, returned pieces, affected invoices, QC quantities by status, credit notes awaiting CA review, and approved/issued credit-note values.
+- Credit-note value is counted only when the return record is explicitly marked `approved`; pending CA review remains separate. The report does not calculate net sales or certify GST treatment / physical stock.
+- Updated `advanced-workflows.js` to v42 and service-worker cache to `prasad-analyst-v141-customer-returns-report`.
+- JavaScript syntax validation passed with `new Function()`. Browser interaction, representative-data reconciliation and full regression testing remain pending.
