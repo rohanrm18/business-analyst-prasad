@@ -543,3 +543,11 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Rework accepted pieces post a separate idempotent production-receipt reference; rework and rejects do not enter saleable stock.
 - Rework can return for another rework cycle. The manufacturing order is marked Completed only after initial QC covers the order quantity and no rework remains; it is marked Rework while pieces remain outstanding.
 - This is still a local QC workflow and requires consolidated testing with real size plans, stage quantities, stock ledger and manufacturing status transitions.
+
+
+### Supplier master CSV import — 23 Nov 2026
+
+- The local import workspace now provides a supplier CSV template and supplier-master import alongside customer and opening-stock imports.
+- Supplier rows are previewed before confirmation and validated for required name, 10–15 digit phone, optional GSTIN/PAN formats and supported constitution values.
+- Duplicate supplier name, phone, GSTIN or PAN values are blocked against both existing supplier records and rows in the same file. Imported supplier IDs and timestamps are generated locally, then the page reloads so the supplier directory reads the imported records.
+- XLSX/PDF import, import history, controlled rollback, supplier-bill reconciliation and multi-device import remain pending.
