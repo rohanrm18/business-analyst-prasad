@@ -920,3 +920,5 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Procurement dashboard now shows per-PO-line cumulative billed quantity, QC-accepted quantity, PO rate, weighted billed rate, and unmatched invoice rows. Legacy bills without a PO line mapping remain visibly unmatched rather than being assigned to a guessed material line.
 - Limits: item mapping is manual and requires checking the original invoice. The current schema does not provide a normalized HSN/material master crosswalk, so OCR/description matching is not automatic. Quantity comparison uses QC-accepted quantity; partial invoices and multiple bills are aggregated by PO line. No inventory movement is triggered by bill entry. Browser regression and live deployment remain pending.
 - Validation: JavaScript syntax checks (`new Function`) passed for `compliance.js` and `erp.js`.
+
+- Follow-up correction: invoice-number duplicate normalization now correctly strips actual whitespace, hyphens and slashes (rather than matching a literal backslash/s character). Syntax rechecked after correction.
