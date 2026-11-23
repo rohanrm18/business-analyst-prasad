@@ -388,3 +388,14 @@ The sales tax invoice form now requires an HSN/SAC entry in 4, 6 or 8 digit nume
 - Draft PO approval now checks supplier existence, strict real calendar order date, at least one line, material code, positive quantity, finite non-negative rate, GST percentage from 0–100, supported material type, accessory whole-piece quantity and a live accessory-master link. Fabric lines must include a unit.
 - Approval remains confirmation-based; cancelled/previously approved POs cannot be approved through this Draft-only path.
 - Verification: ERP JavaScript syntax passed; focused helper tests cover valid fabric/accessory POs, missing supplier, invalid date, empty lines, zero quantity, negative rate, out-of-range GST, fractional accessory quantity, unsupported material and missing accessory master link. Browser workflow and legacy PO migration tests remain pending.
+
+
+## Purchase cost entry and effective-dated style cost history — 23 November 2026
+- Added a phone-friendly Purchase Cost & Style History screen under More.
+- Supports supplier-bill cost references and manual verified opening costs, style plus optional colour/size, supplier/reference, effective date, quantity for bill-backed entries, unit cost, eligible direct freight and recoverable GST shown separately.
+- Shows a landed unit-cost preview using entered freight divided by bill quantity. Recoverable GST is excluded from the garment cost calculation.
+- Requires a source reference for bill-backed costs, positive whole bill quantity, valid non-future effective date and a reason for zero-cost entries. Detects duplicate supplier + bill + style/variant records.
+- New entries are saved as Pending Review and are not eligible for the existing profitability matcher until an authorised approval workflow is implemented. A cost reference does not create a supplier payable, purchase voucher or Tally entry.
+- Added the cost-history key to manual backup and restore allow-lists.
+- Verification: app.js syntax passed before commit; app script cache version updated to v47 and service-worker cache to v81.
+- Limitations: no approval/reversal UI or role enforcement yet; no supplier-master picker or bill attachment; cost history is local to this device; freight allocation is a simple quantity allocation; manufactured-style BOM, labour, wastage and job-work costs are not complete. Full backup/restore, profitability matching and browser/device tests remain pending.
