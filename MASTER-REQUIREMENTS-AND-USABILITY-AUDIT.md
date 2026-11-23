@@ -649,3 +649,18 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Mapping register is saved locally, included in the module backup key list and added to validated restore allow-list/type checks.
 - No automatic journals are posted from these mappings yet. Tax splitting, GST/TDS calculations, invoice/payment event connectors, stock valuation, accruals and full double-entry reconciliation remain future implementation work. Do not rely on this as a statutory ledger.
 - JavaScript syntax validation passed for `advanced-workflows.js` and `compliance.js`. Browser UI, backup/restore round-trip and accounting regression tests remain pending.
+
+## Balanced idempotent mapped-journal posting engine — 23 November 2026
+
+- Added a reusable local posting function, exposed as `window.prasadPostMappedJournal(event, sourceEventId, date, amount, memo, sourceReference)` for subsequent transaction-module integrations.
+- The engine requires an existing mapping marked “CA reviewed”, two different account codes that still exist in the chart, a stable source event ID, a valid ISO transaction date, a positive finite amount rounded to paise, and an unlocked financial year.
+- It creates exactly two journal lines: debit to the mapped debit account and credit to the mapped credit account. It checks debit and credit equality in paise before saving.
+- Stable source type + source event ID makes retries idempotent. A matching retry returns the existing journal; a retry with a changed amount, date or mapped accounts is rejected instead of silently creating a duplicate or changing a posted journal.
+- Automatic journal IDs are tied to the source event. Journal metadata retains source type, source ID/reference, amount and account codes for traceability.
+- Updated the ledger mapping guidance and PWA asset/cache version.
+
+**Scope and limitations**
+- This is the reusable posting engine only. Sales invoice, receipt, purchase bill, supplier payment, contractor/TDS, credit note, stock and expense screens are not yet connected to call it. Do not interpret this as automatic accounting across the business.
+- The “CA reviewed” field is still a locally entered status, not authenticated CA approval. Do not activate a mapping until the CA has confirmed the exact accounting basis.
+- The engine posts a single two-line amount only. GST/TDS splitting, advance adjustment, inventory valuation, COGS, accruals, multi-line allocations, reversals from source modules and server-side concurrency/uniqueness remain pending.
+- Syntax validation passed for `advanced-workflows.js`. Browser/device execution, retry/conflict functional tests, financial-year lock tests and journal report reconciliation remain pending.
