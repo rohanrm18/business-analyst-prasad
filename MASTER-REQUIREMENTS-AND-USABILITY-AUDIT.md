@@ -408,3 +408,10 @@ The sales tax invoice form now requires an HSN/SAC entry in 4, 6 or 8 digit nume
 - Corrected customer-master restore support: the customer master is an array and is now included in the restore allow-list and array validation, with duplicate ID/name and credit-setting checks.
 - Added dispatch records to the manual business backup key list so they are included in new backups.
 - Verification: app.js JavaScript syntax passed after both changes; app asset cache advanced to v49; service-worker cache advanced to v83. GitHub Actions validation and Pages deployment are pending verification. No live browser/device workflow or real backup/restore simulation is claimed.
+
+## Smart dashboard live local metrics — 23 November 2026
+- Replaced placeholder dashboard figures with calculations from saved local tax invoices, customer invoice/opening-balance receivables and garment stock movement records.
+- Dashboard now shows today's invoiced sales, open customer outstanding, overdue receivables, saleable stock pieces, active sales orders, active manufacturing orders and zero/negative stock variants.
+- Recent activity combines saved sales orders and tax invoices. Quick actions remain available for sales orders, purchase drafts, stock and customer records.
+- Dashboard figures are explicitly described as device-local and based only on saved records. Zero-stock alerts are shown; reorder thresholds are not configured, and invoice records are not represented as a complete accounting ledger.
+- Verification: app.js syntax passed; app asset cache advanced to v50 and service-worker cache to v84. CI and Pages deployment are pending final status check. No browser/device test or real-data reconciliation is claimed.
