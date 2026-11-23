@@ -382,3 +382,9 @@ The sales tax invoice form now requires an HSN/SAC entry in 4, 6 or 8 digit nume
 - Supplier-level PO payment entry now requires a recognised payment mode: Bank transfer / NEFT / RTGS, UPI, Cash, Cheque or Other. The selected value is saved as the canonical method field.
 - Existing positive-amount, strict calendar-date, supplier selection, duplicate-reference and supplier-outstanding checks remain in place.
 - Verification: ERP JavaScript syntax passed; focused payment validation checks cover each supported method, missing/unknown method, invalid date, zero/negative amount and duplicate supplier reference. Browser/localStorage and legacy-data integration remain pending.
+
+
+## Purchase Order approval validation — 23 November 2026
+- Draft PO approval now checks supplier existence, strict real calendar order date, at least one line, material code, positive quantity, finite non-negative rate, GST percentage from 0–100, supported material type, accessory whole-piece quantity and a live accessory-master link. Fabric lines must include a unit.
+- Approval remains confirmation-based; cancelled/previously approved POs cannot be approved through this Draft-only path.
+- Verification: ERP JavaScript syntax passed; focused helper tests cover valid fabric/accessory POs, missing supplier, invalid date, empty lines, zero quantity, negative rate, out-of-range GST, fractional accessory quantity, unsupported material and missing accessory master link. Browser workflow and legacy PO migration tests remain pending.
