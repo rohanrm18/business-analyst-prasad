@@ -137,9 +137,38 @@ window.prasadPostMappedJournalLines=postMappedJournalLines;
   };
  }
  function bindLedger(){
- document.querySelectorAll('[data-aw-reverse]').forEach(b=>b.onclick=()=>{const j=journals.find(x=>x.id===b.dataset.awReverse);if(!j||j.status!=='posted')return;if(!confirm('Reverse '+j.number+'? A separate opposite journal will be created.'))return;const rev={id:uid('JV'),number:awNextNo('JV',today()),date:today(),memo:'Reversal of '+j.number+' — '+j.memo,lines:j.lines.map(l=>({account:l.account,debit:Number(l.credit||0),credit:Number(l.debit||0)})),total:j.total,status:'posted',reversalOf:j.id,createdAt:new Date().toISOString()};j.status='reversed';j.reversedAt=new Date().toISOString();j.reversalId=rev.id;journals.push(rev);persist();render();});
- const af=document.getElementById('aw-account');if(af)af.onsubmit=e=>{e.preventDefault();const d=Object.fromEntries(new FormData(af));if(accounts.some(a=>a.code.toLowerCase()===d.code.trim().toLowerCase())){alert('Account code already exists.');return;}accounts.push({code:d.code.trim(),name:d.name.trim(),type:d.type});persist();render();};
- const jf=document.getElementById('aw-journal');if(jf){const wrap=document.getElementById('aw-journal-lines');document.getElementById('aw-add-jline').onclick=()=>{const div=document.createElement('div');div.className='two aw-jline';div.innerHTML='<label>Account<select name="account" required><option value="">Select account</option>'+accounts.map(a=>'<option value="'+esc(a.code)+'">'+esc(a.code+' · '+a.name)+'</option>').join('')+'</select></label><label>Debit ₹<input name="debit" type="number" min="0" step=".01" value="0"></label><label>Credit ₹<input name="credit" type="number" min="0" step=".01" value="0"></label>';wrap.appendChild(div);};jf.onsubmit=e=>{e.preventDefault();const d=Object.fromEntries(new FormData(jf)),lines=[...wrap.querySelectorAll('.aw-jline')].map(x=>({account:x.querySelector('[name="account"]').value,debit:Number(x.querySelector('[name="debit"]').value||0),credit:Number(x.querySelector('[name="credit"]').value||0)}));const debit=lines.reduce((n,l)=>n+l.debit,0),credit=lines.reduce((n,l)=>n+l.credit,0);if(!d.date||d.date>today()||!awDateAllowed(d.date)||!d.memo.trim()||lines.length<2||lines.some(l=>!accounts.some(a=>a.code===l.account)||l.debit<0||l.credit<0||(l.debit>0&&l.credit>0)||(l.debit===0&&l.credit===0))||Math.abs(debit-credit)>.005){alert('Journal must have at least two valid lines and equal debit/credit totals.');return;}journals.push({id:uid('JV'),number:'PA-JV-'+String(journals.length+1).padStart(5,'0'),date:d.date,memo:d.memo.trim(),lines,total:debit,status:'posted',createdAt:new Date().toISOString()});persist();render();};}
+ document.querySelectorAll('[data-aw-reverse]').forEach(b=>b.onclick=()=>{
+  const j=journals.find(x=>x.id===b.dataset.awReverse);
+  if(!j||j.status!=='posted'||j.reversalOf){alert('Only an original posted journal can be reversed.');return;}
+  const reversalDate=today();
+  if(!awDateAllowed(reversalDate))return;
+  if(!confirm('Reverse '+j.number+' on '+reversalDate+'? A separate opposite journal will be created in the current open financial period.'))return;
+  const rev={id:uid('JV'),number:awNextNo('JV',reversalDate),date:reversalDate,memo:'Reversal of '+j.number+' — '+j.memo,lines:j.lines.map(l=>({account:l.account,debit:Number(l.credit||0),credit:Number(l.debit||0)})),total:j.total,status:'posted',reversalOf:j.id,createdAt:new Date().toISOString()};
+  j.status='reversed';j.reversedAt=new Date().toISOString();j.reversalId=rev.id;journals.push(rev);persist();render();
+ });
+ const af=document.getElementById('aw-account');
+ if(af)af.onsubmit=e=>{
+  e.preventDefault();const d=Object.fromEntries(new FormData(af)),code=String(d.code||'').trim(),name=String(d.name||'').trim();
+  if(!/^[A-Za-z0-9._-]{1,12}$/.test(code)||!name||name.length>80||!['Asset','Liability','Capital','Income','Expense'].includes(d.type)){alert('Enter a valid account code (up to 12 letters/numbers) and account name.');return;}
+  if(accounts.some(x=>String(x.code).trim().toLowerCase()===code.toLowerCase())){alert('Account code already exists.');return;}
+  accounts.push({code,name,type:d.type});persist();render();
+ };
+ const jf=document.getElementById('aw-journal');
+ if(jf){
+  const wrap=document.getElementById('aw-journal-lines');
+  document.getElementById('aw-add-jline').onclick=()=>{
+   const div=document.createElement('div');div.className='two aw-jline';
+   div.innerHTML='<label>Account<select name="account" required><option value="">Select account</option>'+accounts.map(x=>'<option value="'+esc(x.code)+'">'+esc(x.code+' · '+x.name)+'</option>').join('')+'</select></label><label>Debit ₹<input name="debit" type="number" min="0" step=".01" value="0"></label><label>Credit ₹<input name="credit" type="number" min="0" step=".01" value="0"></label>';
+   wrap.appendChild(div);
+  };
+  jf.onsubmit=e=>{
+   e.preventDefault();const d=Object.fromEntries(new FormData(jf)),lines=[...wrap.querySelectorAll('.aw-jline')].map(x=>({account:x.querySelector('[name="account"]').value,debit:Number(x.querySelector('[name="debit"]').value||0),credit:Number(x.querySelector('[name="credit"]').value||0)}));
+   const dp=lines.reduce((n,l)=>n+Math.round(l.debit*100),0),cp=lines.reduce((n,l)=>n+Math.round(l.credit*100),0);
+   if(!d.date||d.date>today()||!awDateAllowed(d.date)||!d.memo.trim()||lines.length<2||lines.some(l=>!accounts.some(x=>x.code===l.account)||!Number.isFinite(l.debit)||!Number.isFinite(l.credit)||l.debit<0||l.credit<0||(l.debit>0&&l.credit>0)||(l.debit===0&&l.credit===0)||!Number.isSafeInteger(Math.round(l.debit*100))||!Number.isSafeInteger(Math.round(l.credit*100)))||dp<=0||dp!==cp){alert('Journal must have at least two valid lines and debit/credit totals equal exactly to the paise. Future dates are not allowed.');return;}
+   journals.push({id:uid('JV'),number:awNextNo('JV',d.date),date:d.date,memo:d.memo.trim(),lines:lines.map(l=>({account:l.account,debit:Math.round(l.debit*100)/100,credit:Math.round(l.credit*100)/100})),total:dp/100,status:'posted',createdAt:new Date().toISOString()});
+   persist();render();
+  };
+ }
 }
 function sizePage(){const rows=sizeSets.map(s=>'<div class="line"><div><b>'+esc(s.name)+' · '+esc(s.sizes.join(', '))+'</b><small>'+esc(s.style||'Reusable size set')+' · '+esc(s.category||'Boys garments')+'</small></div></div>').join('');return card('Reusable garment size sets','Define sizes once for each garment range. This first version stores reusable sets; connecting them to every sales and packing line is a separate integration step.','<form id="aw-size"><div class="two">'+input('name','Size set name')+input('style','Style / range (optional)')+'</div>'+input('category','Category','text','value="Boys ethnic wear"')+input('sizes','Sizes, comma separated','text','required placeholder="2Y, 4Y, 6Y, 8Y"')+'<button class="primary">Save size set</button></form>')+card('Saved size sets','Reusable sets on this device',rows||'<div class="empty">No size sets saved.</div>')}
 function countPage(){const rows=counts.slice().reverse().map(c=>'<div class="line"><div><b>'+esc(c.date)+' · '+esc(c.style)+' / '+esc(c.colour)+' / '+esc(c.size)+'</b><small>System '+c.system+' · Counted '+c.counted+' · Variance '+c.variance+' · '+esc(c.status)+'</small></div></div>').join('');return card('Physical garment stock count','Count a style/colour/size and post the variance only after confirmation.','<form id="aw-count"><div class="two">'+input('date','Count date','date','required')+input('style','Style / design')+'</div><div class="two">'+input('colour','Colour')+input('size','Size')+'</div><div class="two">'+input('counted','Physical pieces','number','min="0" step="1" required')+input('reason','Count note')+'</div><button class="primary">Save and post count variance</button></form>')+card('Stock count history','Variance movements are linked to count IDs',rows||'<div class="empty">No counts recorded.</div>')}
