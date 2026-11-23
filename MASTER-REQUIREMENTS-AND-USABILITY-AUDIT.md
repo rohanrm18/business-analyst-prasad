@@ -971,3 +971,10 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 ## Windows desktop and print layout foundation — 23 November 2026
 - Expanded the desktop workspace width for large Windows monitors, improved wide-table/form handling and added browser print CSS to remove navigation and app chrome from printed pages.
 - This is responsive/print stylesheet support only. Windows Edge/Chrome interaction, invoice/report print output, physical printer drivers, barcode scanner and thermal printer connectivity have not been device-tested; printer-specific paper size, margins, darkness, gap/feed and cutter settings remain to be validated on the actual hardware.
+
+
+## Month-end checklist CSV export correction — 23 November 2026
+- Corrected the month-end export control binding so the click handler is attached after the GST/CA workspace has rendered. The previous handler was created before the button existed in the DOM and could not reliably run.
+- Consolidated the checklist rows into one shared month-filtered calculation used by both the on-screen checklist and CSV export, so the exported findings/statuses now match the displayed checklist.
+- CSV now includes all eight checklist areas and their record counts, findings and status labels. It remains a review aid, not a statutory close.
+- Validation: compliance.js syntax check passed; browser click/download regression remains pending.
