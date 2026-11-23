@@ -748,3 +748,11 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Both transaction rows and statement-import metadata are included in the app's backup-key inventory.
 - Syntax validation passed for `advanced-workflows.js`. Browser CSV parsing, negative/parenthesized amount formats, duplicate re-import, balance mismatch handling and full backup/restore tests remain pending.
 - PDF/photo OCR, multi-page statement extraction, XLSX import, bank book posting, split/combined matching and secure cloud document storage are not implemented. Do not upload real bank statements until authentication, access control and encrypted storage are deployed.
+
+
+## Bank CSV compatibility hardening — 23 November 2026
+
+- Expanded header recognition for common Indian bank exports: Transaction Date / Value Date, Particulars / Transaction Details, Withdrawal(s) / Deposit(s), Debit / Credit, UTR No., cheque reference and account labels.
+- Added strict amount parsing for comma/currency-formatted values and negative or parenthesized amounts. A negative debit is normalized as a credit and a negative credit as a debit; rows with invalid or conflicting directions are rejected rather than guessed.
+- Corrected the date parser to reliably accept ISO dates and common day/month/year or month/day/year-shaped slash dates. Ambiguous slash-date ordering remains bank-export dependent; verify the imported dates in the review step.
+- Syntax validation passed for `advanced-workflows.js`. Real bank CSV samples from the user's bank, browser import behavior and reconciliation regression tests remain pending.
