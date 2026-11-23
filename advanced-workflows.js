@@ -12,7 +12,16 @@ const today=()=>new Date().toISOString().slice(0,10);
 const uid=p=>p+'-'+Date.now()+'-'+Math.floor(Math.random()*10000);
 function fyFor(date){const d=String(date||today()),y=Number(d.slice(0,4)),m=Number(d.slice(5,7)),start=m>=4?y:y-1;return String(start)+'-'+String(start+1).slice(-2)}
 function awNextNo(type,date=today()){const fy=fyFor(date),k=type+'|'+fy,n=Number(docSequences[k]||0)+1;docSequences[k]=n;save(KEY.sequences,docSequences);return 'PA-'+type+'/'+fy+'/'+String(n).padStart(5,'0')}
-function awDateAllowed(date){const d=String(date||''),locked=financialYears.find(x=>x.status==='Locked'&&d>=x.start&&d<=x.end);if(locked){alert('This financial year '+locked.name+' is locked. New entries are blocked in this local workflow.');return false;}return true}
+function awDateAllowed(date){const d=String(date||''),locked=financialYears.find(x=>x.status==='Locked'&&d>=x.start&&d<=x.end);if(locked){alert('This financial year '+locked.name+' is locked. New entries are blocked in this local workflow.');return false;}return true};
+/* Company-wide date guard: runs before individual form handlers, including modules loaded earlier. */
+const fyGuardFormIds=new Set(['entry','customer-po-form','orderform','invoiceform','garment-stock-form','customer-master-form','ar-receipt','style-cost-form','mfg-order','moveform','holdform','cut-in','bom-order','supplier-form','purchase-plan-form','grn-form','qc-form','payment-form','supplier-advance-allocation-form','supplier-payment-form','photo-form','jw-form','tds-form','tds-deposit-form','tds-allocation-form','aw-return','aw-account','aw-journal','aw-count','aw-preturn','aw-qc','aw-cut','aw-cheque','aw-capital']);
+window.addEventListener('submit',function(e){
+ const f=e.target;if(!f||!fyGuardFormIds.has(String(f.id||'')))return;
+ const dateField=f.querySelector('[name="date"],[name="invoiceDate"],[name="billDate"],[name="receiptDate"],[name="paymentDate"],[name="lrDate"]');
+ if(!dateField||!dateField.value)return;
+ if(!awDateAllowed(dateField.value)){e.preventDefault();e.stopImmediatePropagation();}
+},true);
+window.prasadFinancialYearDateAllowed=awDateAllowed;
 
 const card=(title,sub,body)=>'<section class="card"><div class="cardhead"><div><h3>'+esc(title)+'</h3><small>'+esc(sub||'')+'</small></div></div>'+body+'</section>';
 const input=(name,label,type='text',attrs='')=>'<label>'+label+'<input name="'+name+'" type="'+type+'" '+attrs+'></label>';
