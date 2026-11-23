@@ -481,3 +481,10 @@ The Business Control Centre now includes:
 - Formula-injection-safe CSV exports for customer, supplier, sales order, tax invoice, garment stock and job-work challan registers.
 
 The search and exports work only with records available in this browser's local storage. This is not server-wide search, and CSV export is not a validated Excel/XLSX import workflow.
+
+
+### Partial carton packing and invoice-per-carton added — 23 November 2026
+
+Sales orders now support repeated partial packing slips. Each packing confirmation asks for a whole-piece quantity per style/category/colour/size line, calculates remaining quantity across previously approved slips, and blocks over-packing. Each slip is identified as a carton. The billing workflow selects an approved packing slip that has not already been invoiced, pre-fills only that carton’s lines and quantities, and allows a separate invoice for each approved slip. The sales order remains at its original ordered quantity and shows cumulative packed pieces plus whether an unbilled carton is ready.
+
+This enables partial order fulfilment as separate packed cartons and invoices. It does not yet support multiple dispatch records against one invoice, a carton-content scan/verification ledger, or automatic reconciliation of delivered quantities/returns against the original customer PO. Browser testing is required for multiple lines, duplicate style variants, several cartons, invoice-per-slip uniqueness and backup/restore.
