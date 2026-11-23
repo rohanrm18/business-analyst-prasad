@@ -922,3 +922,12 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Validation: JavaScript syntax checks (`new Function`) passed for `compliance.js` and `erp.js`.
 
 - Follow-up correction: invoice-number duplicate normalization now correctly strips actual whitespace, hyphens and slashes (rather than matching a literal backslash/s character). Syntax rechecked after correction.
+
+
+## 2026-11-23 — QC-linked supplier purchase returns and debit notes
+- Updated the purchase-return form to require the original supplier bill, its linked PO material line, and the exact source GRN.
+- The workflow now offers only GRNs belonging to that bill's PO line and displays QC-accepted quantity less previously recorded returns.
+- Save-time checks require a mapped bill item quantity on the selected PO line and enforce both remaining billed quantity and remaining QC-accepted GRN quantity. Legacy/unmatched bill rows cannot be returned against a guessed material line.
+- Debit-note approval rechecks the bill/PO/GRN/supplier links and cumulative returned quantity before reducing the supplier bill balance; amount remains subject to the existing bill-outstanding cap.
+- Records retain PO line, GRN and QC accepted-at-return snapshots. No stock reversal or GST adjustment is posted automatically; CA approval remains a local manual confirmation, not statutory verification.
+- Validation: JavaScript syntax check passed for `advanced-workflows.js`. Browser/device regression and end-to-end accounting/stock tests remain pending. Updated app asset version and service-worker cache.
