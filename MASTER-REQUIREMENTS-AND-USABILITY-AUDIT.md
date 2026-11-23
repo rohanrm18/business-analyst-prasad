@@ -817,3 +817,12 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Loan movements are grouped by lender / bank account reference, with received, repaid and net movement shown per reference. Loan entries require a reference to avoid silently combining unrelated loans.
 - Amounts are rounded to paise and inputs are validated; date is checked against the local financial-year lock.
 - Important limits: net loan movement is only an estimate from manually recorded totals; repayments are not split into principal and interest, no lender statement or bank reconciliation is performed, and no automatic double-entry journal is posted. Browser interaction and regression testing remain pending.
+
+
+## Manual accounting ledger hardening — 23 November 2026
+
+- Manual journal entries now validate account selection, non-negative finite amounts, one-sided debit/credit per line, at least two lines, and exact debit/credit equality to the paise. Future-dated entries are blocked.
+- Manual journal numbers now use the shared local JV document sequence per financial year instead of array-length numbering.
+- Reversal creates a separate opposite journal dated today in the current open financial period; the financial-year lock is checked before reversal. A reversal journal itself cannot be reversed again, preventing accidental reversal chains.
+- Chart-of-account creation validates code format, name and account type, and prevents case-insensitive duplicate codes.
+- Syntax validation passed. UI interaction, legacy numbering compatibility, and regression tests remain pending. This remains local-only accounting and is not a complete double-entry system until source workflows and secure shared storage are integrated.
