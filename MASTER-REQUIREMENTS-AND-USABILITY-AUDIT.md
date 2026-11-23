@@ -463,3 +463,11 @@ The new registers are included in manual backup keys and the active restore vali
 New dispatch records now attempt a retry-safe physical stock issue when the LR/dispatch is saved. The app checks invoice garment lines for style, colour, size and whole-piece quantities; checks saleable stock; stores a pending dispatch reference before posting; posts each invoice line with a stable dispatch/item reference; and marks stock as posted only after the stock ledger write succeeds. Re-saving a pending dispatch retries without duplicating already-posted movements. A shortage blocks dispatch stock posting. Older dispatch records without a stock-posting marker are labelled legacy-unverified and are not automatically posted, to avoid double deduction where a user may already have made a manual issue.
 
 This is still one full dispatch per invoice. Partial/multiple dispatch allocation and carton-level quantities remain unimplemented. Dispatch-to-stock posting needs a real browser regression test with opening stock, multiple invoice lines, retry after interruption, and legacy records before acceptance.
+
+
+### Production QC and cutting reconciliation added — 23 November 2026
+
+- **Production QC batches:** select a manufacturing order and size; record accepted, rework and rejected whole pieces; cumulative inspected quantity cannot exceed the MO quantity and cannot exceed the recorded Quality Check stage completion. Only accepted pieces post to saleable garment stock as a Production receipt. A stable MO/date/size/batch reference makes a retry after an interrupted save idempotent. When the full MO quantity has been inspected, the MO is marked Completed, allowing the existing reservation cleanup to release remaining material reservations.
+- **Cutting reconciliation:** record MO, style, fabric, lot/shade, pieces cut, metres issued/used/wasted/returned. The form requires issued metres to equal used + wastage + returned within 0.001 m. This is a reconciliation register only; it is not yet connected to the fabric-roll stock issue/return ledger.
+
+Both registers are included in manual backup and restore validation. Multi-stage rework loops, operation-level job-work material transfers and live fabric-roll posting remain pending.
