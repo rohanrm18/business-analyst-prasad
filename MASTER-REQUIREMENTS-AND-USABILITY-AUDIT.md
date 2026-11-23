@@ -639,3 +639,13 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Syntax validation passed for `advanced-workflows.js`. Browser/device regression testing has not yet been performed.
 
 - Follow-up hardening added the size × colour matrix sales-order form to the central guard and updated the Financial Year screen wording so it no longer describes locking as limited only to Business Control Centre forms.
+
+## Configurable automatic-accounting mapping register — 23 November 2026
+
+- Added a posting-mapping workspace inside Business Control Centre → Accounts ledger.
+- Supports configurable debit/credit account-code pairs for sales invoices, customer receipts, supplier purchases/payments, contractor job-work, contractor TDS withheld, customer credit notes, purchase returns, stock issues/adjustments, general expenses and bank charges.
+- Mappings are selected from the user's own chart of accounts; duplicate event mappings update the existing row, and identical debit/credit accounts are rejected.
+- New mappings default to “Draft — CA review required”. A visible status can be set to “CA reviewed” only after the user's CA has confirmed the treatment. This is a user-entered marker, not verified CA identity or approval.
+- Mapping register is saved locally, included in the module backup key list and added to validated restore allow-list/type checks.
+- No automatic journals are posted from these mappings yet. Tax splitting, GST/TDS calculations, invoice/payment event connectors, stock valuation, accruals and full double-entry reconciliation remain future implementation work. Do not rely on this as a statutory ledger.
+- JavaScript syntax validation passed for `advanced-workflows.js` and `compliance.js`. Browser UI, backup/restore round-trip and accounting regression tests remain pending.
