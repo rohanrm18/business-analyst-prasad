@@ -1015,3 +1015,12 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Full and partial dispatch posting now checks that the requested style/colour/size quantity does not exceed the outstanding reservation on that invoice's linked approved packing slip. Partial dispatch consumes only posted quantities; remaining packed pieces stay reserved. Stock is not deducted at packing.
 - Added variant-wise order reconciliation for ordered, MO planned, recorded Quality Check-stage produced, QC accepted, packed, invoiced and posted-dispatched quantities.
 - Limitations: legacy dispatches without a matching posted stock movement do not release reservations automatically; they require reconciliation. Size-level production planning requires a parseable MO size plan. Browser-level regression with real local records is still pending; this is a local-device prototype and not a shared multi-user stock lock.
+
+
+## Manufacturing material-to-finished-garment reconciliation (23 Nov 2026)
+- Order fulfilment now displays linked MO size plan, MO-level cutting/stitching/QC stage totals, cutting pieces, job-work sent/accepted/rework/rejected, QC inspected/accepted/rework/rejected, locked-BOM fabric and accessory requirements, fabric issued/used/wastage/reusable returns, accessory issues/returns, packing, invoicing and posted dispatch quantities.
+- Cutting batches can capture a garment size against the selected MO size plan. Batches without a size remain in an explicit Unallocated row; no size split is guessed.
+- Accessory issue entries can capture garment size. The report uses the MO-linked accessory movement ledger; older un-sized issues remain Unallocated.
+- Material requirements are estimates from the MO locked BOM; actual fabric consumption and wastage come from cutting batches, and accessory issue/return quantities from the accessory movement ledger. These are operational quantities, not costing certification.
+- MO Stitching and Quality Check stage figures are cumulative MO-level progress and are shown as Unallocated where no size-specific stage completion is recorded. Contractor job-work is reported separately; do not add it to in-house stage totals without checking whether the same pieces are represented in both records.
+- Browser-level regression using actual local company records remains pending. Legacy records without MO links or size values are visible as unallocated / unmatched rather than silently distributed.
