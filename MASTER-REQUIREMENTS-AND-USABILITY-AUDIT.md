@@ -998,3 +998,12 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Updated advanced-workflows.js to v47 and service-worker cache to prasad-analyst-v160-workflow-health.
 
 - Follow-up validation correction: manufacturing-order checks now inspect the actual `sourceSalesOrderId` field used by the sales-order-to-production creation flow, as well as legacy alternate reference fields.
+
+
+## Production fulfilment quantity controls — 23 November 2026
+- Manufacturing operation progress is now sequential: a stage cannot record cumulative completed pieces beyond the previous operation's completed quantity (e.g. stitching cannot exceed cutting; QC cannot exceed finishing; later stages cannot exceed their immediate predecessor). Cutting still retains its approved-BOM/material readiness gate.
+- Initial QC now validates size-wise inspected quantity against the manufacturing order's declared size plan when one is present. The size plan must parse, total exactly to the MO quantity, and include the inspected size; repeated QC batches cannot exceed that size's planned quantity. Existing MO-wide initial-QC cap and Quality Check stage-completion gate remain active. Rework re-inspection remains limited to outstanding rework for the same variant.
+- Accepted QC pieces continue to enter finished-garment stock only through the QC batch's traceable Production receipt reference. Rejected and rework pieces are not added to saleable stock.
+- Packing remains a physical confirmation / reservation document; stock is deducted at dispatch, not again at packing. Dispatch posting continues to validate available saleable stock and writes traceable issue movements. Full packing-reservation allocation across multiple invoices/partial dispatches still needs consolidated browser tests and may need further integration before production use.
+- Validation performed: all application JavaScript syntax checks and targeted size-plan/stage-rule logic checks. Browser tests with representative orders, size mixes, partial cartons and multiple dispatches remain pending.
+- Refreshed app.js to v59, advanced-workflows.js to v49, and service-worker cache to prasad-analyst-v162-production-flow-qc.
