@@ -772,3 +772,14 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Shows customer receipts, supplier outflows and net recorded movement; labels the period and clearly states this is not a bank balance or complete cash-flow statement.
 - Known coverage limits are displayed: cash/bank modes are not separated; expenses, transfers, contractor payments and unrecorded transactions may be missing. This is an operational visibility report, not a statutory cash-flow statement.
 - JavaScript syntax validation passed for advanced-workflows.js. Browser calculation, source-data overlap and financial regression tests remain pending; verify source payment registers before relying on totals.
+
+
+## Receivables and supplier payables due forecast — 23 November 2026
+
+- Added a forward-looking due-date planning card to Business Control Centre reports, alongside the historical cash-movement summary.
+- Customer inflows use open invoice/opening-balance amounts after allocated receipts and non-pending credit notes, using the existing receivables balance helpers.
+- Supplier outflows use purchase-bill totals less recorded invoice payments (including TDS withheld), PO-advance allocations and CA-approved linked purchase returns. Pending debit notes do not reduce the forecast.
+- Groups open items into overdue, due in 0–7, 8–30, 31–60, 61–90, after 90 days, and missing due date. Invoice date is shown as an estimate only when no explicit due date exists; no date is fabricated.
+- Shows total open receivables, supplier payables and net expected movement, plus up to 30 largest/open due items sorted by due date.
+- Explicitly excludes collection promises, contractor challans, expenses, loan instalments, cheque clearing and bank balances. Net expected movement is not available cash or a guaranteed collection forecast.
+- JavaScript syntax validation passed for advanced-workflows.js. Browser rendering, invoice/payment data reconciliation, date-bucket calculations and full financial regression tests remain pending. Review source registers and due dates before relying on the forecast.
