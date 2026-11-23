@@ -90,6 +90,15 @@ document.addEventListener('submit',e=>{
  if(cash+withheld<=0||cash+withheld>due+.009){alert('Cash paid plus TDS withheld must be positive and cannot exceed invoice outstanding '+money(due)+'.');return;}
  const id='SP-'+Date.now()+'-'+Math.floor(Math.random()*10000),payment={id,billId:b.id,supplier:b.supplier,invoiceNo:b.invoiceNo,date:d,amountPaid:round(cash),tdsWithheld:round(withheld),tdsBase:applies==='Yes'?round(base):0,tdsApplicability:applies,tdsRate:withheld?rate:0,tdsNature:nature,tdsPartyType:type,tdsPan:pan,mode:form.elements.mode.value,reference:form.elements.reference.value,notes:form.elements.notes.value,createdAt:new Date().toISOString()};
  payments.push(payment);save('pa_supplier_payments_v1',payments);
+ // Post only the cash and TDS portions separately. The supplier-payable debit is
+ // split across two source events so the cash/bank and TDS-payable credits stay correct.
+ const posting=window.prasadPostMappedJournal;
+ payment.accountingPosting={cash:'not-posted',tds:'not-applicable'};
+ if(typeof posting==='function'){
+  if(cash>0){try{const r=posting('supplier_payment',payment.id,d,round(cash),'Supplier payment · '+b.invoiceNo,b.supplier);payment.accountingPosting.cash=r.created?'posted':'already-posted';}catch(err){payment.accountingPosting.cash='pending';payment.accountingPosting.cashError=String(err.message||err).slice(0,240);}}
+  if(withheld>0){try{const r=posting('tds_withheld',payment.id+'-TDS',d,round(withheld),'TDS withheld · '+b.invoiceNo,b.supplier);payment.accountingPosting.tds=r.created?'posted':'already-posted';}catch(err){payment.accountingPosting.tds='pending';payment.accountingPosting.tdsError=String(err.message||err).slice(0,240);}}
+ }else{payment.accountingPosting.cash=cash>0?'pending-engine-unavailable':'not-applicable';payment.accountingPosting.tds=withheld>0?'pending-engine-unavailable':'not-applicable';}
+ save('pa_supplier_payments_v1',payments);
  if(withheld>0){const q=fyq(d),after=d>='2026-04-01';tds.push({id:'TDS-'+id,source:'Supplier invoice payment',paymentId:id,billId:b.id,jobId:'',contractorId:'',contractor:b.supplier,pan,billNo:b.invoiceNo,date:d,gross:round(cash+withheld),base:round(base),rate,tds:withheld,net:round(cash),section:after?'Income-tax Act 2025 s.393(1), Table 6(i)':'Income-tax Act 1961 s.194C',...q,threshold:true,applicable:true,createdAt:new Date().toISOString()});save('pa_tds_entries_v1',tds);}
  alert('Payment saved against '+b.invoiceNo+'. Cash: '+money(cash)+'. TDS: '+money(withheld)+'. Supplier outstanding and TDS register updated.');
  location.reload();
