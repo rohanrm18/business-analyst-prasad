@@ -791,3 +791,12 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Added summary counts for overdue promises with an invoice still open, promises due today, and promises due within seven days.
 - Historical promise entries remain visible; multiple promises for one invoice are not silently merged. Receipt activity since logging is informational and is not treated as a formal receipt-to-promise allocation or proof that a particular promise was fulfilled.
 - JavaScript syntax validation passed for advanced-workflows.js. Browser interaction, receipt-date edge cases, multiple-promise scenarios and financial regression tests remain pending.
+
+
+## Cash and bank movement breakdown — 23 November 2026
+
+- Expanded the rolling 30-day / 7-day recorded movement report to separate cash, bank/UPI/cheque and other/unspecified payment modes for both receipts and outflows.
+- Supplier invoice payments now use the recorded cash amount (amountPaid) when that field exists, including a legitimate zero-cash / TDS-only settlement; legacy rows fall back to amount only when amountPaid is absent. TDS withheld is not counted as cash paid.
+- Contractor/job-work payments are labelled separately within the supplier payment outflow source. Supplier advances and formal PO settlements remain separate source categories.
+- The report continues to be an operational register summary, not a bank balance or complete cash-flow statement. It cannot establish cleared funds; unknown payment modes remain in Other. Check source-register overlap before relying on totals.
+- JavaScript syntax validation passed for advanced-workflows.js. Browser calculations, representative mixed-mode records, zero-cash TDS cases and source-overlap regression tests remain pending.
