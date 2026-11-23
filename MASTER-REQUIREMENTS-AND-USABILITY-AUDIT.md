@@ -526,3 +526,12 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Sales-order cancellation now requires a reason and confirmation, retains the order record, and is blocked if a linked manufacturing order, approved packing slip, invoice or dispatch already exists. A cancelled order cannot be reopened through the status selector; create a new order/reference instead.
 - Invoice cancellation now retains the invoice number and marks the invoice REVERSED with reason and local timestamp. It is blocked if dispatch, customer receipt/payment allocation, any credit note or customer return exists. Reversed invoices are hidden from the dispatch queue and excluded from receivables. No stock is reversed because dispatch must not have occurred.
 - Cancellation reviewer identity is not authenticated; a secure identity-backed audit log is still part of the final cloud/security phase.
+
+
+### Contractor payment ledger hardening — 23 Nov 2026
+
+- Contractor challan reconciliation and contractor cash payments are now separate actions. Returned accepted/rejected/rework quantities and approved extras/deductions are updated independently from payment entry.
+- Each new contractor payment stores its own payment ID, date, unique reference, amount and timestamp. References already used on another contractor payment are blocked; payment amounts cannot exceed the current unpaid contractor payable.
+- The system blocks a quantity/charge update that would reduce the payable below payments already recorded. Challan close still requires sent pieces to reconcile exactly to accepted + rejected + rework.
+- Legacy cumulative paid totals are preserved; they are not silently rewritten into invented payment references.
+- This remains device-local. It is not yet posted into the supplier payable ledger or double-entry accounts, and browser-local identity/audit is not secure.
