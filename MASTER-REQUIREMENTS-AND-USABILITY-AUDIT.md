@@ -826,3 +826,10 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Reversal creates a separate opposite journal dated today in the current open financial period; the financial-year lock is checked before reversal. A reversal journal itself cannot be reversed again, preventing accidental reversal chains.
 - Chart-of-account creation validates code format, name and account type, and prevents case-insensitive duplicate codes.
 - Syntax validation passed. UI interaction, legacy numbering compatibility, and regression tests remain pending. This remains local-only accounting and is not a complete double-entry system until source workflows and secure shared storage are integrated.
+
+
+## Physical stock count accuracy correction — 23 November 2026
+
+- Physical stock count's system quantity now follows the main garment stock ledger's saleable-stock rule: dispatches and stock-out movements reduce stock; opening, production, purchase and stock-in movements increase it; customer returns remain excluded from saleable quantity until their status is released by QC.
+- Style, colour and size inputs are trimmed consistently before matching and posting the variance. Non-future dates, whole-piece counts and financial-year lock are enforced.
+- This corrects a prior mismatch where quarantined customer returns could be included in the count's system quantity and create an incorrect adjustment. Syntax validation passed; browser and regression testing remain pending.
