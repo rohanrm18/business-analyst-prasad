@@ -637,3 +637,5 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Existing module-specific checks remain in place. The central guard is a local browser safeguard only, not server-enforced access control or a substitute for a shared company ledger.
 - Coverage is based on the current identified form IDs and date field names. Forms without a recognised date field, dynamically introduced forms, edits through non-form actions, and cross-device concurrency still require consolidated regression testing and any necessary follow-up wiring.
 - Syntax validation passed for `advanced-workflows.js`. Browser/device regression testing has not yet been performed.
+
+- Follow-up hardening added the size × colour matrix sales-order form to the central guard and updated the Financial Year screen wording so it no longer describes locking as limited only to Business Control Centre forms.
