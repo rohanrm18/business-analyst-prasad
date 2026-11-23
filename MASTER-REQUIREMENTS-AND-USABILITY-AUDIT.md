@@ -370,3 +370,9 @@ The sales tax invoice form now requires an HSN/SAC entry in 4, 6 or 8 digit nume
 - Duplicate non-empty payment references are blocked per supplier, reducing accidental double-entry of the same bank/cheque/UPI transaction. Payments without a reference remain allowed because cash and other legitimate transactions may not have one.
 - Existing outstanding-balance cap remains in force; no payment can exceed the recorded supplier PO outstanding.
 - Verification: ERP JavaScript syntax passed. Browser/localStorage payment workflow and migration scenarios remain pending.
+
+
+## GRN calendar-date validation — 23 November 2026
+- Tightened goods-received date validation to reject impossible calendar dates (for example, 30 February), not merely strings that resemble YYYY-MM-DD and are loosely parsed by JavaScript.
+- The validation requires the parsed date to round-trip to the exact entered ISO calendar date; existing receipt quantities, rolls and inspection records are unchanged.
+- Verification: ERP JavaScript syntax passed; focused helper tests passed for valid date, impossible date, malformed date, valid approved PO receipt, unapproved PO, over-receipt, duplicate fabric roll and fractional accessory quantity. Full browser/stock integration tests remain pending.
