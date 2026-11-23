@@ -350,3 +350,10 @@ The sales tax invoice form now requires an HSN/SAC entry in 4, 6 or 8 digit nume
 - Outward movement validation now checks the available balance for the exact item-and-unit pair and reports the unit in the shortage warning. Existing movement records are preserved; no historical quantities are converted or silently rewritten.
 - Updated the ERP script and service-worker cache versions.
 - Verification: ERP JavaScript syntax passed; source checks confirm item grouping, displayed balances and outward checks all use the unit-aware balance function. Full browser workflow, legacy-data reconciliation and physical stock count remain pending.
+
+
+## Goods receipt validation hardening — 23 November 2026
+- Centralised GRN receipt validation and require the linked PO to be Approved or Part received before accepting a receipt; cancelled, draft or otherwise unapproved POs cannot receive goods.
+- Require a valid receipt date, positive quantity, and enforce remaining PO line quantity. Fabric requires a unique roll number; accessory receipt quantities must be whole pieces.
+- Preserves existing GRN and QC records; this is a validation guard, not a supplier-return or PO amendment workflow.
+- Verification: ERP JavaScript syntax passed; focused validation tests passed for normal receipt, over-receipt, cancelled PO, duplicate fabric roll, fractional accessory quantity and missing date. Browser/localStorage integration, backup/restore and end-to-end procurement tests remain pending.
