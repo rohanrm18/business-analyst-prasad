@@ -850,3 +850,11 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Sales line values use the stored taxable amount when available, otherwise quantity × rate less line discount. Sales returns / credit notes are explicitly not netted from the sales report.
 - Purchase residual is labelled indicative because overlap between local payment, advance and debit-note registers still requires bill-by-bill reconciliation. This is not an audited P&L, GST return or ITC claim.
 - Syntax validation passed. Representative data, browser rendering and reconciliation regression tests remain pending.
+
+
+## 23 November 2026 — Production and QC operational report
+- Added a Production & QC Control card to the Business Control Centre reports.
+- Summarises non-cancelled manufacturing orders and planned pieces, recorded QC accepted/rework/rejected entries, fabric issued/used/wastage/returned, cut batches pending fabric-ledger posting, and cutting quantity mismatches.
+- Explicitly labels QC numbers as inspection-event totals because rework re-inspections may count the same physical pieces again. It does not claim unique finished-piece output, MO completion, or saleable stock certification.
+- Updated `advanced-workflows.js` asset version to v40 and service-worker cache to `prasad-analyst-v139-production-report`.
+- JavaScript syntax check passed using `new Function()` before commit. GitHub Actions validation and Pages deployment for the latest commits were queued/in progress at audit update time; do not treat this as browser/regression-tested or production-ready.
