@@ -873,3 +873,10 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Credit-note value is counted only when the return record is explicitly marked `approved`; pending CA review remains separate. The report does not calculate net sales or certify GST treatment / physical stock.
 - Updated `advanced-workflows.js` to v42 and service-worker cache to `prasad-analyst-v141-customer-returns-report`.
 - JavaScript syntax validation passed with `new Function()`. Browser interaction, representative-data reconciliation and full regression testing remain pending.
+
+
+## 23 November 2026 — Returns register CSV exports
+- Added read-only CSV exports for customer returns and supplier purchase returns in the Business Control Centre search / exports screen.
+- Customer return export includes invoice linkage, item/variant, quantity, QC status, credit-note status and amount. Purchase return export includes supplier/bill/PO linkage, amount, status and reason.
+- Updated `advanced-workflows.js` to v43 and service-worker cache to `prasad-analyst-v142-returns-exports`.
+- JavaScript syntax validation passed. Export contents and spreadsheet compatibility still require browser-level testing with representative data.
