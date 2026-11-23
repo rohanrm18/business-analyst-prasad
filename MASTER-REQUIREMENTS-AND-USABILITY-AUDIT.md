@@ -1007,3 +1007,11 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Packing remains a physical confirmation / reservation document; stock is deducted at dispatch, not again at packing. Dispatch posting continues to validate available saleable stock and writes traceable issue movements. Full packing-reservation allocation across multiple invoices/partial dispatches still needs consolidated browser tests and may need further integration before production use.
 - Validation performed: all application JavaScript syntax checks and targeted size-plan/stage-rule logic checks. Browser tests with representative orders, size mixes, partial cartons and multiple dispatches remain pending.
 - Refreshed app.js to v59, advanced-workflows.js to v49, and service-worker cache to prasad-analyst-v162-production-flow-qc.
+
+
+## Finished-stock reservation and variant reconciliation (23 Nov 2026)
+- Added a central reservation check at packing approval. Each packed line requires style/design code, colour and size; approved packing slips reserve saleable stock by that exact variant.
+- Prevents a second order from reserving the same pieces: packing availability is physical saleable ledger balance less all outstanding approved packing reservations. Existing dispatched quantities are released from the reservation only when an actual linked `Dispatch / sale issue` ledger movement exists.
+- Partial dispatch consumes only the exact dispatched variant quantity because reservation consumption is derived from posted stock issue rows linked to invoice and dispatch IDs. Remaining packed pieces stay reserved. Stock is not deducted at packing.
+- Added variant-wise order reconciliation for ordered, MO planned, recorded Quality Check-stage produced, QC accepted, packed, invoiced and posted-dispatched quantities.
+- Limitations: legacy dispatches without a matching posted stock movement do not release reservations automatically; they require reconciliation. Size-level production planning requires a parseable MO size plan. Browser-level regression with real local records is still pending; this is a local-device prototype and not a shared multi-user stock lock.
