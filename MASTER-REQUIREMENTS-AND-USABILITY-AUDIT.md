@@ -62,6 +62,12 @@ Status meanings:
 | Security | One app with individual accounts and Owner-controlled Owner/Accountant/CA/Manager/Worker permissions, MFA, session control, audit and secure recovery | D1 security schema migration and detailed specification added; authentication, MFA, server-side permission enforcement, deployment and acceptance testing are NOT complete. Browser-local data remains unsuitable for secure multi-user financial use |
 | Reports | Sales, purchases, customer/supplier balances, stock, GST, TDS and profit | Some local reports/exports exist; not all are reconciled to one verified data source |
 
+### GRN quality inspection guard — 23 Nov 2026
+
+- Rejected QC quantities now require an inspection finding / rejection reason before the inspection can be saved.
+- Inspection history distinguishes accepted stock postings from rejected-only / zero-accepted QC records, so a rejected-only inspection is not mislabeled as stock posted.
+- This is a browser-local validation improvement; it does not replace server-side transaction controls or the final end-to-end QC and stock reconciliation tests.
+
 ## Supplier workflow implementation note
 
 Supplier Master now captures PAN and constitution for TDS working defaults. Reviewed supplier bills can be linked to an approved PO and its GRN; a GRN cannot be linked to multiple bills. Invoice-wise payments and confirmed contractor/job-work TDS are saved against the supplier bill and included in CA working. PO-level advances can now be applied to a purchase bill only when supplier names match and the bill carries a PO link. Allocations reduce bill outstanding without creating another cash payment or changing the original PO payment total. Allocation is still browser-local and requires end-to-end reconciliation/testing; legacy advance data is not silently rewritten. All these records remain browser-local until secure shared storage and reconciliation are implemented.
