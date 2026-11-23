@@ -725,3 +725,15 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Storage isolation correction: supplier PO advances use dedicated `pa_supplier_advance_payments_v1`; they are not mixed with `pa_procurement_supplier_payments_v1` (formal PO settlement records). This prevents advances from inflating purchase-order paid totals before allocation.
 
 - Supplier invoice payment confirmation now reports separate cash/bank and TDS journal posting statuses, and explicitly warns when either entry remains pending; saving the supplier payment does not falsely imply that its journal posted.
+
+
+## Manual bank statement reconciliation — 23 November 2026
+
+- Added a Bank Reconciliation tab in the Business Control Centre with local CSV import for bank statement rows. Required headers: date, description (or narration), debit and credit; optional reference/UTR and account columns.
+- Imports validate transaction direction and date, skip exact duplicate statement rows using a stable row fingerprint, and retain statement evidence separately in `pa_bank_reconciliation_rows_v1`.
+- Candidate suggestions are limited to same-direction, exact-amount source records within a ±3-day date window. The user must select and confirm a candidate; no match is automatic. A source event cannot be linked to two confirmed statement rows.
+- Initial source matching covers customer receipts, invoice-wise supplier cash payments, supplier PO advances and formal PO settlement payments. Cash-mode entries are excluded where the source record contains a cash mode; TDS withholding is not treated as a bank payment.
+- Confirmed matches only create a reconciliation link. They do not edit source payments, customer balances, journals or bank balances. Users can unmatch or exclude a statement row with a reason.
+- This is a manual CSV/local-device workflow only. No live bank feed, bank API, automatic journal creation, bank-charge posting, running-balance validation, statement closing-balance reconciliation, split/combined payment matching, cheque clearing automation or cloud sync is implemented.
+- Existing customer receipt manual bank-reference confirmation remains available; this new register adds statement-row evidence and supplier-side matching. It does not retroactively reconcile historical records.
+- Syntax validation passed for `advanced-workflows.js`. CSV/browser interaction, duplicate-import, ambiguous-match, and end-to-end accounting regression tests remain pending. Review statement candidates carefully before confirming; exact amount/date alone does not prove a bank match.
