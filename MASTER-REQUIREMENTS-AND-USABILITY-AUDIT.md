@@ -842,3 +842,11 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - JavaScript syntax validation passed. Browser-level multi-dispatch, retry-after-storage-failure and legacy-record regression tests remain outstanding; this is not proof of end-to-end dispatch correctness.
 
 - Follow-up hardening: the retry/posted check now requires exactly one matching stock-ledger row per dispatch line. If duplicate or quantity-mismatched rows already exist, it stops and asks for reconciliation instead of adding another movement and risking a double stock issue.
+
+
+## Sales and purchase operational reports — 23 November 2026
+
+- Business Control Centre reports now include non-reversed tax-invoice count, invoice grand total, taxable line value and invoiced pieces; top-10 sales by style/item reference and customer; and supplier-bill totals with recorded cash/bank payments, TDS withheld, allocated supplier advances and CA-approved purchase debit notes.
+- Sales line values use the stored taxable amount when available, otherwise quantity × rate less line discount. Sales returns / credit notes are explicitly not netted from the sales report.
+- Purchase residual is labelled indicative because overlap between local payment, advance and debit-note registers still requires bill-by-bill reconciliation. This is not an audited P&L, GST return or ITC claim.
+- Syntax validation passed. Representative data, browser rendering and reconciliation regression tests remain pending.
