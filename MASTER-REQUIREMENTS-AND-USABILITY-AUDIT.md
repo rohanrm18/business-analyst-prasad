@@ -566,3 +566,9 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - A return credit note cannot be issued while the return is still awaiting physical QC. The return must first be marked Restock, Rework or Reject.
 - Before issue, the workflow rechecks the original invoice exists and the proposed credit amount does not exceed its current outstanding after receipts and previously approved credits.
 - This is a local CA-review acknowledgement, not verified CA identity or statutory GST validation. The CA must still verify the credit-note tax treatment and document requirements.
+
+
+### Dispatch financial-year lock guard — 23 November 2026
+
+- New LR/dispatch dates are now checked against the local financial-year lock before a dispatch record or physical stock issue can be saved. A locked period blocks the new dispatch entry.
+- This does not retroactively validate legacy dispatches, and dispatch still supports only one full dispatch per invoice. Consolidated browser tests and broader period-lock coverage across older sales, invoice, purchase and accounting forms remain outstanding.
