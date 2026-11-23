@@ -582,3 +582,28 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Legacy purchase return records remain visible but are not retroactively applied because they have no verified bill link or CA approval.
 - This is a local-device review workflow, not authenticated CA identity or maker-checker enforcement. It does not post a stock return, GST credit/debit note, or double-entry journal. CA must verify the original supplier document and tax treatment.
 - Validation performed: JavaScript syntax checks passed for `advanced-workflows.js` and `supplier-ledger.js`. No browser/device workflow test or multi-user test performed.
+
+
+## Partial and multiple dispatch implementation — 23 November 2026
+
+**Implemented in the local PWA prototype**
+- Added `partial-dispatch.js`, loaded after the existing workflow modules and included in the service-worker cache.
+- One tax invoice can now have multiple dispatch records. Each record allocates whole-piece quantities against individual invoice line indexes.
+- The screen shows ordered, previously dispatched and remaining quantities per line and for the invoice.
+- A new dispatch cannot allocate more than the remaining quantity for any invoice line. Legacy records without line allocations are conservatively treated as full-invoice dispatches so old records cannot be dispatched again.
+- Each dispatch has its own transporter, LR/date, carton count, E-Way Bill review and official document attachment.
+- Stock issue is limited to allocated quantities, validates style/colour/size and available saleable stock, and uses a stable dispatch+invoice-line reference to prevent duplicate stock movements on retry.
+- Pending stock postings can be retried; retry checks the stable movement reference before adding a movement again.
+- Added a dispatch quantity annexure print for each LR. It is explicitly labelled as an annexure, not a new tax invoice; it identifies only the quantities moving under that LR and places the supplied official E-Way Bill file on the reverse when marked required.
+- Added the new module to the JavaScript syntax CI check.
+
+**Verification completed**
+- JavaScript syntax check passed using `new Function()` on the complete module.
+- Functional simulation passed: existing partial allocation reduced line balance from 5 to 3; second dispatch of 3 reduced balance to zero; stock issue created one movement; retry did not create a duplicate.
+- This is a code-level simulation, not a browser/device, printer, tax/legal or production multi-user test.
+
+**Remaining limitations**
+- Data remains browser-local; simultaneous users/devices are not coordinated and localStorage is not a transactional database.
+- Invoice line allocation is the quantity control; carton-by-carton contents, barcode scan/verification, courier API and proof of physical shipment remain pending.
+- Dispatch annexure is not a substitute for the original statutory tax invoice. E-Way Bill applicability, consignment values, exemptions and document validity still require current CA/statutory review and genuine authorised EWB data.
+- No real printer/duplex orientation test has been performed.
