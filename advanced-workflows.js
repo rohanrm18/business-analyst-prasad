@@ -3,7 +3,7 @@
    statutory accounting automation, cloud sync or CA-approved tax calculations. */
 (()=>{
 'use strict';
-const KEY={returns:'pa_sales_returns_v1',job:'pa_jobwork_challans_v2',accounts:'pa_manual_accounts_v1',journals:'pa_manual_journals_v1',sizes:'pa_size_sets_v1',counts:'pa_stock_counts_v1',purchaseReturns:'pa_purchase_returns_v1',prices:'pa_customer_price_lists_v1',promises:'pa_collection_promises_v1',qc:'pa_mfg_qc_v1',cutting:'pa_cutting_batches_v1',fy:'pa_financial_years_v1',sequences:'pa_document_sequences_v1',cheques:'pa_cheque_register_v1',capital:'pa_capital_loan_register_v1',postingMaps:'pa_account_posting_maps_v1'};
+const KEY={returns:'pa_sales_returns_v1',job:'pa_jobwork_challans_v2',accounts:'pa_manual_accounts_v1',journals:'pa_manual_journals_v1',sizes:'pa_size_sets_v1',counts:'pa_stock_counts_v1',purchaseReturns:'pa_purchase_returns_v1',stockReturns:'pa_purchase_return_stock_v1',prices:'pa_customer_price_lists_v1',promises:'pa_collection_promises_v1',qc:'pa_mfg_qc_v1',cutting:'pa_cutting_batches_v1',fy:'pa_financial_years_v1',sequences:'pa_document_sequences_v1',cheques:'pa_cheque_register_v1',capital:'pa_capital_loan_register_v1',postingMaps:'pa_account_posting_maps_v1'};
 const read=(k,d=[])=>{try{const x=JSON.parse(localStorage.getItem(k)||JSON.stringify(d));return x??d}catch(_){return d}};
 const save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -27,8 +27,8 @@ const card=(title,sub,body)=>'<section class="card"><div class="cardhead"><div><
 const input=(name,label,type='text',attrs='')=>'<label>'+label+'<input name="'+name+'" type="'+type+'" '+attrs+'></label>';
 const text=(name,label,attrs='')=>'<label>'+label+'<textarea name="'+name+'" '+attrs+'></textarea></label>';
 let awTab='returns';
-let returns=read(KEY.returns),jobs=read(KEY.job),accounts=read(KEY.accounts),journals=read(KEY.journals),postingMaps=read(KEY.postingMaps),sizeSets=read(KEY.sizes),counts=read(KEY.counts),purchaseReturns=read(KEY.purchaseReturns),priceLists=read(KEY.prices),promises=read(KEY.promises),qcBatches=read(KEY.qc),cuttingBatches=read(KEY.cutting),financialYears=read(KEY.fy),docSequences=read(KEY.sequences,{}),cheques=read(KEY.cheques),capitalRows=read(KEY.capital);
-const persist=()=>Object.entries({[KEY.returns]:returns,[KEY.job]:jobs,[KEY.accounts]:accounts,[KEY.journals]:journals,[KEY.postingMaps]:postingMaps,[KEY.sizes]:sizeSets,[KEY.counts]:counts,[KEY.purchaseReturns]:purchaseReturns,[KEY.prices]:priceLists,[KEY.promises]:promises,[KEY.qc]:qcBatches,[KEY.cutting]:cuttingBatches,[KEY.fy]:financialYears,[KEY.sequences]:docSequences,[KEY.cheques]:cheques,[KEY.capital]:capitalRows}).forEach(([k,v])=>save(k,v));
+let returns=read(KEY.returns),jobs=read(KEY.job),accounts=read(KEY.accounts),journals=read(KEY.journals),postingMaps=read(KEY.postingMaps),sizeSets=read(KEY.sizes),counts=read(KEY.counts),purchaseReturns=read(KEY.purchaseReturns),purchaseReturnStock=read(KEY.stockReturns),priceLists=read(KEY.prices),promises=read(KEY.promises),qcBatches=read(KEY.qc),cuttingBatches=read(KEY.cutting),financialYears=read(KEY.fy),docSequences=read(KEY.sequences,{}),cheques=read(KEY.cheques),capitalRows=read(KEY.capital);
+const persist=()=>Object.entries({[KEY.returns]:returns,[KEY.job]:jobs,[KEY.accounts]:accounts,[KEY.journals]:journals,[KEY.postingMaps]:postingMaps,[KEY.sizes]:sizeSets,[KEY.counts]:counts,[KEY.purchaseReturns]:purchaseReturns,[KEY.stockReturns]:purchaseReturnStock,[KEY.prices]:priceLists,[KEY.promises]:promises,[KEY.qc]:qcBatches,[KEY.cutting]:cuttingBatches,[KEY.fy]:financialYears,[KEY.sequences]:docSequences,[KEY.cheques]:cheques,[KEY.capital]:capitalRows}).forEach(([k,v])=>save(k,v));
 const inv=()=>typeof taxInvoices!=='undefined'&&Array.isArray(taxInvoices)?taxInvoices:[];
 const stockMoves=()=>read('pa_garment_stock_ledger_v1');
 function returnQty(invoiceId,itemIndex){return returns.filter(r=>r.invoiceId===invoiceId&&r.itemIndex===itemIndex&&r.status!=='cancelled').reduce((n,r)=>n+Number(r.qty||0),0)}
@@ -262,7 +262,7 @@ function bindPurchaseReturn(){
   if(!r.grnId||!r.poId||!Number.isInteger(Number(r.poLineIndex))||!r.itemType||!r.itemId){alert('This return has no complete GRN and material-master link. No stock movement was posted.');return;}
   const grnsNow=read('pa_purchase_grns_v1',[]),posNow=read('pa_purchase_orders_v1',[]),g=grnsNow.find(x=>x.id===r.grnId),po=posNow.find(x=>x.id===r.poId),line=po?.lines?.[Number(r.poLineIndex)];
   if(!g||!po||!line||g.poId!==po.id||Number(g.lineIndex)!==Number(r.poLineIndex)||line.itemType!==r.itemType||String(line.itemId||'')!==String(r.itemId)){alert('Source GRN / PO material link no longer matches. Stock was not changed.');return;}
-  const stockLedger=read('pa_purchase_return_stock_v1',[]);
+  const stockLedger=purchaseReturnStock;
   if(stockLedger.some(x=>x.returnId===r.id)){alert('A stock movement already exists for this return. Refresh the register; no duplicate posting was created.');return;}
   const qty=Number(r.qty);if(!Number.isFinite(qty)||qty<=0){alert('Invalid return quantity.');return;}
   let postingType='',balance=0;
@@ -284,7 +284,7 @@ function bindPurchaseReturn(){
    localStorage.setItem('pa_trim_moves_v1',JSON.stringify(moves));postingType='ACCESSORY_OUT';
   }else{alert('Unsupported material type. No stock movement was posted.');return;}
   const row={id:'PRSTK-'+r.id,returnId:r.id,noteNo:r.noteNo,poId:r.poId,poLineIndex:r.poLineIndex,grnId:r.grnId,itemType:r.itemType,itemId:r.itemId,qty,unit:r.unit,postingType,date:r.date,postedAt:new Date().toISOString(),status:'posted'};
-  stockLedger.push(row);localStorage.setItem('pa_purchase_return_stock_v1',JSON.stringify(stockLedger));
+  purchaseReturnStock.push(row);
   r.stockPostedAt=row.postedAt;r.stockPostingId=row.id;r.stockPostingType=postingType;persist();render();
  });
  document.querySelectorAll('[data-aw-preturn-approve]').forEach(btn=>btn.onclick=()=>{
