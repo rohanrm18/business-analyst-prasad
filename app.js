@@ -192,7 +192,7 @@ function profitability(){
   const qty=Number(it.qty||0),sales=Number(it.taxable??(qty*Number(it.rate||0)-Number(it.discount||0)));
   const style=String(it.itemNumber||it.style||it.category||it.name||'').trim();
   const colour=String(it.colour||'').trim(),size=String(it.size||'').trim();
-  const candidates=costs.filter(c=>String(c.style||'').trim().toLowerCase()===style.toLowerCase()&&String(c.effectiveDate||'')<=v.invoice_date&&Number(c.unitCost)>0&&c.status!=='Reversed');
+  const candidates=costs.filter(c=>String(c.style||'').trim().toLowerCase()===style.toLowerCase()&&String(c.effectiveDate||'')<=v.invoice_date&&Number(c.unitCost)>=0&&c.status==='Approved');
   const exact=candidates.filter(c=>(!String(c.colour||'').trim()||String(c.colour).trim().toLowerCase()===colour.toLowerCase())&&(!String(c.size||'').trim()||String(c.size).trim().toLowerCase()===size.toLowerCase()));
   exact.sort((a,b)=>((Number(!!String(b.colour||'').trim())+Number(!!String(b.size||'').trim()))-(Number(!!String(a.colour||'').trim())+Number(!!String(a.size||'').trim())))||String(b.effectiveDate).localeCompare(String(a.effectiveDate)));
   const match=exact[0]||null,variantFallback=!!(match&&(!String(match.colour||'').trim()||!String(match.size||'').trim()));
@@ -337,7 +337,7 @@ function bindStyleCosts(){
  if(!manual&&!d.reference.trim()){alert('Enter the supplier bill number / source reference for a purchase-bill cost.');return;}
  const dup=list.some(x=>x.source==='purchase'&&d.source==='purchase'&&String(x.supplier||'').trim().toLowerCase()===d.supplier.trim().toLowerCase()&&String(x.reference||'').trim().toLowerCase()===d.reference.trim().toLowerCase()&&String(x.style||'').trim().toLowerCase()===d.style.trim().toLowerCase()&&String(x.colour||'').trim().toLowerCase()===d.colour.trim().toLowerCase()&&String(x.size||'').trim().toLowerCase()===d.size.trim().toLowerCase()&&x.status!=='Reversed');
  if(dup){alert('A cost entry already exists for this supplier bill and style/variant. Review the existing history instead of duplicating it.');return;}
- const now=new Date().toISOString();list.push({id:'COST-'+Date.now(),style:d.style.trim(),colour:d.colour.trim(),size:d.size.trim(),supplier:d.supplier.trim(),reference:d.reference.trim(),effectiveDate:d.effectiveDate,qty:manual?null:q,unitCost:u,freightTotal:fr,freightPerUnit:q>0?Math.round(fr/q*100)/100:0,recoverableGstExcluded:gst,source:d.source,sourceLabel:manual?'Manual verified cost':'Supplier purchase bill cost reference',reason:d.reason.trim(),status:'Pending Review',createdAt:now,createdBy:'Local user',approvedAt:null});
+ const now=new Date().toISOString();list.push({id:'COST-'+Date.now(),style:d.style.trim(),colour:d.colour.trim(),size:d.size.trim(),supplier:d.supplier.trim(),reference:d.reference.trim(),effectiveDate:d.effectiveDate,qty:manual?null:q,baseUnitCost:u,unitCost:Math.round((u+(q>0?fr/q:0))*100)/100,freightTotal:fr,freightPerUnit:q>0?Math.round(fr/q*100)/100:0,recoverableGstExcluded:gst,source:d.source,sourceLabel:manual?'Manual verified cost':'Supplier purchase bill cost reference',reason:d.reason.trim(),status:'Pending Review',createdAt:now,createdBy:'Local user',approvedAt:null});
  localStorage.setItem(key,JSON.stringify(list));render();alert('Cost saved as Pending Review. It will not affect profitability until approved by an authorised reviewer.');};
 }
 
