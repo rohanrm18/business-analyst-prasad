@@ -905,3 +905,10 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Each PO row now shows its GRN receipt/QC breakdown and any supplier bill already linked by the existing `poId` plus matching supplier name.
 - The view is a reconciliation aid only: it does not create or approve bills, post GST, auto-create accounting journals, or treat PO commitment less PO payments as invoice ageing. The supplier outstanding label explicitly identifies the figure as PO commitment less recorded PO payments.
 - JavaScript syntax validation passed with `new Function(erp.js)`. Browser workflow regression and GitHub Actions/Pages deployment checks remain pending.
+
+
+## Supplier bill and purchase-order reconciliation — 23 Nov 2026
+- Added a read-only procurement dashboard reconciliation for approved purchase orders with linked supplier bills and/or GRNs. It compares aggregate linked bill totals against PO value, shows value variance, linked bill count, receipt/QC accepted/rejected/pending totals, detects over-receipt by individual PO line, and flags bills without a GRN link or GRN links belonging to another PO.
+- Strengthened purchase-bill duplicate detection: invoice numbers are normalized for spaces, hyphens and slashes; duplicate identity is detected by matching GSTIN when both records have it, or normalized supplier name. This closes the prior gap where one bill had GSTIN and the duplicate did not.
+- Limits: this is a review aid, not an automatic invoice approval. Bill item descriptions/HSN are not reliably mapped to PO material codes in the current schema, so the app does not claim item-by-item quantity or rate reconciliation. PO value variance can include tax/freight/discount differences and requires source-document review. No stock, GST or journal posting is triggered by this dashboard.
+- Validation performed: JavaScript syntax check (`new Function`) for `erp.js` and `compliance.js`. Browser workflow, sample invoice regression and live deployment remain to be verified.
