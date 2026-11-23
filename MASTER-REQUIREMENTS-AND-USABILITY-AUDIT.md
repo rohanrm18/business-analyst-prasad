@@ -456,3 +456,10 @@ The new registers are included in manual backup keys and the active restore vali
 12. Consolidated browser/device and end-to-end regression testing is still required. Syntax and local module-load smoke checks are not equivalent to real business acceptance.
 
 **Safety note:** The manual journal view must not be represented as the company's complete trial balance. The application remains a local prototype and must not replace Tally/statutory books or be used as the only record system until all release gates pass.
+
+
+### Dispatch-to-stock posting integration — 23 November 2026
+
+New dispatch records now attempt a retry-safe physical stock issue when the LR/dispatch is saved. The app checks invoice garment lines for style, colour, size and whole-piece quantities; checks saleable stock; stores a pending dispatch reference before posting; posts each invoice line with a stable dispatch/item reference; and marks stock as posted only after the stock ledger write succeeds. Re-saving a pending dispatch retries without duplicating already-posted movements. A shortage blocks dispatch stock posting. Older dispatch records without a stock-posting marker are labelled legacy-unverified and are not automatically posted, to avoid double deduction where a user may already have made a manual issue.
+
+This is still one full dispatch per invoice. Partial/multiple dispatch allocation and carton-level quantities remain unimplemented. Dispatch-to-stock posting needs a real browser regression test with opening stock, multiple invoice lines, retry after interruption, and legacy records before acceptance.
