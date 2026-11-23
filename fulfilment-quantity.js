@@ -64,18 +64,36 @@ if(typeof confirmPackingSlip==='function')confirmPackingSlip=paFConfirmPackingSl
 
 function paFOrderVariantRows(order){
  const orderId=String(order.id),keyOf=x=>paFKey({style:paFStyle(x),colour:x.colour,size:x.size}),rows=new Map();
- const get=x=>{const key=keyOf(x);if(!rows.has(key))rows.set(key,{style:paFStyle(x),colour:String(x.colour||''),size:String(x.size||''),ordered:0,planned:0,produced:0,producedSplit:true,qcAccepted:0,packed:0,invoiced:0,dispatched:0});return rows.get(key)};
+ const blank=()=>({style:'',colour:'',size:'',ordered:0,planned:0,produced:0,producedSplit:true,qcAccepted:0,cutPieces:0,stitching:0,jobworkSent:0,jobworkAccepted:0,jobworkRework:0,jobworkRejected:0,fabricBom:0,fabricIssued:0,fabricUsed:0,fabricWaste:0,fabricReturned:0,packed:0,invoiced:0,dispatched:0});
+ const get=x=>{const key=keyOf(x);if(!rows.has(key))rows.set(key,{...blank(),style:paFStyle(x),colour:String(x.colour||''),size:String(x.size||'')});return rows.get(key)};
+ const add=(x,field,value)=>{const r=get(x);r[field]+=Number(value||0);};
  (order.items||[]).forEach(x=>{get(x).ordered+=Number(x.qty||0)});
- const mos=paFRead('pa_manufacturing_v1',{orders:[]}).orders||[],active=mos.filter(m=>String(m.sourceSalesOrderId||'')===orderId&&!['cancelled','Cancelled'].includes(m.status||''));
+ const mos=(paFRead('pa_manufacturing_v1',{orders:[]}).orders||[]),active=mos.filter(m=>String(m.sourceSalesOrderId||'')===orderId&&!['cancelled','Cancelled'].includes(m.status||''));
+ const parsePlan=m=>String(m.sizes||'').split(/[,;\n]+/).map(s=>s.trim()).filter(Boolean).map(p=>{const z=p.match(/^(.+?)\s*[:=xX-]\s*(\d+)$/);return z?{size:z[1].trim(),qty:Number(z[2])}:null}).filter(Boolean);
  active.forEach(m=>{
-  const plan=String(m.sizes||'').split(/[,;\n]+/).map(s=>s.trim()).filter(Boolean),parsed=plan.map(p=>{const z=p.match(/^(.+?)\s*[:=xX-]\s*(\d+)$/);return z?{size:z[1].trim(),qty:Number(z[2])}:null}).filter(Boolean);
-  if(parsed.length)parsed.forEach(p=>{const row=get({style:m.style,colour:m.colour,size:p.size});row.planned+=p.qty;row.producedSplit=false;});
-  else get({style:m.style,colour:m.colour,size:'Unspecified'}).planned+=Number(m.qty||0);
-  const stages=m.progress||{},done=Number(stages['Quality Check']||stages.quality||0);
-  if(!parsed.length)get({style:m.style,colour:m.colour,size:'Unspecified'}).produced+=done;
+  const plan=parsePlan(m),stages=m.progress||{},quality=Number(stages['Quality Check']||stages.quality||0),stitch=Number(stages.Stitching||0);
+  if(plan.length)plan.forEach(p=>{const r=get({style:m.style,colour:m.colour,size:p.size});r.planned+=p.qty;r.producedSplit=false;});
+  else {const r=get({style:m.style,colour:m.colour,size:'Unallocated'});r.planned+=Number(m.qty||0);r.produced+=quality;r.stitching+=stitch;}
+  const components=(m.bomSnapshot&&Array.isArray(m.bomSnapshot.components))?m.bomSnapshot.components:[];
+  components.filter(x=>x.kind==='Fabric').forEach(x=>{
+   const componentColour=x.colour||m.colour||'';
+   if(x.size){const qty=plan.find(p=>paFNorm(p.size)===paFNorm(x.size))?.qty;if(qty!==undefined)add({style:m.style,colour:componentColour,size:x.size},'fabricBom',qty*Number(x.perPiece||0)*(1+Number(x.wastePct||0)/100));}
+   else {const qty=Number(m.qty||0);if(plan.length)plan.forEach(p=>add({style:m.style,colour:componentColour,size:p.size},'fabricBom',p.qty*Number(x.perPiece||0)*(1+Number(x.wastePct||0)/100)));else add({style:m.style,colour:componentColour,size:'Unallocated'},'fabricBom',qty*Number(x.perPiece||0)*(1+Number(x.wastePct||0)/100));}
+  });
  });
- const qc=paFRead('pa_mfg_qc_v1',[]),moIds=new Set(active.map(m=>String(m.id)));
- qc.filter(q=>moIds.has(String(q.moId||''))).forEach(q=>{const r=get({style:q.style||active.find(m=>String(m.id)===String(q.moId))?.style,colour:q.colour||active.find(m=>String(m.id)===String(q.moId))?.colour,size:q.size});r.qcAccepted+=Number(q.accepted||0)});
+ const moById=new Map(active.map(m=>[String(m.id),m])),moIds=new Set(active.map(m=>String(m.id)));
+ const qc=paFRead('pa_mfg_qc_v1',[]);
+ qc.filter(q=>moIds.has(String(q.moId||''))).forEach(q=>{const m=moById.get(String(q.moId)),size=q.size||'Unallocated';add({style:q.style||m?.style,colour:q.colour||m?.colour,size},'qcAccepted',q.accepted);});
+ const cuts=paFRead('pa_cutting_batches_v1',[]);
+ cuts.filter(x=>moIds.has(String(x.moId||''))).forEach(x=>{
+  const m=moById.get(String(x.moId)),variant={style:x.style||m?.style,colour:x.colour||m?.colour,size:x.size||'Unallocated'};
+  add(variant,'cutPieces',x.pieces);add(variant,'fabricIssued',x.issued);add(variant,'fabricUsed',x.used);add(variant,'fabricWaste',x.wastage);add(variant,'fabricReturned',x.returned);
+ });
+ const jobs=paFRead('pa_jobwork_challans_v2',[]);
+ jobs.filter(j=>moIds.has(String(j.mo||''))).forEach(j=>{
+  const m=moById.get(String(j.mo)),variant={style:j.style||m?.style,colour:j.colour||m?.colour,size:j.size||'Unallocated'};
+  add(variant,'jobworkSent',j.sent);add(variant,'jobworkAccepted',j.accepted);add(variant,'jobworkRework',j.rework);add(variant,'jobworkRejected',j.rejected);
+ });
  const slips=paFSlipRows().filter(s=>String(s.orderId)===orderId);
  slips.forEach(s=>(s.items||[]).forEach(x=>get(x).packed+=Number(x.qty||0)));
  const invoices=paFInvoiceRows().filter(v=>String(v.order_id||'')===orderId);
@@ -88,7 +106,7 @@ if(typeof salesOrderProgressHtml==='function'){
  const paFBaseProgress=salesOrderProgressHtml;
  salesOrderProgressHtml=function(o){
   const base=paFBaseProgress(o),rows=paFOrderVariantRows(o);if(!rows.length)return base;
-  const fmt=n=>Number(n||0).toLocaleString('en-IN'),table='<div class="tablewrap" style="overflow-x:auto"><table><thead><tr><th>Style</th><th>Colour</th><th>Size</th><th>Ordered</th><th>MO planned</th><th>Produced*</th><th>QC accepted</th><th>Packed</th><th>Invoiced</th><th>Dispatched</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+esc(r.style)+'</td><td>'+esc(r.colour)+'</td><td>'+esc(r.size)+'</td><td>'+fmt(r.ordered)+'</td><td>'+fmt(r.planned)+'</td><td>'+fmt(r.produced)+'</td><td>'+fmt(r.qcAccepted)+'</td><td>'+fmt(r.packed)+'</td><td>'+fmt(r.invoiced)+'</td><td>'+fmt(r.dispatched)+'</td></tr>').join('')+'</tbody></table></div><p class="hint">Variant reconciliation uses linked local order, MO, QC, packing, invoice and posted dispatch records. *Produced is the recorded Quality Check stage quantity; MO stage completion is recorded only at whole-MO level; size-level production is shown as — rather than allocating a guessed split. QC, packed, invoiced and dispatched remain size-specific. Review exceptions before relying on legacy records.</p>';
+  const fmt=n=>Number(n||0).toLocaleString('en-IN'),table='<div class="tablewrap" style="overflow-x:auto"><table><thead><tr><th>Style</th><th>Colour</th><th>Size</th><th>Ordered</th><th>MO planned</th><th>Produced*</th><th>Cut pcs</th><th>Stitching stage</th><th>Job sent</th><th>Job accepted</th><th>Job rework</th><th>Job rejected</th><th>QC accepted</th><th>BOM fabric m</th><th>Fabric issued m</th><th>Fabric used m</th><th>Fabric waste m</th><th>Fabric returned m</th><th>Packed</th><th>Invoiced</th><th>Dispatched</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+esc(r.style)+'</td><td>'+esc(r.colour)+'</td><td>'+esc(r.size)+'</td><td>'+fmt(r.ordered)+'</td><td>'+fmt(r.planned)+'</td><td>'+fmt(r.produced)+'</td><td>'+fmt(r.qcAccepted)+'</td><td>'+fmt(r.packed)+'</td><td>'+fmt(r.invoiced)+'</td><td>'+fmt(r.dispatched)+'</td></tr>').join('')+'</tbody></table></div><p class="hint">Variant reconciliation uses linked local order, MO, QC, packing, invoice and posted dispatch records. *Produced is the recorded Quality Check stage quantity; Cutting and job-work records without a garment size are shown under Unallocated, never guessed into a size. BOM fabric requirement is estimated from the locked MO BOM; actual issue, used, wastage and reusable return come from posted cutting batches. Stitching is the MO cumulative stage figure; contractor job-work is shown separately and must not be added to it without checking for overlap. Review legacy records and unallocated quantities.</p>';
   return base+'<section class="card"><h3>Variant-wise fulfilment reconciliation</h3>'+table+'</section>';
  };
 }
