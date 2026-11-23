@@ -985,3 +985,5 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Receipts, approved customer credits, supplier payments, advance allocations and purchase returns dated/recorded through the selected period-end are considered in the as-of balance. Monthly sales, purchase activity, bank movement, TDS and dispatch checks remain scoped to the selected month.
 - This is still an operational estimate from local app registers. Opening balances, unlinked receipts/payments, unapplied credits, missing transaction dates and source-system differences require manual reconciliation; the app does not certify a complete debtor/creditor control account.
 - Validation: compliance.js syntax and a synthetic prior-month outstanding balance test passed; full browser regression remains pending.
+
+- The month-end checklist now displays the aggregate open customer receivable and supplier payable amounts as of the selected month-end date, alongside the number of open invoices/bills.
