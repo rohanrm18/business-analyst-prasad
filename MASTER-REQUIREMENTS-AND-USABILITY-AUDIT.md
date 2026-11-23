@@ -376,3 +376,9 @@ The sales tax invoice form now requires an HSN/SAC entry in 4, 6 or 8 digit nume
 - Tightened goods-received date validation to reject impossible calendar dates (for example, 30 February), not merely strings that resemble YYYY-MM-DD and are loosely parsed by JavaScript.
 - The validation requires the parsed date to round-trip to the exact entered ISO calendar date; existing receipt quantities, rolls and inspection records are unchanged.
 - Verification: ERP JavaScript syntax passed; focused helper tests passed for valid date, impossible date, malformed date, valid approved PO receipt, unapproved PO, over-receipt, duplicate fabric roll and fractional accessory quantity. Full browser/stock integration tests remain pending.
+
+
+## Supplier payment mode validation — 23 November 2026
+- Supplier-level PO payment entry now requires a recognised payment mode: Bank transfer / NEFT / RTGS, UPI, Cash, Cheque or Other. The selected value is saved as the canonical method field.
+- Existing positive-amount, strict calendar-date, supplier selection, duplicate-reference and supplier-outstanding checks remain in place.
+- Verification: ERP JavaScript syntax passed; focused payment validation checks cover each supported method, missing/unknown method, invalid date, zero/negative amount and duplicate supplier reference. Browser/localStorage and legacy-data integration remain pending.
