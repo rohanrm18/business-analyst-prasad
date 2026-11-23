@@ -694,3 +694,20 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - The multi-line API validates chart membership and balance but relies on the source connector to supply the correct CA-approved account allocation. It does not calculate GST eligibility, tax rates, inventory-vs-expense treatment, reverse charge, or ITC restrictions.
 - Supplier advance allocations are not yet journal-posted. Historical purchase bills/payments are not backfilled.
 - Syntax validation passed for `advanced-workflows.js`. Browser execution, multi-line retry/conflict tests, account reconciliation and CA review remain pending.
+
+
+## Supplier purchase bill → GST-separated mapped journal — 23 November 2026
+
+- Connected newly saved, reviewed photo-captured supplier bills to the multi-line mapped accounting API.
+- Purchase mapping uses the configured debit account for taxable purchase value and credit account for supplier payable. Added optional, separate Input CGST, Input SGST and Input IGST account-code fields to the mapping register.
+- When the mapping is locally marked CA reviewed, each present tax component has its own configured input-tax account, and taxable + CGST + SGST + IGST exactly equals invoice total, a balanced journal is posted: taxable purchase Dr; applicable input GST accounts Dr; supplier payable Cr.
+- Bill saves even when automatic posting cannot proceed; it records a pending reason on that bill. Posting failures do not discard the bill.
+- Stable bill ID is the journal source ID; the multi-line engine prevents duplicate journal creation on an exact retry and rejects conflicting payloads.
+- Only new bills saved after this change are considered. Existing purchase bills are not backfilled. Supplier payments continue to post separately as cash/bank and TDS portions; bill posting does not create a cash payment.
+- Supplier advance allocation, purchase returns, freight/discount/cess/rounding lines, reverse charge, ITC eligibility restrictions, inventory-versus-expense policy, and GRN stock valuation remain separate/pending.
+
+**Important controls and limits**
+- If the invoice total differs from taxable + CGST + SGST + IGST by more than ₹0.01, posting remains pending; the app does not invent balancing values or accounts.
+- Tax account mapping is a configurable chart-code selection, not confirmation of GST input-credit eligibility. CA must confirm account treatment and bill tax data.
+- Browser-local only; no server-side concurrency, verified CA identity, backfill or consolidated browser testing.
+- Syntax validation passed for `advanced-workflows.js` and `compliance.js`. Browser workflow, tax reconciliation and journal trial-balance tests remain pending.
