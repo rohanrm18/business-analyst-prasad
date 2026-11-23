@@ -950,3 +950,11 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Keeps negative balances visible as supplier credit/overpayment; unallocated advance cash is shown separately and is not counted as bill settlement.
 - Provides supplier/invoice search and CSV export. Records without matching bill IDs are flagged for manual matching; supplier-name matching is not used to silently allocate legacy records.
 - Local-register report only. It is not bank-confirmed, not a statutory statement, and requires review of supplier-name mismatches and legacy records. Browser/device regression testing remains pending.
+
+
+## CA supplier invoice reconciliation — 23 Nov 2026
+- Added a month-filtered supplier invoice reconciliation working paper inside GST Working & CA Export.
+- Shows bill total, recorded cash/bank, payment TDS, allocated supplier advances, approved and pending debit notes, and net invoice balance with settlement status.
+- Exports the selected month's invoice-wise reconciliation CSV for CA review.
+- Contractor TDS register pending allocation is displayed separately; it is not added again to supplier bill deductions, to reduce double-counting risk.
+- Working paper only. It does not file returns, certify TDS/GST, or replace source invoices, bank statements, Tally or CA review. Legacy/mismatched references require manual verification. Browser/device regression testing remains pending.
