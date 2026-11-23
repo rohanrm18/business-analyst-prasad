@@ -931,3 +931,13 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Debit-note approval rechecks the bill/PO/GRN/supplier links and cumulative returned quantity before reducing the supplier bill balance; amount remains subject to the existing bill-outstanding cap.
 - Records retain PO line, GRN and QC accepted-at-return snapshots. No stock reversal or GST adjustment is posted automatically; CA approval remains a local manual confirmation, not statutory verification.
 - Validation: JavaScript syntax check passed for `advanced-workflows.js`. Browser/device regression and end-to-end accounting/stock tests remain pending. Updated app asset version and service-worker cache.
+
+
+## 2026-11-23 — Approved supplier purchase return stock posting
+- Added a separate stock-posting action after a supplier debit note has been CA-reviewed/approved; saving a return or approving its debit note does not itself change stock.
+- Before posting, the action revalidates the original PO line and GRN link, material type and material-master ID, and blocks duplicate return-stock ledger references.
+- Fabric returns reduce the original GRN-linked fabric roll's recorded meters only when the requested quantity is within that roll's current available balance after cutting issues/returns. This prevents returning fabric already issued/consumed to cutting.
+- Accessory returns create a single OUT movement in the existing accessory movement ledger, only for whole pieces and only up to current available balance.
+- Each posting is recorded in `pa_purchase_return_stock_v1` with source debit note, PO line, GRN, material, quantity and timestamp. This ledger is included in the app's existing local backup key set.
+- Legacy/unmatched purchase returns cannot post stock automatically. No automatic accounting journal or GST adjustment is generated. Physical receipt by supplier and actual dispatch still require source-document confirmation.
+- Validation: JavaScript syntax check passed for `advanced-workflows.js`; browser/device regression and stock-ledger reconciliation remain pending.
