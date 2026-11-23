@@ -888,3 +888,5 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Labels distinguish production planned from completed output. All figures remain local-register summaries and are not shared-ledger or physical-delivery certification.
 - Updated `app.js` to v56 and service-worker cache to `prasad-analyst-v143-order-fulfilment-progress`.
 - JavaScript syntax validation passed with `new Function()`; representative multi-carton, partial-invoice and multiple-dispatch browser tests remain pending.
+
+- Extended the sales-order panel to show the remaining quantities yet to pack, packed but not invoiced, and invoiced but not dispatched. App asset is now `app.js?v=57`; cache is `prasad-analyst-v144-fulfilment-balances`.
