@@ -363,3 +363,10 @@ The sales tax invoice form now requires an HSN/SAC entry in 4, 6 or 8 digit nume
 - Hardened the advance-to-invoice allocation form with strict calendar-date validation, positive finite amount checks, validation of the source advance amount, and explicit checks against both unallocated advance and remaining invoice balance.
 - Added duplicate protection for an exact repeated payment-to-bill allocation (same source advance, bill, date and amount). Existing valid allocation records are preserved; this does not merge supplier advances or create a cash payment.
 - Verification: supplier-ledger JavaScript syntax passed and seven focused helper tests passed (valid allocation, invalid calendar date, zero amount, advance over-allocation, bill over-allocation, supplier mismatch and exact duplicate). Browser/localStorage workflow tests remain pending; supplier identity is currently matched by normalized supplier name because legacy bill and advance records do not consistently carry a shared supplier ID.
+
+
+## Supplier PO payment validation — 23 November 2026
+- Supplier-level PO payments now require a real calendar date and a positive finite amount before saving.
+- Duplicate non-empty payment references are blocked per supplier, reducing accidental double-entry of the same bank/cheque/UPI transaction. Payments without a reference remain allowed because cash and other legitimate transactions may not have one.
+- Existing outstanding-balance cap remains in force; no payment can exceed the recorded supplier PO outstanding.
+- Verification: ERP JavaScript syntax passed. Browser/localStorage payment workflow and migration scenarios remain pending.
