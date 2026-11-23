@@ -551,3 +551,11 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Supplier rows are previewed before confirmation and validated for required name, 10–15 digit phone, optional GSTIN/PAN formats and supported constitution values.
 - Duplicate supplier name, phone, GSTIN or PAN values are blocked against both existing supplier records and rows in the same file. Imported supplier IDs and timestamps are generated locally, then the page reloads so the supplier directory reads the imported records.
 - XLSX/PDF import, import history, controlled rollback, supplier-bill reconciliation and multi-device import remain pending.
+
+
+### Cutting batch to fabric-roll integration — 23 Nov 2026
+
+- Business Control Centre cutting batches now require a selected fabric roll and manufacturing order. The form validates the metre reconciliation and calls the existing fabric inventory/BOM reservation controls before saving.
+- Successful batches post the roll issue/consumption/wastage/reusable return into the existing roll-wise fabric cut ledger. A stable source batch ID makes a retry idempotent and detects mismatched repeat payloads.
+- Fabric stock availability and BOM reservation are checked by the existing inventory logic; a cutting batch is not saved when the fabric movement cannot be posted.
+- Consolidated testing is still required for real roll lots, reservations, returns, cutting, and subsequent material balance reports. This remains local-device data.
