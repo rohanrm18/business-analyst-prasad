@@ -519,3 +519,10 @@ A customer return now creates a **pending CA-review credit-note draft** from the
 ### Size × colour sales-order matrix added — 23 November 2026
 
 A matrix entry screen now lets the user choose a saved size set, enter one or more colours, and enter whole-piece quantities by colour and size. Each non-zero cell becomes a standard sales-order line, saved to the existing sales-order register. These lines flow into the existing sales-order production planning and partial packing/invoice workflows and carry style/colour/size keys used by garment stock. The matrix creates a new sales order; it does not amend an existing order or convert a customer PO. Changing an order after production starts still needs manager approval and a secure audit trail.
+
+
+### Guarded sales-order and invoice cancellations — 23 November 2026
+
+- Sales-order cancellation now requires a reason and confirmation, retains the order record, and is blocked if a linked manufacturing order, approved packing slip, invoice or dispatch already exists. A cancelled order cannot be reopened through the status selector; create a new order/reference instead.
+- Invoice cancellation now retains the invoice number and marks the invoice REVERSED with reason and local timestamp. It is blocked if dispatch, customer receipt/payment allocation, any credit note or customer return exists. Reversed invoices are hidden from the dispatch queue and excluded from receivables. No stock is reversed because dispatch must not have occurred.
+- Cancellation reviewer identity is not authenticated; a secure identity-backed audit log is still part of the final cloud/security phase.
