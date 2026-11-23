@@ -890,3 +890,11 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - JavaScript syntax validation passed with `new Function()`; representative multi-carton, partial-invoice and multiple-dispatch browser tests remain pending.
 
 - Extended the sales-order panel to show the remaining quantities yet to pack, packed but not invoiced, and invoiced but not dispatched. App asset is now `app.js?v=57`; cache is `prasad-analyst-v144-fulfilment-balances`.
+
+
+## Sales order fulfilment — QC-passed stock linkage (23 Nov 2026)
+- Extended the saved sales-order progress panel to show QC-passed finished stock received.
+- Quantity is counted only from QC batch receipt references that also match a posted `Production receipt` row in `pa_garment_stock_ledger_v1`, and only for manufacturing orders linked to that sales order.
+- This intentionally excludes planned MO quantities, QC accepted inspection totals without a stock posting, rejected pieces, and rework still awaiting re-inspection.
+- Local-device register calculation only. It does not reserve stock, prove that stock is physically available at a location, or reconcile dispatch/returns automatically. Browser regression tests remain required.
+- Validation performed: JavaScript syntax check with `new Function(app.js)`; GitHub Actions and Pages deployment status pending for this commit sequence.
