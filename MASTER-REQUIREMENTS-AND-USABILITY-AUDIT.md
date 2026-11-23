@@ -502,3 +502,10 @@ QC receipts, customer-return restock releases, physical stock-count adjustments 
 - **Cheque register:** received/issued cheques and post-dated, deposited, cleared, bounced and cancelled statuses can be recorded. Bounced-cheque accounting reversal and bank feed are not connected.
 - **Loans, capital and drawings:** manual records can be entered; they are not automatically posted to the double-entry ledger.
 - **Local reports:** slow-moving style stock, contractor acceptance/rejection/rework and payable summaries, and receivables due within 30 days. The receivables view is not a complete cash-flow forecast; supplier payables and bank balances are excluded.
+
+
+### Validated CSV import added — 23 November 2026
+
+The Import Masters tab now provides customer-master and opening-garment-stock CSV templates, CSV parsing with quoted-field support, row-level preview and validation, explicit confirmation before saving, customer duplicate checks, and protection against a second opening-balance import for a style/colour/size already carrying an opening balance. Opening stock imports are posted as traceable Opening balance movements and update the live Inventory screen.
+
+Only CSV is supported in this local prototype. XLSX/Excel and PDF extraction, supplier-master import, full import history/rollback and shared multi-user import locking remain pending.
