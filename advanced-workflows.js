@@ -64,7 +64,7 @@ function bindJob(){
  document.querySelectorAll('[data-aw-jobpay]').forEach(b=>b.onclick=()=>{const j=jobs.find(x=>x.id===b.dataset.awJobpay);if(!j||j.status==='closed')return;const due=Math.max(0,jobPayable(j)-Number(j.paid||0));if(due<=0){alert('No contractor balance is currently payable.');return;}const date=prompt('Payment date (YYYY-MM-DD):',today());if(date===null)return;const reference=prompt('Unique bank / cash payment reference:','');if(reference===null)return;const amount=prompt('Payment amount ₹ (maximum '+money(due)+'):','');if(amount===null)return;const value=Number(amount),ref=reference.trim().toLowerCase();if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||date>today()||!awDateAllowed(date)||!reference.trim()||!Number.isFinite(value)||value<=0||value>due){alert('Enter a valid date, unique payment reference and an amount not exceeding '+money(due)+'.');return;}const duplicate=jobs.some(x=>(x.payments||[]).some(p=>String(p.reference||'').trim().toLowerCase()===ref));if(duplicate){alert('This payment reference is already used on another contractor payment.');return;}j.payments=Array.isArray(j.payments)?j.payments:[];const payment={id:uid('JWPAY'),date,reference:reference.trim(),amount:Math.round(value*100)/100,createdAt:new Date().toISOString()};if(typeof window.prasadPrepareContractorPayment!=='function'){alert('Supplier-ledger contractor bridge is unavailable. No payment was saved.');return;}const settlement=window.prasadPrepareContractorPayment(j,payment,due);if(!settlement)return;Object.assign(payment,settlement);j.payments.push(payment);j.paid=Math.round((Number(j.paid||0)+payment.amount)*100)/100;j.history=Array.isArray(j.history)?j.history:[];j.history.push({at:payment.createdAt,action:'payment',paymentId:payment.id,date,reference:payment.reference,amount:payment.amount,paidToDate:j.paid});persist();render();});
  document.querySelectorAll('[data-aw-jobclose]').forEach(b=>b.onclick=()=>{const j=jobs.find(x=>x.id===b.dataset.awJobclose);if(!j)return;if(j.accepted+j.rejected+j.rework!==j.sent){alert('Cannot close: sent pieces must reconcile to accepted + rejected + rework.');return;}if(j.paid>jobPayable(j)){alert('Payments exceed payable.');return;}if(!confirm('Close challan '+j.challanNo+'?'))return;j.status='closed';j.closedAt=new Date().toISOString();persist();render();});
 }
- const postingEvents=[['sales','Sales invoice / revenue'],['customer_receipt','Customer receipt'],['purchase','Supplier purchase bill'],['supplier_payment','Supplier payment'],['contractor_jobwork','Contractor job-work charge'],['tds_withheld','TDS withheld from contractor'],['customer_credit_note','Customer credit note'],['purchase_return','Supplier purchase return'],['stock_issue','Garment stock issue / cost of goods'],['stock_adjustment','Stock adjustment'],['expense','General business expense'],['bank_charge','Bank charge']];
+ const postingEvents=[['sales','Sales invoice / revenue'],['customer_receipt','Customer receipt'],['purchase','Supplier purchase bill'],['supplier_advance_allocation','Supplier advance allocation'],['supplier_payment','Supplier payment'],['contractor_jobwork','Contractor job-work charge'],['tds_withheld','TDS withheld from contractor'],['customer_credit_note','Customer credit note'],['purchase_return','Supplier purchase return'],['stock_issue','Garment stock issue / cost of goods'],['stock_adjustment','Stock adjustment'],['expense','General business expense'],['bank_charge','Bank charge']];
 function buildMappedJournalDraft(event,sourceEventId,date,amount,memo,sourceReference){
  const mapping=postingMaps.find(x=>x.event===event);
  if(!mapping||mapping.status!=='CA reviewed')throw Error('A locally CA-reviewed mapping is required before posting.');
@@ -94,6 +94,27 @@ function postMappedJournal(event,sourceEventId,date,amount,memo,sourceReference)
  if(debit!==credit||debit!==Math.round(draft.amount*100))throw Error('Internal balance validation failed. Journal was not saved.');
  journals.push(journal);persist();return {created:true,journal};
 }
+
+function postMappedJournalLines(event,sourceEventId,date,lines,memo,sourceReference){
+ const mapping=postingMaps.find(x=>x.event===event);
+ if(!mapping||mapping.status!=='CA reviewed')throw Error('A locally CA-reviewed mapping is required before posting.');
+ const eventId=String(sourceEventId||'').trim(),day=String(date||'');
+ if(!eventId||eventId.length>180)throw Error('A stable source event ID (1–180 characters) is required.');
+ if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(day)||!Number.isFinite(Date.parse(day+'T00:00:00Z'))||new Date(day+'T00:00:00Z').toISOString().slice(0,10)!==day)throw Error('A valid YYYY-MM-DD transaction date is required.');
+ if(!Array.isArray(lines)||lines.length<2||lines.length>100)throw Error('A multi-line journal must contain 2–100 lines.');
+ const normalized=lines.map((line,i)=>{const account=String(line&&line.account||'').trim(),dp=Math.round(Number(line&&line.debit||0)*100),cp=Math.round(Number(line&&line.credit||0)*100);if(!accounts.some(a=>a.code===account)||!Number.isSafeInteger(dp)||!Number.isSafeInteger(cp)||dp<0||cp<0||(dp>0&&cp>0)||(dp===0&&cp===0))throw Error('Invalid account or debit/credit amount on journal line '+(i+1)+'.');return {account,debit:dp/100,credit:cp/100};});
+ const debit=normalized.reduce((n,l)=>n+Math.round(l.debit*100),0),credit=normalized.reduce((n,l)=>n+Math.round(l.credit*100),0);
+ if(debit<=0||debit!==credit)throw Error('Multi-line journal debits and credits must balance exactly to the paise.');
+ const canonical=normalized.map(l=>({account:l.account,debitPaise:Math.round(l.debit*100),creditPaise:Math.round(l.credit*100)})).sort((a,b)=>a.account.localeCompare(b.account)||a.debitPaise-b.debitPaise||a.creditPaise-b.creditPaise);
+ const existing=journals.find(j=>j.sourceEventId===eventId&&j.sourceType===event);
+ if(existing){const old=(existing.lines||[]).map(l=>({account:l.account,debitPaise:Math.round(Number(l.debit||0)*100),creditPaise:Math.round(Number(l.credit||0)*100)})).sort((a,b)=>a.account.localeCompare(b.account)||a.debitPaise-b.debitPaise||a.creditPaise-b.creditPaise);if(existing.date!==day||JSON.stringify(old)!==JSON.stringify(canonical))throw Error('Duplicate source event ID conflicts with the existing journal. No second journal was created.');return {created:false,journal:existing};}
+ if(!awDateAllowed(day))throw Error('Posting blocked by the locked financial-year control.');
+ const total=debit/100,id='PA-AUTO-'+encodeURIComponent(event)+'-'+encodeURIComponent(eventId);
+ const journal={id,number:awNextNo('AUTO',day),date:day,memo:String(memo||postingEvents.find(x=>x[0]===event)?.[1]||event).trim().slice(0,180),lines:normalized,total,status:'posted',sourceType:event,sourceEventId:eventId,sourceReference:String(sourceReference||eventId).slice(0,180),sourceAmount:total,postingEngine:'mapped-multiline-v1',createdAt:new Date().toISOString()};
+ journals.push(journal);persist();return {created:true,journal};
+}
+window.prasadPostMappedJournalLines=postMappedJournalLines;
+
 
  function postingMapCard(){
   const opts=accounts.slice().sort((a,b)=>a.code.localeCompare(b.code)).map(a=>'<option value="'+esc(a.code)+'">'+esc(a.code+' · '+a.name+' ('+a.type+')')+'</option>').join('');
