@@ -240,6 +240,12 @@ The sales tax invoice form now requires an HSN/SAC entry in 4, 6 or 8 digit nume
 - This is a consistency aid only, not GSTIN checksum/registration verification or a legal place-of-supply determination. CA must review the tax split, place of supply, exemptions and applicable rules before issue. No GST filing is enabled.
 
 
+## Supplier TDS annual-threshold aggregation safeguard — 23 November 2026
+
+- Confirmed contractor/job-work payment base amounts are now retained on the supplier payment record whenever TDS applicability has been explicitly confirmed, including payments where the indicative annual/single-payment threshold is not yet crossed.
+- Subsequent threshold calculations aggregate those confirmed bases across the financial year by supplier PAN, while retaining compatibility with older TDS register entries and avoiding double-counting entries linked to payment records that already carry the base.
+- This improves cumulative tracking only. It does not decide legal applicability, classify a transaction, determine statutory thresholds/rates, or replace CA review. Older below-threshold payments that were not previously stored with a TDS base cannot be reconstructed automatically.
+
 ## Supplier advance settlement safeguard — 22 November 2026
 - Supplier payment posting now subtracts PO advance allocations already applied to a purchase bill when calculating its remaining payable balance. This prevents a subsequent cash/TDS settlement from ignoring an earlier advance allocation and exceeding the bill's net outstanding amount.
 - The control remains browser-local. Reconcile supplier advances, purchase bills, TDS timing and ledger balances with the CA before operational reliance; advance payments may themselves require separate TDS review depending on the facts and applicable law.
