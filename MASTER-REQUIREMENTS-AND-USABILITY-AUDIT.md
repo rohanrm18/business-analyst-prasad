@@ -535,3 +535,11 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - The system blocks a quantity/charge update that would reduce the payable below payments already recorded. Challan close still requires sent pieces to reconcile exactly to accepted + rejected + rework.
 - Legacy cumulative paid totals are preserved; they are not silently rewritten into invented payment references.
 - This remains device-local. It is not yet posted into the supplier payable ledger or double-entry accounts, and browser-local identity/audit is not secure.
+
+
+### Production rework re-inspection — 23 Nov 2026
+
+- Production QC now distinguishes initial inspection from rework re-inspection. Re-inspection quantities are capped to the outstanding rework balance for the same manufacturing order and size.
+- Rework accepted pieces post a separate idempotent production-receipt reference; rework and rejects do not enter saleable stock.
+- Rework can return for another rework cycle. The manufacturing order is marked Completed only after initial QC covers the order quantity and no rework remains; it is marked Rework while pieces remain outstanding.
+- This is still a local QC workflow and requires consolidated testing with real size plans, stage quantities, stock ledger and manufacturing status transitions.
