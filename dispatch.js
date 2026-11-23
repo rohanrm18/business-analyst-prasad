@@ -24,7 +24,7 @@ function paPostDispatchStock(invoice,dispatch){
  try{
   dispatch.stockPostingStatus='pending';const di=paDispatches.findIndex(x=>x.invoiceId===invoice.id);if(di>=0)paDispatches[di]=dispatch;else paDispatches.push(dispatch);paSaveDispatches();
   pending.forEach(x=>rows.push({id:'GSM-'+Date.now()+'-'+x.index,type:'Dispatch / sale issue',date:dispatch.lrDate,style:x.style,description:items[x.index].name||'',colour:x.colour,size:x.size,qty:x.qty,reference:x.ref,reason:'Physical dispatch for invoice '+invoice.invoice_no+' · LR '+dispatch.lr,dispatchId:dispatch.id,invoiceId:invoice.id,createdAt:new Date().toISOString()}));
-  localStorage.setItem('pa_garment_stock_ledger_v1',JSON.stringify(rows));
+  localStorage.setItem('pa_garment_stock_ledger_v1',JSON.stringify(rows));if(typeof garmentStockMoves!=='undefined'&&Array.isArray(garmentStockMoves)){garmentStockMoves.length=0;rows.forEach(x=>garmentStockMoves.push(x));}
   dispatch.stockPostingStatus='posted';dispatch.stockPostedAt=new Date().toISOString();const ix=paDispatches.findIndex(x=>x.invoiceId===invoice.id);if(ix>=0)paDispatches[ix]=dispatch;paSaveDispatches();return true;
  }catch(err){dispatch.stockPostingStatus='pending';const ix=paDispatches.findIndex(x=>x.invoiceId===invoice.id);if(ix>=0)paDispatches[ix]=dispatch;try{paSaveDispatches()}catch(_){}alert('Dispatch saved with stock posting pending. Re-open and save again to safely retry. '+err.message);return false;}
 }
