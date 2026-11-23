@@ -40,7 +40,7 @@ function enhance(){
  const modeLabel=form.elements.mode?.closest('label');if(modeLabel)modeLabel.parentElement.insertAdjacentElement('afterend',panel);else form.appendChild(panel);
 
  function currentBill(){return bills.find(b=>b.id===billSelect.value);}
- function outstanding(b){const ps=payments.filter(p=>p.billId===b.id),alloc=read('pa_supplier_advance_allocations_v1',[]).filter(a=>a.billId===b.id).reduce((n,a)=>n+Number(a.amount||0),0);return Math.max(0,Number(b.total||0)-ps.reduce((n,p)=>n+Number(p.amountPaid||0)+Number(p.tdsWithheld||0),0)-alloc);}
+ function outstanding(b){const ps=payments.filter(p=>p.billId===b.id),alloc=read('pa_supplier_advance_allocations_v1',[]).filter(a=>a.billId===b.id).reduce((n,a)=>n+Number(a.amount||0),0),returns=read('pa_purchase_returns_v1',[]).filter(r=>r.billId===b.id&&r.status==='approved').reduce((n,r)=>n+Number(r.amount||0),0);return Math.max(0,Number(b.total||0)-ps.reduce((n,p)=>n+Number(p.amountPaid||0)+Number(p.tdsWithheld||0),0)-alloc-returns);}
  function remainingBase(b){const used=payments.filter(p=>p.billId===b.id).reduce((n,p)=>n+Number(p.tdsBase||0),0);return Math.max(0,Number(b.taxable||b.total||0)-used);}
  function priorBase(b,pan,date){const q=fyq(date),key=String(pan||'').toUpperCase(),byPayment=new Map(payments.map(p=>[p.id,p]));const paymentBase=payments.filter(p=>fyq(String(p.date||'').slice(0,10)).financialYear===q.financialYear&&((key&&String(p.tdsPan||'').toUpperCase()===key)||(!key&&String(p.supplier||'').trim().toLowerCase()===String(b.supplier||'').trim().toLowerCase()))).reduce((n,p)=>n+Number(p.tdsBase||0),0);const legacyEntries=tds.filter(t=>t.financialYear===q.financialYear&&((key&&String(t.pan||'').toUpperCase()===key)||(!key&&String(t.contractor||'').trim().toLowerCase()===String(b.supplier||'').trim().toLowerCase()))&&(!t.paymentId||!(Number(byPayment.get(t.paymentId)?.tdsBase)>0))).reduce((n,t)=>n+Number(t.base||0),0);return round(paymentBase+legacyEntries);}
  function calc(){
@@ -70,7 +70,7 @@ document.addEventListener('submit',e=>{
  const b=bills.find(x=>x.id===form.elements.billId.value),cash=Number(form.elements.amountPaid.value||0),d= form.elements.date.value;
  const nature=$('sp-nature')?.value||'Goods purchase',applies=$('sp-applicable')?.value||'Review',type=$('sp-type')?.value||'Individual / HUF',pan=($('sp-pan')?.value||'').trim().toUpperCase(),base=Number($('sp-base')?.value||0),rate=type==='Individual / HUF'?1:2;
  if(!b||!d||!Number.isFinite(cash)||cash<0){alert('Select an invoice and enter a valid payment date and cash amount.');return;}
- const priorPayments=payments.filter(p=>p.billId===b.id),billAdvanceAllocations=read('pa_supplier_advance_allocations_v1',[]).filter(a=>a.billId===b.id).reduce((n,a)=>n+Number(a.amount||0),0),due=Math.max(0,Number(b.total||0)-priorPayments.reduce((n,p)=>n+Number(p.amountPaid||0)+Number(p.tdsWithheld||0),0)-billAdvanceAllocations);
+ const priorPayments=payments.filter(p=>p.billId===b.id),billAdvanceAllocations=read('pa_supplier_advance_allocations_v1',[]).filter(a=>a.billId===b.id).reduce((n,a)=>n+Number(a.amount||0),0),approvedReturns=read('pa_purchase_returns_v1',[]).filter(r=>r.billId===b.id&&r.status==='approved').reduce((n,r)=>n+Number(r.amount||0),0),due=Math.max(0,Number(b.total||0)-priorPayments.reduce((n,p)=>n+Number(p.amountPaid||0)+Number(p.tdsWithheld||0),0)-billAdvanceAllocations-approvedReturns);
  const usedBase=priorPayments.reduce((n,p)=>n+Number(p.tdsBase||0),0),baseLeft=Math.max(0,Number(b.taxable||b.total||0)-usedBase);
  let withheld=0;
  if(applies==='Yes'){
