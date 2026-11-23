@@ -664,3 +664,18 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - The “CA reviewed” field is still a locally entered status, not authenticated CA approval. Do not activate a mapping until the CA has confirmed the exact accounting basis.
 - The engine posts a single two-line amount only. GST/TDS splitting, advance adjustment, inventory valuation, COGS, accruals, multi-line allocations, reversals from source modules and server-side concurrency/uniqueness remain pending.
 - Syntax validation passed for `advanced-workflows.js`. Browser/device execution, retry/conflict functional tests, financial-year lock tests and journal report reconciliation remain pending.
+
+## Supplier bill payment → mapped accounting journals — 23 November 2026
+
+- Connected the supplier invoice payment form to the mapped journal engine for the cash portion of a bill payment. When the mapping is locally marked “CA reviewed”, it posts supplier payable Dr / mapped cash-or-bank Cr using the payment's stable ID, payment date and cash amount.
+- When TDS is withheld, a separate source event `<payment-id>-TDS` posts supplier payable Dr / mapped TDS payable Cr for the withheld amount. This keeps the cash and TDS credits separate and makes the supplier payable reduction equal cash plus TDS.
+- Repeated processing of the same source event is protected by the engine's idempotency check. Payment records retain a small posting-status result for visibility; a missing/unreviewed mapping or any validation error leaves that portion marked pending rather than blocking the supplier payment record.
+- The integration deliberately does not post supplier advance allocation as a new payment, because allocation transfers an existing advance and must not create a second cash movement.
+- Updated supplier-ledger script cache version and service-worker cache.
+
+**Controls and limitations**
+- Map `supplier_payment` to the correct supplier-payable debit and cash/bank credit accounts. Map `tds_withheld` to supplier-payable debit and TDS-payable credit. CA must confirm account treatment before setting either mapping to “CA reviewed”.
+- TDS calculation/applicability remains subject to existing CA review workflow; this change only posts the recorded cash/TDS amounts.
+- Existing historic payments are not backfilled. No journal is created if a mapping is missing/unreviewed; no automatic retry queue/backfill is implemented yet.
+- Contractor job-work payments, procurement PO advances, supplier advance allocations, purchase bills, GST input tax, purchase returns and bank reconciliation are not connected by this change.
+- Syntax validation passed for `supplier-ledger.js`. Browser-level payment, TDS, retry, locked-year and trial-balance reconciliation tests remain pending.
