@@ -14,6 +14,9 @@ A mobile-first installable web app for Prasad Apparels, with a simple navy-and-g
 - Business report catalogue for sales, purchases, profit, ageing and inventory.
 - Responsive layout and installable PWA support.
 
+## Windows desktop use
+See [Windows setup & acceptance guide](WINDOWS-SETUP-AND-ACCEPTANCE.md) for Edge/Chrome installation, screen checks, invoice/report printing, CSV/Excel validation and barcode/thermal printer calibration. Windows physical-device acceptance is still pending.
+
 ## Security and user access
 The approved model is one app with individual logins and Owner-controlled roles (Owner, Accountant, CA, Manager and Worker). See `SECURITY-AND-ACCESS-CONTROL.md` and `cloudflare/migrations/0002_security.sql`. The migration is a schema foundation only; authentication, MFA, server-side permission middleware and deployment are not yet active. Do not treat the app as production-secure or move real financial data to shared cloud storage until all security acceptance tests pass.
 
