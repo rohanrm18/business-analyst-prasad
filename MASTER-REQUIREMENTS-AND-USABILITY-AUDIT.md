@@ -559,3 +559,10 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Successful batches post the roll issue/consumption/wastage/reusable return into the existing roll-wise fabric cut ledger. A stable source batch ID makes a retry idempotent and detects mismatched repeat payloads.
 - Fabric stock availability and BOM reservation are checked by the existing inventory logic; a cutting batch is not saved when the fabric movement cannot be posted.
 - Consolidated testing is still required for real roll lots, reservations, returns, cutting, and subsequent material balance reports. This remains local-device data.
+
+
+### Customer return credit-note issue safeguards — 23 Nov 2026
+
+- A return credit note cannot be issued while the return is still awaiting physical QC. The return must first be marked Restock, Rework or Reject.
+- Before issue, the workflow rechecks the original invoice exists and the proposed credit amount does not exceed its current outstanding after receipts and previously approved credits.
+- This is a local CA-review acknowledgement, not verified CA identity or statutory GST validation. The CA must still verify the credit-note tax treatment and document requirements.
