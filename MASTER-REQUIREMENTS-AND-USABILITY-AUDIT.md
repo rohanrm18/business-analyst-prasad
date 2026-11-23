@@ -471,3 +471,13 @@ This is still one full dispatch per invoice. Partial/multiple dispatch allocatio
 - **Cutting reconciliation:** record MO, style, fabric, lot/shade, pieces cut, metres issued/used/wasted/returned. The form requires issued metres to equal used + wastage + returned within 0.001 m. This is a reconciliation register only; it is not yet connected to the fabric-roll stock issue/return ledger.
 
 Both registers are included in manual backup and restore validation. Multi-stage rework loops, operation-level job-work material transfers and live fabric-roll posting remain pending.
+
+
+### Search, duplicate scan and exports added — 23 November 2026
+
+The Business Control Centre now includes:
+- Global local-record search across customers, suppliers, customer POs, sales orders, invoices, manufacturing orders, dispatches, supplier POs/bills, returns and job-work challans.
+- A duplicate scan for customer mobile/GSTIN, supplier GSTIN, customer PO, invoice number, LR, AWB and customer receipt reference. It flags possible duplicates for review; it does not merge or delete records.
+- Formula-injection-safe CSV exports for customer, supplier, sales order, tax invoice, garment stock and job-work challan registers.
+
+The search and exports work only with records available in this browser's local storage. This is not server-wide search, and CSV export is not a validated Excel/XLSX import workflow.
