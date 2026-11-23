@@ -514,3 +514,8 @@ Only CSV is supported in this local prototype. XLSX/Excel and PDF extraction, su
 ### Credit-note CA review gate — 23 November 2026
 
 A customer return now creates a **pending CA-review credit-note draft** from the original invoice line. Pending drafts do not reduce customer outstanding. A separate explicit “CA reviewed — issue credit note” action records a reviewer name (local, not identity-verified) and only then marks the credit note approved so the receivables ledger deducts it. CA must still verify GST treatment and issue requirements; there is no GST filing or portal integration.
+
+
+### Size × colour sales-order matrix added — 23 November 2026
+
+A matrix entry screen now lets the user choose a saved size set, enter one or more colours, and enter whole-piece quantities by colour and size. Each non-zero cell becomes a standard sales-order line, saved to the existing sales-order register. These lines flow into the existing sales-order production planning and partial packing/invoice workflows and carry style/colour/size keys used by garment stock. The matrix creates a new sales order; it does not amend an existing order or convert a customer PO. Changing an order after production starts still needs manager approval and a secure audit trail.
