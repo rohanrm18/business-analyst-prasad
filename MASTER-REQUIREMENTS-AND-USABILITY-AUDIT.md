@@ -493,3 +493,12 @@ This enables partial order fulfilment as separate packed cartons and invoices. I
 ### Live stock-state synchronization hardening — 23 November 2026
 
 QC receipts, customer-return restock releases, physical stock-count adjustments and dispatch stock issues now update both the persisted garment-stock ledger and the current in-memory stock array used by the Inventory screen. This prevents the dashboard/stock screen from showing stale balances immediately after one of these workflows posts a movement. The full stock ledger still requires end-to-end tests for retry, restore, multiple variants and negative-stock prevention.
+
+
+### Financial-year, cheque, capital and local reports added — 23 November 2026
+
+- **Financial-year register:** non-overlapping start/end date ranges can be created and locked/unlocked with a reason. The lock is enforced in the new Business Control Centre forms (returns, job work, QC, cutting, stock counts, purchase returns, manual journals, customer prices, cheques and capital/loan entries). Existing sales, invoice, purchase, dispatch, GST and legacy forms are not all period-lock aware. Year-end carry-forward is not implemented.
+- **Document sequences:** new Business Control Centre document types use saved per-financial-year local sequences. Existing invoice numbering remains its own local series. This is not server-enforced gap-free multi-user numbering.
+- **Cheque register:** received/issued cheques and post-dated, deposited, cleared, bounced and cancelled statuses can be recorded. Bounced-cheque accounting reversal and bank feed are not connected.
+- **Loans, capital and drawings:** manual records can be entered; they are not automatically posted to the double-entry ledger.
+- **Local reports:** slow-moving style stock, contractor acceptance/rejection/rework and payable summaries, and receivables due within 30 days. The receivables view is not a complete cash-flow forecast; supplier payables and bank balances are excluded.
