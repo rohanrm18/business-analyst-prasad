@@ -858,3 +858,11 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Explicitly labels QC numbers as inspection-event totals because rework re-inspections may count the same physical pieces again. It does not claim unique finished-piece output, MO completion, or saleable stock certification.
 - Updated `advanced-workflows.js` asset version to v40 and service-worker cache to `prasad-analyst-v139-production-report`.
 - JavaScript syntax check passed using `new Function()` before commit. GitHub Actions validation and Pages deployment for the latest commits were queued/in progress at audit update time; do not treat this as browser/regression-tested or production-ready.
+
+
+## 23 November 2026 — Dispatch and transporter control report
+- Added a Business Control Centre report using the `pa_dispatches_v1` register.
+- Shows dispatch records, invoices with dispatch activity, pieces represented by partial allocations (or linked invoice quantity for legacy full-dispatch records), pending stock postings, legacy/unverified records, missing LR number/date, E-Way Bill review/document exceptions, and dispatch counts by transporter.
+- Legacy records remain visibly unverified; report is not proof of physical delivery, E-Way Bill validity, transporter settlement or customer receipt.
+- Updated `advanced-workflows.js` asset to v41 and service-worker cache to `prasad-analyst-v140-dispatch-control`.
+- JavaScript syntax check passed with `new Function()` before commit. Browser-level report checks, representative transaction reconciliation and full regression testing remain pending.
