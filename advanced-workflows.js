@@ -65,10 +65,40 @@ function bindJob(){
  document.querySelectorAll('[data-aw-jobclose]').forEach(b=>b.onclick=()=>{const j=jobs.find(x=>x.id===b.dataset.awJobclose);if(!j)return;if(j.accepted+j.rejected+j.rework!==j.sent){alert('Cannot close: sent pieces must reconcile to accepted + rejected + rework.');return;}if(j.paid>jobPayable(j)){alert('Payments exceed payable.');return;}if(!confirm('Close challan '+j.challanNo+'?'))return;j.status='closed';j.closedAt=new Date().toISOString();persist();render();});
 }
  const postingEvents=[['sales','Sales invoice / revenue'],['customer_receipt','Customer receipt'],['purchase','Supplier purchase bill'],['supplier_payment','Supplier payment'],['contractor_jobwork','Contractor job-work charge'],['tds_withheld','TDS withheld from contractor'],['customer_credit_note','Customer credit note'],['purchase_return','Supplier purchase return'],['stock_issue','Garment stock issue / cost of goods'],['stock_adjustment','Stock adjustment'],['expense','General business expense'],['bank_charge','Bank charge']];
+function buildMappedJournalDraft(event,sourceEventId,date,amount,memo,sourceReference){
+ const mapping=postingMaps.find(x=>x.event===event);
+ if(!mapping||mapping.status!=='CA reviewed')throw Error('A locally CA-reviewed mapping is required before posting.');
+ const debitCode=String(mapping.debitCode||''),creditCode=String(mapping.creditCode||'');
+ if(!debitCode||!creditCode||debitCode===creditCode||!accounts.some(a=>a.code===debitCode)||!accounts.some(a=>a.code===creditCode))throw Error('Mapped debit and credit accounts must both exist and be different.');
+ const eventId=String(sourceEventId||'').trim(),day=String(date||'');
+ if(!eventId||eventId.length>180)throw Error('A stable source event ID (1–180 characters) is required.');
+ if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(day)||!Number.isFinite(Date.parse(day+'T00:00:00Z'))||new Date(day+'T00:00:00Z').toISOString().slice(0,10)!==day)throw Error('A valid YYYY-MM-DD transaction date is required.');
+ const paise=Math.round(Number(amount)*100);
+ if(!Number.isFinite(Number(amount))||!Number.isSafeInteger(paise)||paise<=0)throw Error('Posting amount must be a positive valid amount in rupees, rounded to paise.');
+ const value=paise/100;
+ return {event,sourceEventId:eventId,date:day,amount:value,debitCode,creditCode,memo:String(memo||postingEvents.find(x=>x[0]===event)?.[1]||event).trim().slice(0,180),sourceReference:String(sourceReference||eventId).slice(0,180)};
+}
+function postMappedJournal(event,sourceEventId,date,amount,memo,sourceReference){
+ const draft=buildMappedJournalDraft(event,sourceEventId,date,amount,memo,sourceReference);
+ const existing=journals.find(j=>j.sourceEventId===draft.sourceEventId&&j.sourceType===draft.event);
+ if(existing){
+  const lines=Array.isArray(existing.lines)?existing.lines:[];
+  const matches=existing.sourceAmount===draft.amount&&existing.sourceDebitCode===draft.debitCode&&existing.sourceCreditCode===draft.creditCode&&existing.date===draft.date&&lines.length===2&&lines.some(l=>l.account===draft.debitCode&&Math.round(Number(l.debit||0)*100)===Math.round(draft.amount*100)&&Number(l.credit||0)===0)&&lines.some(l=>l.account===draft.creditCode&&Math.round(Number(l.credit||0)*100)===Math.round(draft.amount*100)&&Number(l.debit||0)===0);
+  if(!matches)throw Error('Duplicate source event ID conflicts with the existing journal. No second journal was created.');
+  return {created:false,journal:existing};
+ }
+ if(!awDateAllowed(draft.date))throw Error('Posting blocked by the locked financial-year control.');
+ const id='PA-AUTO-'+encodeURIComponent(draft.event)+'-'+encodeURIComponent(draft.sourceEventId);
+ const journal={id,number:awNextNo('AUTO',draft.date),date:draft.date,memo:draft.memo,lines:[{account:draft.debitCode,debit:draft.amount,credit:0},{account:draft.creditCode,debit:0,credit:draft.amount}],total:draft.amount,status:'posted',sourceType:draft.event,sourceEventId:draft.sourceEventId,sourceReference:draft.sourceReference,sourceAmount:draft.amount,sourceDebitCode:draft.debitCode,sourceCreditCode:draft.creditCode,postingEngine:'mapped-v1',createdAt:new Date().toISOString()};
+ const debit=journal.lines.reduce((n,l)=>n+Math.round(Number(l.debit||0)*100),0),credit=journal.lines.reduce((n,l)=>n+Math.round(Number(l.credit||0)*100),0);
+ if(debit!==credit||debit!==Math.round(draft.amount*100))throw Error('Internal balance validation failed. Journal was not saved.');
+ journals.push(journal);persist();return {created:true,journal};
+}
+
  function postingMapCard(){
   const opts=accounts.slice().sort((a,b)=>a.code.localeCompare(b.code)).map(a=>'<option value="'+esc(a.code)+'">'+esc(a.code+' · '+a.name+' ('+a.type+')')+'</option>').join('');
   const rows=postingEvents.map(([key,label])=>{const m=postingMaps.find(x=>x.event===key);return '<div class="line"><div><b>'+esc(label)+'</b><small>'+(m?esc(m.debitCode+' Dr / '+m.creditCode+' Cr · '+m.status):'Not configured')+(m&&m.note?' · '+esc(m.note):'')+'</small></div><strong>'+(m&&m.status==='CA reviewed'?'Reviewed':'Review required')+'</strong></div>'}).join('');
-  return card('Automatic accounting — account mapping','Choose your own chart-of-account codes. Every mapping starts as Draft and must be checked by your CA. No automatic journal is posted from these draft mappings.','<form id="aw-posting-map"><label>Transaction type<select name="event" required>'+postingEvents.map(([k,v])=>'<option value="'+k+'">'+esc(v)+'</option>').join('')+'</select></label><div class="two"><label>Debit account<select name="debitCode" required><option value="">Select debit account</option>'+opts+'</select></label><label>Credit account<select name="creditCode" required><option value="">Select credit account</option>'+opts+'</select></label></div>'+text('note','Reason / CA instructions','maxlength="240" placeholder="Explain intended posting and any GST/TDS treatment for CA review"')+'<label>Review status<select name="status"><option value="Draft — CA review required">Draft — CA review required</option><option value="CA reviewed">CA reviewed (only after your CA confirms)</option></select></label><button class="primary">Save account mapping</button></form>'+rows+'<p class="hint">Do not mark a mapping CA reviewed until your CA has confirmed debit/credit treatment, tax ledgers, timing and source-document basis. GST and TDS components are not calculated here.</p>');
+  return card('Automatic accounting — account mapping','Choose your own chart-of-account codes. Every mapping starts as Draft and must be checked by your CA. The balanced posting engine is ready for controlled source-event integration; live transaction screens are not connected yet.','<form id="aw-posting-map"><label>Transaction type<select name="event" required>'+postingEvents.map(([k,v])=>'<option value="'+k+'">'+esc(v)+'</option>').join('')+'</select></label><div class="two"><label>Debit account<select name="debitCode" required><option value="">Select debit account</option>'+opts+'</select></label><label>Credit account<select name="creditCode" required><option value="">Select credit account</option>'+opts+'</select></label></div>'+text('note','Reason / CA instructions','maxlength="240" placeholder="Explain intended posting and any GST/TDS treatment for CA review"')+'<label>Review status<select name="status"><option value="Draft — CA review required">Draft — CA review required</option><option value="CA reviewed">CA reviewed (only after your CA confirms)</option></select></label><button class="primary">Save account mapping</button></form>'+rows+'<p class="hint">Do not mark a mapping CA reviewed until your CA has confirmed debit/credit treatment, tax ledgers, timing and source-document basis. GST and TDS components are not calculated here.</p>');
  }
  function ledgerPage(){
  const codes=accounts.slice().sort((a,b)=>a.code.localeCompare(b.code));
@@ -247,6 +277,6 @@ const coreNavigate=window.navigate;window.navigate=function(p){coreNavigate(p);i
 const coreRender=window.render;
 window.render=function(){if(page==='advanced'){document.getElementById('page').innerHTML=advancedPage();document.querySelectorAll('[data-aw-tab]').forEach(b=>b.onclick=()=>{awTab=b.dataset.awTab;render()});if(awTab==='returns')bindReturn();if(awTab==='jobwork')bindJob();if(awTab==='ledger'){bindPostingMap();bindLedger();}if(awTab==='counts')bindCount();if(awTab==='purchaseReturns')bindPurchaseReturn();if(awTab==='prices')bindPrice();if(awTab==='promises')bindPromise();if(awTab==='qc')bindQC();if(awTab==='cutting')bindCutting();if(awTab==='search')bindSearch();if(awTab==='financial')bindFinancial();if(awTab==='cheques')bindCheque();if(awTab==='capital')bindCapital();if(awTab==='import')bindImport();if(awTab==='matrix')bindMatrix();return;}coreRender();};
 window.backupKeys=(()=>{const prior=window.backupKeys;return function(){return [...new Set([...prior(),...Object.values(KEY)])]}})();
-window.__prasadAdvancedWorkflows={version:2,keys:Object.values(KEY)};
+window.prasadPostMappedJournal=postMappedJournal;\nwindow.__prasadAdvancedWorkflows={version:3,keys:Object.values(KEY),accountingPostingEngine:'mapped-v1'};
 render();
 })();
