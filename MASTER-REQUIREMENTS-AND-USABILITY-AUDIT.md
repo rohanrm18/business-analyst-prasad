@@ -357,3 +357,9 @@ The sales tax invoice form now requires an HSN/SAC entry in 4, 6 or 8 digit nume
 - Require a valid receipt date, positive quantity, and enforce remaining PO line quantity. Fabric requires a unique roll number; accessory receipt quantities must be whole pieces.
 - Preserves existing GRN and QC records; this is a validation guard, not a supplier-return or PO amendment workflow.
 - Verification: ERP JavaScript syntax passed; focused validation tests passed for normal receipt, over-receipt, cancelled PO, duplicate fabric roll, fractional accessory quantity and missing date. Browser/localStorage integration, backup/restore and end-to-end procurement tests remain pending.
+
+
+## Supplier advance allocation validation — 23 November 2026
+- Hardened the advance-to-invoice allocation form with strict calendar-date validation, positive finite amount checks, validation of the source advance amount, and explicit checks against both unallocated advance and remaining invoice balance.
+- Added duplicate protection for an exact repeated payment-to-bill allocation (same source advance, bill, date and amount). Existing valid allocation records are preserved; this does not merge supplier advances or create a cash payment.
+- Verification: supplier-ledger JavaScript syntax passed. Focused helper tests and browser/localStorage workflow tests are still pending; supplier identity is currently matched by normalized supplier name because legacy bill and advance records do not consistently carry a shared supplier ID.
