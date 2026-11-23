@@ -629,3 +629,11 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - TDS applicability, threshold aggregation, section/rate, PAN consequences and treatment must be confirmed by the CA under current law. The app does not file TDS returns or remit TDS.
 - This bridge is not yet a complete double-entry posting to contractor expense, TDS payable, cash/bank and advances accounts.
 - Data remains device-local. No bank feed, authenticated CA approval, multi-device concurrency control or server-side audit enforcement is present.
+
+## Company-wide financial-year form guard — 23 November 2026
+
+- Added a central capture-phase date guard ahead of individual form handlers, covering the identified sales order, customer PO, invoice, purchase/GRN, supplier payment, customer receipt, manufacturing, stock, dispatch-adjacent and Business Control Centre transaction forms.
+- The guard checks the transaction date against locally configured Locked financial-year ranges before the form's save handler runs. Existing entries remain viewable; this guard prevents new submissions in a locked period.
+- Existing module-specific checks remain in place. The central guard is a local browser safeguard only, not server-enforced access control or a substitute for a shared company ledger.
+- Coverage is based on the current identified form IDs and date field names. Forms without a recognised date field, dynamically introduced forms, edits through non-form actions, and cross-device concurrency still require consolidated regression testing and any necessary follow-up wiring.
+- Syntax validation passed for `advanced-workflows.js`. Browser/device regression testing has not yet been performed.
