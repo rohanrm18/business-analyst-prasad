@@ -880,3 +880,11 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Customer return export includes invoice linkage, item/variant, quantity, QC status, credit-note status and amount. Purchase return export includes supplier/bill/PO linkage, amount, status and reason.
 - Updated `advanced-workflows.js` to v43 and service-worker cache to `prasad-analyst-v142-returns-exports`.
 - JavaScript syntax validation passed. Export contents and spreadsheet compatibility still require browser-level testing with representative data.
+
+
+## 23 November 2026 — Sales order end-to-end fulfilment visibility
+- Added an order-level progress panel to each saved sales order showing ordered pieces, linked manufacturing quantity planned, approved packing-slip pieces, non-reversed invoiced pieces, dispatched pieces and packed-but-not-invoiced quantity.
+- The panel links records using the sales order ID on manufacturing orders, packing slips and invoices, then dispatch invoice IDs. Legacy full-dispatch records use linked invoice quantities as an estimate.
+- Labels distinguish production planned from completed output. All figures remain local-register summaries and are not shared-ledger or physical-delivery certification.
+- Updated `app.js` to v56 and service-worker cache to `prasad-analyst-v143-order-fulfilment-progress`.
+- JavaScript syntax validation passed with `new Function()`; representative multi-carton, partial-invoice and multiple-dispatch browser tests remain pending.
