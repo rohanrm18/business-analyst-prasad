@@ -198,7 +198,7 @@ function purchaseReturnPage(){
  const options=bills.map(b=>'<option value="'+esc(b.id)+'">'+esc(b.invoiceNo||b.id)+' · '+esc(b.supplier)+' · '+money(b.total)+'</option>').join('');
  const rows=purchaseReturns.slice().reverse().map(r=>{
   const link=r.grnNumber?' · '+esc(r.grnNumber):r.poLineIndex!==undefined?' · PO line '+(Number(r.poLineIndex)+1):' · LEGACY / UNMATCHED';
-  return '<div class="line"><div><b>'+esc(r.noteNo)+' · '+esc(r.supplier)+'</b><small>'+esc(r.date)+' · '+esc(r.reference)+link+' · '+r.qty+' '+esc(r.unit)+' · '+money(r.amount)+'</small><small>'+esc(r.reason)+' · '+(r.status==='approved'?'CA reviewed · payable reduced':r.status==='pending_ca_review'?'Pending CA review':esc(r.status))+'</small></div>'+(r.status==='pending_ca_review'&&r.billId?'<button class="secondary" data-aw-preturn-approve="'+esc(r.id)+'">CA reviewed — approve debit note</button>':'')+'</div>';
+  return '<div class="line"><div><b>'+esc(r.noteNo)+' · '+esc(r.supplier)+'</b><small>'+esc(r.date)+' · '+esc(r.reference)+link+' · '+r.qty+' '+esc(r.unit)+' · '+money(r.amount)+'</small><small>'+esc(r.reason)+' · '+(r.status==='approved'?'CA reviewed · payable reduced':r.status==='pending_ca_review'?'Pending CA review':esc(r.status))+'</small></div>'+(r.status==='pending_ca_review'&&r.billId?'<button class="secondary" data-aw-preturn-approve="'+esc(r.id)+'">CA reviewed — approve debit note</button>':r.status==='approved'&&!r.stockPostedAt&&r.itemType&&r.itemId?'<button class="secondary" data-aw-preturn-stock="'+esc(r.id)+'">Post stock return</button>':r.status==='approved'&&!r.stockPostedAt?'<small>Stock posting unavailable: legacy / unmatched material link</small>':r.stockPostedAt?'<small>Stock returned · '+esc(r.stockPostingType)+' · '+esc(r.stockPostedAt.slice(0,10))+'</small>':'')+'</div>';
  }).join('');
  const lineOptions=pos.flatMap(p=>(p.lines||[]).map((l,i)=>'<option value="'+esc(p.id)+'|'+i+'">'+esc(p.number+' · '+l.code+' · '+l.qty+' '+l.unit)+'</option>')).join('');
  return card('Supplier purchase return / debit note','Select the original bill, its PO material line and the exact GRN. Only QC-accepted quantity not already returned can be submitted. Debit notes reduce payable only after CA review.','<form id="aw-preturn"><label>Original supplier bill<select name="billId" required><option value="">Choose supplier bill</option>'+options+'</select></label><div class="two">'+input('supplier','Supplier name')+input('date','Return date','date','required')+'</div><label>PO material line<select name="poLine" required><option value="">Choose PO line</option>'+lineOptions+'</select></label><label>Source GRN<select name="grnId" required><option value="">Choose GRN after selecting bill and PO line</option></select></label><div class="two">'+input('reference','Supplier bill / debit reference')+input('item','Item / material')+'</div><div class="two">'+input('qty','Quantity','number','min=".001" step=".001" required')+input('unit','Unit','text','required placeholder="pcs / m / kg"')+'</div><div class="two">'+input('amount','Debit note amount ₹','number','min=".01" step=".01" required')+input('reason','Reason')+'</div><p class="hint" id="aw-preturn-availability">Select a bill and PO line to see QC-accepted returnable quantity.</p><button class="primary">Save for CA review</button></form>')+card('Purchase return register','Approved debit notes reduce the linked supplier invoice outstanding. This workflow does not post stock reversal or automatically adjust GST.',rows||'<div class="empty">No purchase returns recorded.</div>');
@@ -254,8 +254,39 @@ function bindPurchaseReturn(){
   const existing=purchaseReturns.filter(x=>x.billId===bill.id&&x.status!=='cancelled').reduce((n,x)=>n+Number(x.amount||0),0),paid=read('pa_supplier_payments_v1',[]).filter(x=>x.billId===bill.id).reduce((n,x)=>n+Number(x.amountPaid||0)+Number(x.tdsWithheld||0),0),advances=read('pa_supplier_advance_allocations_v1',[]).filter(x=>x.billId===bill.id).reduce((n,x)=>n+Number(x.amount||0),0),due=Math.max(0,Number(bill.total||0)-paid-advances-existing);
   if(amount>due+.009){alert('Debit note exceeds remaining supplier bill balance '+money(due)+'.');return;}
   if(purchaseReturns.some(x=>x.noteNo&&norm(x.noteNo)===norm(d.noteNo))){alert('Duplicate debit note number.');return;}
-  purchaseReturns.push({id:uid('PR'),noteNo:awNextNo('PR',d.date),billId:bill.id,invoiceNo:bill.invoiceNo,supplier:d.supplier,date:d.date,reference:d.reference,item:d.item,qty,unit:d.unit,amount,reason:d.reason,poId:po.id,poNumber:po.number,poLineIndex:lineIndex,poLineCode:line.code||'',grnId:grn.id,grnNumber:grn.number||grn.id,qcAcceptedAtReturn:Number(grn.accepted||0),status:'pending_ca_review',createdAt:new Date().toISOString()});persist();render();
+  purchaseReturns.push({id:uid('PR'),noteNo:awNextNo('PR',d.date),billId:bill.id,invoiceNo:bill.invoiceNo,supplier:d.supplier,date:d.date,reference:d.reference,item:d.item,qty,unit:d.unit,amount,reason:d.reason,poId:po.id,poNumber:po.number,poLineIndex:lineIndex,poLineCode:line.code||'',itemType:line.itemType||'',itemId:line.itemId||'',grnId:grn.id,grnNumber:grn.number||grn.id,qcAcceptedAtReturn:Number(grn.accepted||0),status:'pending_ca_review',createdAt:new Date().toISOString()});persist();render();
  };
+ document.querySelectorAll('[data-aw-preturn-stock]').forEach(btn=>btn.onclick=()=>{
+  const r=purchaseReturns.find(x=>x.id===btn.dataset.awPreturnStock);
+  if(!r||r.status!=='approved'||r.stockPostedAt)return;
+  if(!r.grnId||!r.poId||!Number.isInteger(Number(r.poLineIndex))||!r.itemType||!r.itemId){alert('This return has no complete GRN and material-master link. No stock movement was posted.');return;}
+  const grnsNow=read('pa_purchase_grns_v1',[]),posNow=read('pa_purchase_orders_v1',[]),g=grnsNow.find(x=>x.id===r.grnId),po=posNow.find(x=>x.id===r.poId),line=po?.lines?.[Number(r.poLineIndex)];
+  if(!g||!po||!line||g.poId!==po.id||Number(g.lineIndex)!==Number(r.poLineIndex)||line.itemType!==r.itemType||String(line.itemId||'')!==String(r.itemId)){alert('Source GRN / PO material link no longer matches. Stock was not changed.');return;}
+  const stockLedger=read('pa_purchase_return_stock_v1',[]);
+  if(stockLedger.some(x=>x.returnId===r.id)){alert('A stock movement already exists for this return. Refresh the register; no duplicate posting was created.');return;}
+  const qty=Number(r.qty);if(!Number.isFinite(qty)||qty<=0){alert('Invalid return quantity.');return;}
+  let postingType='',balance=0;
+  if(r.itemType==='Fabric'){
+   const lots=read('pa_fabric_lots_v1',[]),cuts=read('pa_fabric_cuts_v1',[]),lot=lots.find(x=>x.grnId===r.grnId);
+   if(!lot){alert('Original fabric roll was not found. No stock was changed.');return;}
+   balance=Number(lot.meters||0)-cuts.filter(x=>x.rollId===lot.id).reduce((n,x)=>n+Number(x.issued||0)-Number(x.returned||0),0);
+   if(qty>balance+.0001){alert('Cannot return '+qty+' m. Available balance on roll '+lot.roll+' is '+Math.max(0,balance).toFixed(3)+' m. Used / issued fabric cannot be returned as unused stock.');return;}
+   if(!confirm('Post '+qty+' m out of fabric roll '+lot.roll+' as a supplier purchase return? This reduces available fabric stock.'))return;
+   lot.meters=Number(lot.meters||0)-qty;
+   localStorage.setItem('pa_fabric_lots_v1',JSON.stringify(lots));postingType='FABRIC_ROLL_OUT';
+  }else if(r.itemType==='Accessory'){
+   const items=read('pa_trim_items_v1',[]),moves=read('pa_trim_moves_v1',[]),item=items.find(x=>x.id===r.itemId);
+   if(!item){alert('Original accessory master was not found. No stock was changed.');return;}
+   balance=Number(item.opening||0)+moves.filter(x=>x.itemId===r.itemId).reduce((n,x)=>n+(x.kind==='IN'?Number(x.qty||0):-Number(x.qty||0)),0);
+   if(!Number.isInteger(qty)||qty>balance+.0001){alert('Accessory return must be a whole number and cannot exceed available stock. Current balance: '+balance+'.');return;}
+   if(!confirm('Post '+qty+' pcs out of '+(item.name||item.code)+' as a supplier purchase return? This reduces accessory stock.'))return;
+   moves.push({id:'TRM-PR-'+r.id,kind:'OUT',qty,date:r.date,itemId:r.itemId,orderId:'PURCHASE_RETURN',reference:r.noteNo,category:'Supplier Purchase Return',supplier:r.supplier,poId:r.poId,grnId:r.grnId,notes:'Approved supplier debit note '+r.noteNo+' · '+(r.reason||'')});
+   localStorage.setItem('pa_trim_moves_v1',JSON.stringify(moves));postingType='ACCESSORY_OUT';
+  }else{alert('Unsupported material type. No stock movement was posted.');return;}
+  const row={id:'PRSTK-'+r.id,returnId:r.id,noteNo:r.noteNo,poId:r.poId,poLineIndex:r.poLineIndex,grnId:r.grnId,itemType:r.itemType,itemId:r.itemId,qty,unit:r.unit,postingType,date:r.date,postedAt:new Date().toISOString(),status:'posted'};
+  stockLedger.push(row);localStorage.setItem('pa_purchase_return_stock_v1',JSON.stringify(stockLedger));
+  r.stockPostedAt=row.postedAt;r.stockPostingId=row.id;r.stockPostingType=postingType;persist();render();
+ });
  document.querySelectorAll('[data-aw-preturn-approve]').forEach(btn=>btn.onclick=()=>{
   const r=purchaseReturns.find(x=>x.id===btn.dataset.awPreturnApprove);if(!r||r.status!=='pending_ca_review')return;
   const billsNow=read('pa_purchase_bills_v1',[]),billNow=billsNow.find(x=>x.id===r.billId),posNow=read('pa_purchase_orders_v1',[]),poNow=posNow.find(x=>x.id===r.poId),grnsNow=read('pa_purchase_grns_v1',[]),grnNow=grnsNow.find(x=>x.id===r.grnId);
