@@ -172,7 +172,23 @@ window.prasadPostMappedJournalLines=postMappedJournalLines;
 }
 function sizePage(){const rows=sizeSets.map(s=>'<div class="line"><div><b>'+esc(s.name)+' · '+esc(s.sizes.join(', '))+'</b><small>'+esc(s.style||'Reusable size set')+' · '+esc(s.category||'Boys garments')+'</small></div></div>').join('');return card('Reusable garment size sets','Define sizes once for each garment range. This first version stores reusable sets; connecting them to every sales and packing line is a separate integration step.','<form id="aw-size"><div class="two">'+input('name','Size set name')+input('style','Style / range (optional)')+'</div>'+input('category','Category','text','value="Boys ethnic wear"')+input('sizes','Sizes, comma separated','text','required placeholder="2Y, 4Y, 6Y, 8Y"')+'<button class="primary">Save size set</button></form>')+card('Saved size sets','Reusable sets on this device',rows||'<div class="empty">No size sets saved.</div>')}
 function countPage(){const rows=counts.slice().reverse().map(c=>'<div class="line"><div><b>'+esc(c.date)+' · '+esc(c.style)+' / '+esc(c.colour)+' / '+esc(c.size)+'</b><small>System '+c.system+' · Counted '+c.counted+' · Variance '+c.variance+' · '+esc(c.status)+'</small></div></div>').join('');return card('Physical garment stock count','Count a style/colour/size and post the variance only after confirmation.','<form id="aw-count"><div class="two">'+input('date','Count date','date','required')+input('style','Style / design')+'</div><div class="two">'+input('colour','Colour')+input('size','Size')+'</div><div class="two">'+input('counted','Physical pieces','number','min="0" step="1" required')+input('reason','Count note')+'</div><button class="primary">Save and post count variance</button></form>')+card('Stock count history','Variance movements are linked to count IDs',rows||'<div class="empty">No counts recorded.</div>')}
-function bindCount(){const f=document.getElementById('aw-count');if(!f)return;f.onsubmit=e=>{e.preventDefault();const d=Object.fromEntries(new FormData(f)),q=Number(d.counted);if(!d.date||d.date>today()||!awDateAllowed(d.date)||!d.style.trim()||!Number.isInteger(q)||q<0){alert('Enter a valid date, style and whole physical count.');return;}const rows=stockMoves(),current=rows.filter(m=>m.style===d.style&&String(m.colour||'')===d.colour&&String(m.size||'')===d.size).reduce((n,m)=>n+(['Dispatch / sale issue','Stock adjustment out'].includes(m.type)?-Number(m.qty):Number(m.qty)),0),variance=q-current,id=uid('COUNT');const c={id,date:d.date,style:d.style.trim(),colour:d.colour,size:d.size,system:current,counted:q,variance,reason:d.reason,status:'posted'};if(variance!==0)stockPost(variance>0?'Stock adjustment in':'Stock adjustment out',c.style,c.colour,c.size,Math.abs(variance),id,'Physical count variance: '+(d.reason||'Counted stock'),'posted');counts.push(c);persist();render();};}
+function bindCount(){
+ const f=document.getElementById('aw-count');if(!f)return;
+ f.onsubmit=e=>{
+  e.preventDefault();const d=Object.fromEntries(new FormData(f)),q=Number(d.counted),style=String(d.style||'').trim(),colour=String(d.colour||'').trim(),size=String(d.size||'').trim();
+  if(!d.date||d.date>today()||!awDateAllowed(d.date)||!style||!Number.isInteger(q)||q<0){alert('Enter a valid non-future date, style and whole physical count.');return;}
+  const rows=stockMoves();
+  const current=rows.filter(m=>String(m.style||'').trim()===style&&String(m.colour||'').trim()===colour&&String(m.size||'').trim()===size).reduce((n,m)=>{
+   const qty=Number(m.qty||0);
+   if(m.type==='Dispatch / sale issue'||m.type==='Stock adjustment out')return n-qty;
+   if(m.type==='Customer return'&&m.status!=='released')return n;
+   return n+qty;
+  },0);
+  const variance=q-current,id=uid('COUNT'),c={id,date:d.date,style,colour,size,system:current,counted:q,variance,reason:String(d.reason||'').trim(),status:'posted'};
+  if(variance!==0)stockPost(variance>0?'Stock adjustment in':'Stock adjustment out',style,colour,size,Math.abs(variance),id,'Physical count variance: '+(c.reason||'Counted stock'),'posted');
+  counts.push(c);persist();render();
+ };
+}
 function purchaseReturnPage(){
  const bills=(()=>{try{return JSON.parse(localStorage.getItem('pa_purchase_bills_v1')||'[]')}catch(_){return []}})();
  const options=bills.map(b=>'<option value="'+esc(b.id)+'">'+esc(b.invoiceNo||b.id)+' · '+esc(b.supplier)+' · '+money(b.total)+'</option>').join('');
