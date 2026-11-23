@@ -996,3 +996,5 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - The view does not alter records or post journals/stock. Findings are review prompts, not proof of errors: legacy/non-PO purchases and legitimate unlinked documents may need classification. It does not certify physical stock, delivery, bank clearance, tax compliance or complete double-entry accounting.
 - Validation performed: JavaScript syntax and structural checks; live browser interaction and representative dataset reconciliation remain pending.
 - Updated advanced-workflows.js to v47 and service-worker cache to prasad-analyst-v160-workflow-health.
+
+- Follow-up validation correction: manufacturing-order checks now inspect the actual `sourceSalesOrderId` field used by the sales-order-to-production creation flow, as well as legacy alternate reference fields.
