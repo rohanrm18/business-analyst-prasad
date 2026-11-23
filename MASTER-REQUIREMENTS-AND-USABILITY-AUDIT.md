@@ -809,3 +809,11 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Added controlled status paths: Post-dated → Received / Issued or Cancelled; Received → Deposited / Bounced / Cancelled; Issued → Cleared / Bounced / Cancelled; Deposited → Cleared / Bounced / Cancelled. Cleared, bounced and cancelled are terminal in this register; replacement cheques require a new record.
 - Status history stores timestamp and optional note. These are operational records only; they do not verify bank clearance, post journals or automatically reverse payments.
 - JavaScript syntax validation passed. Browser interaction, legacy cheque status compatibility and workflow regression tests remain pending.
+
+
+## Capital and loan movement summary — 23 November 2026
+
+- Capital register now summarizes capital introduced, owner drawings, net owner capital movement, loans received and repayments recorded.
+- Loan movements are grouped by lender / bank account reference, with received, repaid and net movement shown per reference. Loan entries require a reference to avoid silently combining unrelated loans.
+- Amounts are rounded to paise and inputs are validated; date is checked against the local financial-year lock.
+- Important limits: net loan movement is only an estimate from manually recorded totals; repayments are not split into principal and interest, no lender statement or bank reconciliation is performed, and no automatic double-entry journal is posted. Browser interaction and regression testing remain pending.
