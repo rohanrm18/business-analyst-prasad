@@ -987,3 +987,12 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Validation: compliance.js syntax and a synthetic prior-month outstanding balance test passed; full browser regression remains pending.
 
 - The month-end checklist now displays the aggregate open customer receivable and supplier payable amounts as of the selected month-end date, alongside the number of open invoices/bills.
+
+
+## Consolidated cross-module workflow health checks — 23 November 2026
+- Added a read-only Workflow health tab in the Business Control Centre.
+- It checks selected links across sales orders, approved packing slips, active tax invoices, dispatch records, garment stock movements, purchase orders, GRNs, supplier bills, manufacturing orders, customer receipts and supplier payments.
+- Flags include approved packing slips not yet invoiced, active invoices without dispatch records, orphan dispatch/GRN/payment references, pending or legacy-unverified dispatch stock posting, GRNs awaiting QC, supplier bill rows not mapped to PO lines, unresolved manufacturing-order links, duplicate or unreferenced stock movements, and customer receipts linked to missing invoices.
+- The view does not alter records or post journals/stock. Findings are review prompts, not proof of errors: legacy/non-PO purchases and legitimate unlinked documents may need classification. It does not certify physical stock, delivery, bank clearance, tax compliance or complete double-entry accounting.
+- Validation performed: JavaScript syntax and structural checks; live browser interaction and representative dataset reconciliation remain pending.
+- Updated advanced-workflows.js to v47 and service-worker cache to prasad-analyst-v160-workflow-health.
