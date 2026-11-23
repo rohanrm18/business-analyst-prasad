@@ -737,3 +737,14 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - This is a manual CSV/local-device workflow only. No live bank feed, bank API, automatic journal creation, bank-charge posting, running-balance validation, statement closing-balance reconciliation, split/combined payment matching, cheque clearing automation or cloud sync is implemented.
 - Existing customer receipt manual bank-reference confirmation remains available; this new register adds statement-row evidence and supplier-side matching. It does not retroactively reconcile historical records.
 - Syntax validation passed for `advanced-workflows.js`. CSV/browser interaction, duplicate-import, ambiguous-match, and end-to-end accounting regression tests remain pending. Review statement candidates carefully before confirming; exact amount/date alone does not prove a bank match.
+
+
+## Bank statement opening/closing balance controls — 23 November 2026
+
+- Extended the manual CSV statement import with optional opening balance, closing balance and bank-account label.
+- Computes statement debit and credit totals from all valid transaction rows and checks opening balance + credits − debits = closing balance to ₹0.01.
+- Requires opening and closing balances together or neither. A mismatch is clearly recorded as review-required and shown in the reconciliation summary; it does not silently adjust transactions or block the user from retaining statement evidence.
+- Creates a separate statement-import register in `pa_bank_reconciliation_statements_v1`, linked to imported rows by statement ID. It records source filename, account label, import time, valid row count, number of new rows, debit/credit totals and balance-check result.
+- Both transaction rows and statement-import metadata are included in the app's backup-key inventory.
+- Syntax validation passed for `advanced-workflows.js`. Browser CSV parsing, negative/parenthesized amount formats, duplicate re-import, balance mismatch handling and full backup/restore tests remain pending.
+- PDF/photo OCR, multi-page statement extraction, XLSX import, bank book posting, split/combined matching and secure cloud document storage are not implemented. Do not upload real bank statements until authentication, access control and encrypted storage are deployed.
