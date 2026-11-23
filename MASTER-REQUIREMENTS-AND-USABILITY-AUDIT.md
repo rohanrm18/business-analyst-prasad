@@ -423,3 +423,36 @@ The sales tax invoice form now requires an HSN/SAC entry in 4, 6 or 8 digit nume
 - Verification: app.js, erp.js, compliance.js, supplier-ledger.js and tds-ca-handover.js syntax checks passed; dashboard smoke checks passed; style-cost action rendering check passed; index and service-worker asset versions are aligned. Full restore simulation with real user records, all edge-case migrations and browser/device regression tests remain pending.
 - Security limitation: backup files are not encrypted and local records are not protected by server-enforced roles. Keep backup files private and do not treat local review metadata as secure authorisation.
 - Compatibility follow-up: older manufacturing backup records may omit the optional `samples` array; restore now accepts that legacy shape while still requiring a valid `orders` array.
+
+
+## Additional workflows added — 23 November 2026
+
+A local **Business Control Centre** was added in `advanced-workflows.js` and linked from More. These are implemented local prototypes, not proof of production readiness:
+
+- **Customer returns:** select the original invoice and billed line; return quantity is capped by invoiced quantity less earlier non-cancelled returns; goods enter garment-stock quarantine; QC can mark Restock, Rework or Reject; Restock releases the corresponding quarantine movement; an issued credit note is linked to the original invoice and existing receivables credit-note register.
+- **Contractor job-work challans:** record contractor, operation, manufacturing reference, style/colour/size, pieces sent, accepted/rejected/rework quantities, piece rate, advance, extras, deductions and payments. Accepted pieces drive payable. Payment cannot exceed calculated payable; challan cannot close until sent pieces reconcile to accepted + rejected + rework.
+- **Manual accounting foundation:** chart of accounts, balanced manual journal entry and a trial-balance view sourced only from those manual journals. This is not a complete double-entry accounting system: invoice, receipt, purchase bill, supplier payment, credit note, stock valuation and expense automatic postings are not yet connected; P&L/balance sheet and locked-period enforcement are not yet complete. CA must approve the chart.
+- **Reusable size sets:** save named size ranges for later use. They are not yet connected to every sales-order, stock, production and packing line as a live size-by-colour matrix.
+- **Physical stock counts:** compare counted quantity with the local garment stock ledger and post a referenced adjustment movement for the variance.
+- **Purchase returns / debit-note register:** capture supplier, original bill/GRN reference, item, quantity, unit, amount and reason. This is not yet integrated with supplier bill balances, supplier ledger or GST working.
+- **Customer price lists:** effective-dated customer/style/colour/size rates can be saved. Invoice auto-pricing and repeat-order history integration are still pending.
+- **Collection promise dates:** save invoice-linked promised payment dates and follow-up notes. No automatic WhatsApp/SMS sending or delivery tracking is enabled.
+
+The new registers are included in manual backup keys and the active restore validator checks their JSON types before replacing local data. Manual backup remains a device-local JSON export; it is not encrypted cloud backup.
+
+### Remaining critical gaps after this tranche
+
+1. Partial packing and multiple cartons; partial/multiple dispatches with invoice/order quantity reconciliation.
+2. Size × colour matrix must be connected directly to sales orders, stock, manufacturing and packing.
+3. Cutting plan, fabric issue/consumption/wastage/return reconciliation and contractor material challans.
+4. Contractor payable/payment ledger must be reconciled to supplier payments, advances, production costs and style profitability.
+5. Returns need credit-note reversal/cancellation controls, refund/credit carry-forward handling, and complete GST/CA review workflow.
+6. Purchase return/debit note must adjust supplier balances, accepted stock and CA GST working.
+7. Invoice discounts, freight, extra charges, rounding, price-list lookup and customer repeat-order history.
+8. Full double-entry ledger, opening balances, automatic balanced postings from every source transaction, journal reversal, trial balance, P&L, balance sheet, bank book, cheque handling, loans/capital/drawings, fixed assets/depreciation and period locking.
+9. Financial-year setup and continuous document-number series across every document type; invoice numbering exists locally but no server-enforced gap-free numbering.
+10. Global search, comprehensive duplicate checks, validated master/opening-stock import and export, branded print acceptance, additional management reports.
+11. Cloud database, secure login, server-enforced roles, identity-backed audit log, automated encrypted backup and tested restore remain deliberately scheduled for the final foundation phase.
+12. Consolidated browser/device and end-to-end regression testing is still required. Syntax and local module-load smoke checks are not equivalent to real business acceptance.
+
+**Safety note:** The manual journal view must not be represented as the company's complete trial balance. The application remains a local prototype and must not replace Tally/statutory books or be used as the only record system until all release gates pass.
