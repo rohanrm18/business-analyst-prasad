@@ -33,7 +33,7 @@ window.prasadPostAdvancedFabricCut=function(batch){
  const order=orders().find(o=>o.id===batch.moId),roll=fabrics.find(x=>x.id===batch.rollId);
  const issued=Number(batch.issued),used=Number(batch.used),returned=Number(batch.returned),waste=Number(batch.wastage),pieces=Number(batch.pieces);
  if(!order||!roll)return {ok:false,message:'Select a valid manufacturing order and fabric roll.'};
- if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(String(batch.date||''))||batch.date>today())return {ok:false,message:'Cutting date is invalid or in the future.'};
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(String(batch.date||''))||batch.date>today())return {ok:false,message:'Cutting date is invalid or in the future.'};
  if(!Number.isInteger(pieces)||pieces<1||![issued,used,returned,waste].every(Number.isFinite)||[issued,used,returned,waste].some(x=>x<0)||issued<=0||Math.abs(issued-used-returned-waste)>.001)return {ok:false,message:'Issued meters must equal consumed + returned + wastage; all values must be non-negative.'};
  if(issued>fabBal(roll.id)+.001)return {ok:false,message:'Fabric roll balance is insufficient. Available: '+metres(fabBal(roll.id))};
  const check=bomStatus(order);if(!check||!check.ready)return {ok:false,message:'Fabric issue blocked: complete the BOM and material shortage review first.'};
