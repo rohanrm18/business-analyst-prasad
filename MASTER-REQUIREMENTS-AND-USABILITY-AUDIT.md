@@ -509,3 +509,8 @@ QC receipts, customer-return restock releases, physical stock-count adjustments 
 The Import Masters tab now provides customer-master and opening-garment-stock CSV templates, CSV parsing with quoted-field support, row-level preview and validation, explicit confirmation before saving, customer duplicate checks, and protection against a second opening-balance import for a style/colour/size already carrying an opening balance. Opening stock imports are posted as traceable Opening balance movements and update the live Inventory screen.
 
 Only CSV is supported in this local prototype. XLSX/Excel and PDF extraction, supplier-master import, full import history/rollback and shared multi-user import locking remain pending.
+
+
+### Credit-note CA review gate — 23 November 2026
+
+A customer return now creates a **pending CA-review credit-note draft** from the original invoice line. Pending drafts do not reduce customer outstanding. A separate explicit “CA reviewed — issue credit note” action records a reviewer name (local, not identity-verified) and only then marks the credit note approved so the receivables ledger deducts it. CA must still verify GST treatment and issue requirements; there is no GST filing or portal integration.
