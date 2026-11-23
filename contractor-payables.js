@@ -7,6 +7,11 @@
  const fy=date=>{const p=date.split('-').map(Number),y=p[1]>=4?p[0]:p[0]-1;return y+'-'+String(y+1).slice(-2)};
  const money=n=>'₹'+Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
  window.prasadPrepareContractorPayment=function(job,payment,due){
+  const savedPayment=read('pa_supplier_payments_v1').find(x=>x.id===payment.id);
+  if(savedPayment){
+   if(savedPayment.jobId!==job.id||savedPayment.reference!==payment.reference){alert('Payment ID already exists with different contractor details.');return null}
+   return {amountPaid:Number(savedPayment.amountPaid||0),tdsWithheld:Number(savedPayment.tdsWithheld||0),tdsBase:Number(savedPayment.tdsBase||0),tdsApplicability:savedPayment.tdsApplicability||'Review',tdsRate:Number(savedPayment.tdsRate||0),tdsNature:'Job work',tdsPartyType:savedPayment.tdsPartyType||'Individual / HUF',tdsPan:savedPayment.tdsPan||'',amount:round(Number(savedPayment.amountPaid||0)+Number(savedPayment.tdsWithheld||0)),supplierLedgerSynced:true};
+  }
   let applies=prompt('TDS applicability for this job-work payment? Enter Review, Yes or No. Default is Review.','Review');
   if(applies===null)return null;applies=applies.trim().toLowerCase();
   if(!['review','yes','no'].includes(applies)){alert('Enter Review, Yes or No.');return null}
