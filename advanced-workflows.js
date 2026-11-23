@@ -585,7 +585,7 @@ function workflowHealthPage(){
  if(billLineUnmatched)issues.push(issue('Purchase → PO lines','Supplier bill item rows not matched to PO lines',billLineUnmatched,'Map each bill item to the correct PO material line or document the non-PO reason.'));
  const qcPending=grns.filter(g=>Number(g.received||0)>Number(g.accepted||0)+Number(g.rejected||0));
  if(qcPending.length)issues.push(issue('GRN → QC → Stock','GRNs awaiting quality inspection',qcPending.length,'Pending quantities are not usable stock until QC acceptance.'));
- const invalidMOs=mos.filter(m=>(m.salesOrderId||m.orderId||m.customerOrderId)&&!orderIds.has(String(m.salesOrderId||m.orderId||m.customerOrderId)));
+ const invalidMOs=mos.filter(m=>(m.sourceSalesOrderId||m.salesOrderId||m.orderId||m.customerOrderId)&&!orderIds.has(String(m.sourceSalesOrderId||m.salesOrderId||m.orderId||m.customerOrderId)));
  if(invalidMOs.length)issues.push(issue('Sales → Production','Manufacturing orders with unresolved sales order link',invalidMOs.length,'Check the originating customer order reference.'));
  const duplicateStockRefs=garment.filter((m,i,a)=>m.reference&&a.findIndex(x=>x.reference===m.reference&&x.type===m.type)!==i);
  if(duplicateStockRefs.length)issues.push(issue('Inventory integrity','Duplicate stock movement references',duplicateStockRefs.length,'Investigate duplicates before making manual stock corrections.'));
