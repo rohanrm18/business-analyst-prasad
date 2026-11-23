@@ -840,3 +840,5 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Partial dispatch creation now rejects duplicate transporter + LR/consignment references, future dispatch dates, malformed dates, invalid E-Way Bill status values and invalid carton counts.
 - A dispatch marked `posted` is no longer trusted blindly: the linked stock-ledger movement for every dispatch line is checked for the matching source reference, movement type and quantity. If any movement is missing or inconsistent, the record is returned to pending so the existing retry path can repair the posting rather than silently treating it as complete.
 - JavaScript syntax validation passed. Browser-level multi-dispatch, retry-after-storage-failure and legacy-record regression tests remain outstanding; this is not proof of end-to-end dispatch correctness.
+
+- Follow-up hardening: the retry/posted check now requires exactly one matching stock-ledger row per dispatch line. If duplicate or quantity-mismatched rows already exist, it stops and asks for reconciliation instead of adding another movement and risking a double stock issue.
