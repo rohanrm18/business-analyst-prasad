@@ -898,3 +898,10 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - This intentionally excludes planned MO quantities, QC accepted inspection totals without a stock posting, rejected pieces, and rework still awaiting re-inspection.
 - Local-device register calculation only. It does not reserve stock, prove that stock is physically available at a location, or reconcile dispatch/returns automatically. Browser regression tests remain required.
 - Validation performed: JavaScript syntax check with `new Function(app.js)`; GitHub Actions and Pages deployment status pending for this commit sequence.
+
+
+## Procurement PO → GRN → QC → supplier bill visibility (23 Nov 2026)
+- Procurement overview now totals GRN received, QC accepted, rejected and pending-QC quantities.
+- Each PO row now shows its GRN receipt/QC breakdown and any supplier bill already linked by the existing `poId` plus matching supplier name.
+- The view is a reconciliation aid only: it does not create or approve bills, post GST, auto-create accounting journals, or treat PO commitment less PO payments as invoice ageing. The supplier outstanding label explicitly identifies the figure as PO commitment less recorded PO payments.
+- JavaScript syntax validation passed with `new Function(erp.js)`. Browser workflow regression and GitHub Actions/Pages deployment checks remain pending.
