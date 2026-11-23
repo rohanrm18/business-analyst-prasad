@@ -343,3 +343,10 @@ The sales tax invoice form now requires an HSN/SAC entry in 4, 6 or 8 digit nume
 - This protects the local browser prototype against duplicate retries within its sequential save flow. It is not a substitute for a server-side transaction/unique constraint in the later multi-user cloud phase.
 - Focused executable tests against the actual extracted production posting function passed: fabric first acceptance, same-inspection retry (no duplicate meters), second partial fabric inspection (correct cumulative meters), accessory acceptance and same-inspection retry (no duplicate pieces). ERP JavaScript syntax and cache-version consistency also passed.
 - Remaining acceptance tests: rejected-only inspection, interrupted-save retry through the full browser form/localStorage flow, PO over-receipt prevention, procurement backup/restore and physical stock reconciliation. No live browser/device test or hosted build is claimed.
+
+
+## Unit-safe stock movement balances — 23 November 2026
+- Corrected the general inward/outward movement register so balances are grouped by both item name and unit of measure. Meters, pieces, kilograms, rolls, boxes, sets and dozens can no longer be combined into one displayed balance merely because their item names match.
+- Outward movement validation now checks the available balance for the exact item-and-unit pair and reports the unit in the shortage warning. Existing movement records are preserved; no historical quantities are converted or silently rewritten.
+- Updated the ERP script and service-worker cache versions.
+- Verification: ERP JavaScript syntax passed; source checks confirm item grouping, displayed balances and outward checks all use the unit-aware balance function. Full browser workflow, legacy-data reconciliation and physical stock count remain pending.
