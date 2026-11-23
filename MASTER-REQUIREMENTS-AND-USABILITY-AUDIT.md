@@ -764,3 +764,11 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Export includes source statement filename/ID, date, account, narration, reference/UTR, debit, credit, reconciliation status, matched source type/party/ID and exclusion reason.
 - CSV values are quoted and embedded quotes escaped; UTF-8 BOM is included for spreadsheet compatibility. Export is read-only and does not change reconciliation status or accounting records.
 - JavaScript syntax validation passed for advanced-workflows.js. Browser download behavior and spreadsheet opening remain pending manual regression testing.
+
+
+## Recorded cash movement report — 23 November 2026
+
+- Added a rolling 30-day and 7-day cash movement summary to Business Control Centre reports using dated, non-reversed customer receipts and recorded supplier invoice payments, supplier advances and formal PO settlement payments.
+- Shows customer receipts, supplier outflows and net recorded movement; labels the period and clearly states this is not a bank balance or complete cash-flow statement.
+- Known coverage limits are displayed: cash/bank modes are not separated; expenses, transfers, contractor payments and unrecorded transactions may be missing. This is an operational visibility report, not a statutory cash-flow statement.
+- JavaScript syntax validation passed for advanced-workflows.js. Browser calculation, source-data overlap and financial regression tests remain pending; verify source payment registers before relying on totals.
