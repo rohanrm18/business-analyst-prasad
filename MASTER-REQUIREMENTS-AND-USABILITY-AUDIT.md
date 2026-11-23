@@ -607,3 +607,25 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Invoice line allocation is the quantity control; carton-by-carton contents, barcode scan/verification, courier API and proof of physical shipment remain pending.
 - Dispatch annexure is not a substitute for the original statutory tax invoice. E-Way Bill applicability, consignment values, exemptions and document validity still require current CA/statutory review and genuine authorised EWB data.
 - No real printer/duplex orientation test has been performed.
+
+
+## Contractor job-work payable → supplier payment/TDS bridge — 23 November 2026
+
+**Implemented in the local prototype**
+- Existing contractor challan payments now mirror into `pa_supplier_payments_v1` with the same stable payment ID, contractor, challan reference, date, cash amount and TDS fields.
+- Contractor payment reduces challan due by cash paid plus TDS withheld; TDS is not treated as cash paid.
+- Default TDS choice is **Review with CA**. The payment flow allows Yes/No only as an explicit user confirmation. A Yes selection requires PAN, contractor constitution and a separately entered TDS base; the prototype uses the existing indicative threshold/rate logic (₹30,000 single payment / ₹1,00,000 annual aggregate; 1% Individual/HUF, 2% other entity) and writes the corresponding TDS entry when the threshold is crossed.
+- TDS records link to the contractor challan and payment ID. Supplier-payment and TDS registers already exist in the backup allow-list.
+- Supplier payment screen now shows contractor challan payable, settled and due totals by contractor.
+- Repeat processing of the same payment ID returns the existing settlement instead of creating duplicate supplier-payment or TDS entries.
+- The contractor challan payment reference is checked against supplier payment references as well as other contractor challan payments.
+
+**Verification completed**
+- Syntax checks passed for `advanced-workflows.js`, `supplier-ledger.js` and `contractor-payables.js`.
+- Functional simulation passed for a ₹50,000 job-work payment with a 1% illustrative TDS calculation: ₹50,000 cash + ₹500 TDS = ₹50,500 settlement; a repeated sync kept exactly one supplier payment and one TDS record.
+- This is a code-level simulation, not a browser/device, CA, statutory or production multi-user test.
+
+**Remaining limitations**
+- TDS applicability, threshold aggregation, section/rate, PAN consequences and treatment must be confirmed by the CA under current law. The app does not file TDS returns or remit TDS.
+- This bridge is not yet a complete double-entry posting to contractor expense, TDS payable, cash/bank and advances accounts.
+- Data remains device-local. No bank feed, authenticated CA approval, multi-device concurrency control or server-side audit enforcement is present.
