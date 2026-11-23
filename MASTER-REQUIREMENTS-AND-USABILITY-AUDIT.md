@@ -958,3 +958,11 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Exports the selected month's invoice-wise reconciliation CSV for CA review.
 - Contractor TDS register pending allocation is displayed separately; it is not added again to supplier bill deductions, to reduce double-counting risk.
 - Working paper only. It does not file returns, certify TDS/GST, or replace source invoices, bank statements, Tally or CA review. Legacy/mismatched references require manual verification. Browser/device regression testing remains pending.
+
+
+## Consolidated month-end closing checklist — 23 November 2026
+- Added a month-filtered closing review to GST Working & CA Export covering sales invoices, supplier purchase bills, customer invoice balances, supplier invoice balances, cash/bank statement matching, GST data-quality checks, contractor TDS allocation and dispatch/stock-posting exceptions.
+- Shows checked, review-required, not-recorded and CA-review-required states with explanatory findings; adds a month-end CSV export.
+- Excludes reversed sales invoices, uses invoice-linked customer receipt allocations, keeps supplier-payment TDS separate from contractor TDS, and deducts only CA-approved supplier debit notes in the supplier balance check.
+- Review aid only: does not post journals, close/lock a period, certify statutory figures or replace CA/Tally/bank/source-document reconciliation. Local browser data only; full browser and live-data regression tests remain pending.
+- Validation: `new Function(compliance.js)` syntax check passed; index and service-worker compliance asset versions refreshed. GitHub Actions and Pages deployment must be checked separately.
