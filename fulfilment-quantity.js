@@ -64,12 +64,12 @@ if(typeof confirmPackingSlip==='function')confirmPackingSlip=paFConfirmPackingSl
 
 function paFOrderVariantRows(order){
  const orderId=String(order.id),keyOf=x=>paFKey({style:paFStyle(x),colour:x.colour,size:x.size}),rows=new Map();
- const get=x=>{const key=keyOf(x);if(!rows.has(key))rows.set(key,{style:paFStyle(x),colour:String(x.colour||''),size:String(x.size||''),ordered:0,planned:0,produced:0,qcAccepted:0,packed:0,invoiced:0,dispatched:0});return rows.get(key)};
+ const get=x=>{const key=keyOf(x);if(!rows.has(key))rows.set(key,{style:paFStyle(x),colour:String(x.colour||''),size:String(x.size||''),ordered:0,planned:0,produced:0,producedSplit:true,qcAccepted:0,packed:0,invoiced:0,dispatched:0});return rows.get(key)};
  (order.items||[]).forEach(x=>{get(x).ordered+=Number(x.qty||0)});
  const mos=paFRead('pa_manufacturing_v1',{orders:[]}).orders||[],active=mos.filter(m=>String(m.sourceSalesOrderId||'')===orderId&&!['cancelled','Cancelled'].includes(m.status||''));
  active.forEach(m=>{
   const plan=String(m.sizes||'').split(/[,;\n]+/).map(s=>s.trim()).filter(Boolean),parsed=plan.map(p=>{const z=p.match(/^(.+?)\s*[:=xX-]\s*(\d+)$/);return z?{size:z[1].trim(),qty:Number(z[2])}:null}).filter(Boolean);
-  if(parsed.length)parsed.forEach(p=>get({style:m.style,colour:m.colour,size:p.size}).planned+=p.qty);
+  if(parsed.length)parsed.forEach(p=>{const row=get({style:m.style,colour:m.colour,size:p.size});row.planned+=p.qty;row.producedSplit=false;});
   else get({style:m.style,colour:m.colour,size:'Unspecified'}).planned+=Number(m.qty||0);
   const stages=m.progress||{},done=Number(stages['Quality Check']||stages.quality||0);
   if(!parsed.length)get({style:m.style,colour:m.colour,size:'Unspecified'}).produced+=done;
@@ -88,7 +88,7 @@ if(typeof salesOrderProgressHtml==='function'){
  const paFBaseProgress=salesOrderProgressHtml;
  salesOrderProgressHtml=function(o){
   const base=paFBaseProgress(o),rows=paFOrderVariantRows(o);if(!rows.length)return base;
-  const fmt=n=>Number(n||0).toLocaleString('en-IN'),table='<div class="tablewrap" style="overflow-x:auto"><table><thead><tr><th>Style</th><th>Colour</th><th>Size</th><th>Ordered</th><th>MO planned</th><th>Produced*</th><th>QC accepted</th><th>Packed</th><th>Invoiced</th><th>Dispatched</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+esc(r.style)+'</td><td>'+esc(r.colour)+'</td><td>'+esc(r.size)+'</td><td>'+fmt(r.ordered)+'</td><td>'+fmt(r.planned)+'</td><td>'+fmt(r.produced)+'</td><td>'+fmt(r.qcAccepted)+'</td><td>'+fmt(r.packed)+'</td><td>'+fmt(r.invoiced)+'</td><td>'+fmt(r.dispatched)+'</td></tr>').join('')+'</tbody></table></div><p class="hint">Variant reconciliation uses linked local order, MO, QC, packing, invoice and posted dispatch records. *Produced is the recorded Quality Check stage quantity; MO size-plan parsing is required for size-level planning. Review exceptions before relying on legacy records.</p>';
+  const fmt=n=>Number(n||0).toLocaleString('en-IN'),table='<div class="tablewrap" style="overflow-x:auto"><table><thead><tr><th>Style</th><th>Colour</th><th>Size</th><th>Ordered</th><th>MO planned</th><th>Produced*</th><th>QC accepted</th><th>Packed</th><th>Invoiced</th><th>Dispatched</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+esc(r.style)+'</td><td>'+esc(r.colour)+'</td><td>'+esc(r.size)+'</td><td>'+fmt(r.ordered)+'</td><td>'+fmt(r.planned)+'</td><td>'+fmt(r.produced)+'</td><td>'+fmt(r.qcAccepted)+'</td><td>'+fmt(r.packed)+'</td><td>'+fmt(r.invoiced)+'</td><td>'+fmt(r.dispatched)+'</td></tr>').join('')+'</tbody></table></div><p class="hint">Variant reconciliation uses linked local order, MO, QC, packing, invoice and posted dispatch records. *Produced is the recorded Quality Check stage quantity; MO stage completion is recorded only at whole-MO level; size-level production is shown as — rather than allocating a guessed split. QC, packed, invoiced and dispatched remain size-specific. Review exceptions before relying on legacy records.</p>';
   return base+'<section class="card"><h3>Variant-wise fulfilment reconciliation</h3>'+table+'</section>';
  };
 }
