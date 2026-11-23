@@ -679,3 +679,18 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 - Existing historic payments are not backfilled. No journal is created if a mapping is missing/unreviewed; no automatic retry queue/backfill is implemented yet.
 - Contractor job-work payments, procurement PO advances, supplier advance allocations, purchase bills, GST input tax, purchase returns and bank reconciliation are not connected by this change.
 - Syntax validation passed for `supplier-ledger.js`. Browser-level payment, TDS, retry, locked-year and trial-balance reconciliation tests remain pending.
+
+
+## Multi-line mapped accounting journal foundation — 23 November 2026
+
+- Added a second mapped posting API, `window.prasadPostMappedJournalLines(event, sourceEventId, date, lines, memo, sourceReference)`, for source transactions that require multiple debit/credit lines (for example, taxable purchase value plus separately recoverable CGST/SGST/IGST and supplier payable).
+- The API requires the event mapping to be locally marked CA reviewed, a stable source event ID, a valid transaction date, 2–100 valid chart accounts/lines, non-negative amounts, no line containing both debit and credit, and exact debit/credit equality to the paise.
+- Uses the existing financial-year lock, stable source-event idempotency, and conflict rejection. A matching retry returns the existing journal; a changed date or line/account/amount payload is rejected.
+- Added a supplier-advance-allocation mapping category for the future transfer entry (supplier payable Dr / supplier advance asset Cr). This must not create a second cash/bank payment.
+- Existing two-line posting API and supplier cash/TDS posting remain unchanged.
+
+**Important limits**
+- This is an accounting-engine capability only. The current repository does not expose a complete supplier purchase-bill capture form/source event to connect safely, so purchase bills are not yet automatically posted. No GST amounts or account choices are guessed.
+- The multi-line API validates chart membership and balance but relies on the source connector to supply the correct CA-approved account allocation. It does not calculate GST eligibility, tax rates, inventory-vs-expense treatment, reverse charge, or ITC restrictions.
+- Supplier advance allocations are not yet journal-posted. Historical purchase bills/payments are not backfilled.
+- Syntax validation passed for `advanced-workflows.js`. Browser execution, multi-line retry/conflict tests, account reconciliation and CA review remain pending.
