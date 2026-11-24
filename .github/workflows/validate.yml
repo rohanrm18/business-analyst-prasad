@@ -22,3 +22,5 @@ jobs:
 
       - name: Run fulfilment reservation functional tests
         run: node --test tests/fulfilment-quantity.test.cjs
+      - name: Run stock ledger regression tests
+        run: node --test tests/stock-ledgers.test.cjs
