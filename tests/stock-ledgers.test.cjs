@@ -13,7 +13,7 @@ function extractFunction(source, name) {
     const ch = source[i];
     if (quote) {
       if (escaped) escaped = false;
-      else if (ch === '\\\\') escaped = true;
+      else if (ch === '\\') escaped = true;
       else if (ch === quote) quote = '';
       continue;
     }
@@ -69,7 +69,7 @@ test('material-name ledger and garment variant ledger are distinct models; no im
   const materialMoves = [{ item: 'PA-101 Peach Size 20', unit: 'Pcs', direction: 'IN', qty: 50 }];
   const garmentMoves = [{ style: 'PA-101', colour: 'Peach', size: '20', type: 'Production receipt', qty: 30 }];
   const materialBalance = vm.runInNewContext('(' + materialFn + ')', { moves: materialMoves })('PA-101 Peach Size 20', 'Pcs');
-  const garmentRows = vm.runInNewContext('(' + garmentFn + ')')(garmentMoves);
+  const garmentRows = vm.runInNewContext('(' + garmentFn + ')', { garmentStockMoves: garmentMoves })();
   assert.equal(materialBalance, 50);
   assert.equal(garmentRows[0].available, 30);
   assert.notEqual(materialBalance, garmentRows[0].available);
