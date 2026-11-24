@@ -37,8 +37,7 @@ test('garment ledger balances each style/colour/size independently', () => {
     { style: 'PA-101', colour: 'Peach', size: '20', type: 'Customer return', status: 'released', qty: 2 },
     { style: 'PA-101', colour: 'Navy', size: '20', type: 'Production receipt', qty: 40 }
   ];
-  const fn = vm.runInNewContext('(' + garmentFn + ')');
-  const rows = fn.call({ }, moves);
+  const rows = vm.runInNewContext('(' + garmentFn + ')', { garmentStockMoves: moves })();
   const peach = rows.find(x => x.style === 'PA-101' && x.colour === 'Peach' && x.size === '20');
   const navy = rows.find(x => x.colour === 'Navy');
   assert.equal(peach.available, 87);
@@ -47,8 +46,7 @@ test('garment ledger balances each style/colour/size independently', () => {
 });
 
 test('legacy garment rows without colour or size remain unallocated, not guessed', () => {
-  const fn = vm.runInNewContext('(' + garmentFn + ')');
-  const rows = fn([{ style: 'PA-LEGACY', qty: 12, type: 'Production receipt' }]);
+  const rows = vm.runInNewContext('(' + garmentFn + ')', { garmentStockMoves: [{ style: 'PA-LEGACY', qty: 12, type: 'Production receipt' }] })();
   assert.equal(rows.length, 1);
   assert.equal(rows[0].style, 'PA-LEGACY');
   assert.equal(rows[0].colour, '');
