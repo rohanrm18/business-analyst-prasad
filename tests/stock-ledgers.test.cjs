@@ -55,20 +55,20 @@ test('legacy garment rows without colour or size remain unallocated, not guessed
 });
 
 test('material ledger matches case-insensitive typed item and keeps units separate', () => {
-  const fn = vm.runInNewContext('(' + materialFn + ')');
   const moves = [
     { item: 'Navy Fabric', unit: 'Meters', direction: 'IN', qty: 100 },
     { item: 'navy fabric', unit: 'Meters', direction: 'OUT', qty: 25 },
     { item: 'Navy Fabric', unit: 'Rolls', direction: 'IN', qty: 3 }
   ];
-  assert.equal(fn(moves, 'NAVY FABRIC', 'Meters'), 75);
-  assert.equal(fn(moves, 'Navy Fabric', 'Rolls'), 3);
+  const fn = vm.runInNewContext('(' + materialFn + ')', { moves });
+  assert.equal(fn('NAVY FABRIC', 'Meters'), 75);
+  assert.equal(fn('Navy Fabric', 'Rolls'), 3);
 });
 
 test('material-name ledger and garment variant ledger are distinct models; no implicit cross-posting', () => {
   const materialMoves = [{ item: 'PA-101 Peach Size 20', unit: 'Pcs', direction: 'IN', qty: 50 }];
   const garmentMoves = [{ style: 'PA-101', colour: 'Peach', size: '20', type: 'Production receipt', qty: 30 }];
-  const materialBalance = vm.runInNewContext('(' + materialFn + ')')(materialMoves, 'PA-101 Peach Size 20', 'Pcs');
+  const materialBalance = vm.runInNewContext('(' + materialFn + ')', { moves: materialMoves })('PA-101 Peach Size 20', 'Pcs');
   const garmentRows = vm.runInNewContext('(' + garmentFn + ')')(garmentMoves);
   assert.equal(materialBalance, 50);
   assert.equal(garmentRows[0].available, 30);
