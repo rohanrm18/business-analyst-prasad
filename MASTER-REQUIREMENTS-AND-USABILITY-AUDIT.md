@@ -1027,3 +1027,28 @@ A matrix entry screen now lets the user choose a saved size set, enter one or mo
 
 - Final verification: all 10 application JavaScript modules passed syntax checks. A synthetic linked-order test confirmed size-20 fabric/BOM/accessory/QC/cutting totals, size-22 job-work totals, and MO-level Stitching/Quality Check totals displayed under Unallocated. The generated reconciliation HTML contains the new production, material and wastage columns. This is a synthetic logic check, not a browser test against live local business data.
 - Asset versions: `erp.js?v=30`, `advanced-workflows.js?v=52`, `fulfilment-quantity.js?v=5`; service-worker cache `prasad-analyst-v169-production-reconcile-table`.
+
+
+## Independent risk review and validation improvements (24 Nov 2026)
+
+The following findings were confirmed by inspecting the current source. These are release-blocking limitations; the app remains a local-first prototype and must not hold live sensitive business records.
+
+| Finding | Confirmed current behaviour | Required resolution |
+|---|---|---|
+| Identity and permissions | Browser records and approval stamps do not establish a verified person or server-enforced role. The existing cloud snapshot/token foundation is not per-user access control. | Final security phase: individual authentication, server-side role checks, verified approval identity, MFA, audit trail and security acceptance tests. |
+| Invoice number uniqueness | Invoice sequence is read from browser-local storage. Duplicate check is limited to the current browser's invoice list. | Generate and reserve invoice numbers atomically on the authoritative server; enforce a database unique constraint. Do not attempt to solve this with a better local counter. |
+| Two stock ledgers | erp.js inward/outward movement balances by typed item name and unit; garment stock and fulfilment use a separate style/design + colour + size ledger. They are not a single reconciled source of truth. | Consolidate to one canonical inventory movement model with material and finished-garment dimensions, document references, posting rules and reconciliation. Do not silently merge legacy typed-name balances. |
+| Size × colour grid | Size sets exist, but sales and purchase entry still need true multi-variant matrix lines and conversion to explicit variant quantities. | Implement a reusable size/colour matrix for order and PO entry, with exact line-level variant persistence and totals validation. |
+| Accounting integration | Manual journals and chart of accounts exist, but source documents are not yet comprehensively posted to journals. Trial balance therefore does not represent all operational transactions. | Implement controlled, idempotent source-document posting maps, balanced journal creation, reversal links and reconciliation for invoices, receipts, supplier bills, payments, expenses and stock valuation. |
+| Finished stock and production planning | Packing reservation logic exists locally, but there is no shared transaction-safe order allocation that reliably reserves on-hand stock and creates/updates production demand for the uncovered balance. | Add order allocation by style/colour/size: on-hand saleable stock, existing reservations, free-to-allocate stock, production shortfall and linked MO demand. Enforce the same calculation at posting time. |
+| Concurrent edits | Several screens load lists into memory and later save the whole list. Multiple tabs/devices can overwrite each other's changes. | Use server-side transactions/version checks and conflict handling in the final shared-data phase; avoid treating browser-side merge as sufficient for financial ledgers. |
+| Automated validation | Previous CI checked syntax only and omitted fulfilment-quantity.js. | Added fulfilment module syntax validation and Node functional tests for stock balance, linked dispatch consumption, outstanding reservations and variant isolation. Broader workflow tests remain required. |
+| Offline dependencies | Barcode/OCR/scanner capabilities include online CDN dependencies. | Vendor and cache approved, pinned dependencies locally; add an offline acceptance test. OCR may still require a network model/service and must show an offline limitation. |
+| Backup protection | Current browser export is readable JSON and does not provide encrypted, authenticated, tamper-evident backup storage. | Final security phase: encrypted backups, access controls, key management, retention, restore verification and recovery testing. |
+| 50 × 30 mm label | Current in-app label layout needs physical measurement against printer's printable area; the reported MRP stack may exceed the usable vertical height. | Re-layout to a measured 50 × 30 mm canvas, constrain all content to printable dimensions and test with the actual printer, driver, gap calibration and repeated labels. |
+
+### Test work added on 24 Nov 2026
+- Added tests/fulfilment-quantity.test.cjs with automated checks for saleable stock balance, quarantine treatment of customer returns, linked posted-dispatch consumption of an approved packing reservation, and separate variant availability.
+- Updated .github/workflows/validate.yml to syntax-check fulfilment-quantity.js and run the new Node test file.
+- These tests exercise reservation calculation in an isolated Node VM with mocked local storage. They do not prove browser UI behaviour, concurrent multi-user safety, accounting correctness or full order-to-cash workflow completion.
+- GitHub Actions must complete successfully on the resulting commit before this change is marked CI-passed.
