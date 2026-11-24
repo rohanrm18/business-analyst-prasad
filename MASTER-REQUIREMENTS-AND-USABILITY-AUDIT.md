@@ -1052,3 +1052,10 @@ The following findings were confirmed by inspecting the current source. These ar
 - Updated .github/workflows/validate.yml to syntax-check fulfilment-quantity.js and run the new Node test file.
 - These tests exercise reservation calculation in an isolated Node VM with mocked local storage. They do not prove browser UI behaviour, concurrent multi-user safety, accounting correctness or full order-to-cash workflow completion.
 - GitHub Actions must complete successfully on the resulting commit before this change is marked CI-passed.
+
+
+### Stock-ledger regression tests added (24 Nov 2026)
+- Added `tests/stock-ledgers.test.cjs` to exercise the existing garment style/colour/size balance calculation and the separate typed-name/unit movement balance.
+- Tests cover variant isolation, customer-return quarantine vs released returns, legacy garment entries without colour/size remaining unallocated, case-insensitive typed item matching, and the fact that the two ledgers are distinct and must not be implicitly cross-posted.
+- Added the stock test file to GitHub Actions alongside the fulfilment reservation tests.
+- These are regression tests for current calculations and explicitly demonstrate the split-ledger problem; they do not unify the ledgers or prove that all operational modules post to one inventory source. A canonical inventory model and controlled legacy migration remain required.
