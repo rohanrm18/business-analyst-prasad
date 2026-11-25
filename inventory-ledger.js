@@ -60,4 +60,5 @@
    warning:'Preview only. Do not import this result until source totals, duplicate references, units and unallocated legacy rows are reconciled.'};
  }
  root.PAInventoryLedger={VERSION,normalizeGarmentRows,normalizeMaterialRows,balance,preview};
+ if(typeof module!=='undefined'&&module.exports)module.exports=root.PAInventoryLedger;
 })(typeof globalThis!=='undefined'?globalThis:this);
