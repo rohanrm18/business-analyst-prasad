@@ -188,9 +188,13 @@ function inventoryMigrationPreviewCard(){
  if(!api||typeof api.preview!=='function')return '';
  let materials=[];try{const x=JSON.parse(localStorage.getItem('pa_stock_moves_v1')||'[]');materials=Array.isArray(x)?x:[]}catch(_){}
  const report=api.preview(garmentStockMoves,materials),garment=report.records.filter(x=>x.domain==='finished-garment').length,material=report.records.filter(x=>x.domain==='material').length;
+ let dispatchAudit=null;
+ if(typeof PADispatchAudit!=='undefined'&&typeof PADispatchAudit.auditDispatches==='function'&&typeof paDispatches!=='undefined'&&typeof taxInvoices!=='undefined')dispatchAudit=PADispatchAudit.auditDispatches(paDispatches,taxInvoices,garmentStockMoves);
+ const dispatchDetails=dispatchAudit?'<div class="line"><span>Dispatches checked</span><b>'+dispatchAudit.dispatches+'</b></div><div class="line"><span>Expected dispatch stock issues</span><b>'+dispatchAudit.expectedIssues+'</b></div><div class="line"><span>Dispatch reconciliation issues</span><b>'+dispatchAudit.issues.length+'</b></div>'+(dispatchAudit.issues.length?'<ul>'+dispatchAudit.issues.slice(0,8).map(x=>'<li>'+esc(x.code)+' · '+esc(x.reference||x.dispatchId||'Review record')+'</li>').join('')+'</ul>':'<p class="hint">All auditable full / partial dispatch stock references match.</p>'):'';
  const details='<div class="metricgrid"><article class="metric"><small>Garment rows</small><b>'+garment+'</b></article><article class="metric"><small>Material rows</small><b>'+material+'</b></article><article class="metric"><small>Needs review</small><b>'+(report.invalid.length+report.duplicates.length+report.unallocated)+'</b></article></div>'+
  '<div class="line"><span>Invalid movements</span><b>'+report.invalid.length+'</b></div><div class="line"><span>Repeated legacy IDs</span><b>'+report.duplicates.length+'</b></div><div class="line"><span>Garment rows missing style / colour / size</span><b>'+report.unallocated+'</b></div>'+
- '<p class="hint">'+esc(report.warning)+'</p><p class="hint">This screen reads existing browser records only. It does not import, rewrite, delete, or change stock balances.</p>';
+ (dispatchAudit?'<h4>Dispatch stock reconciliation</h4>'+dispatchDetails:'')+
+ '<p class="hint">'+esc(report.warning)+'</p><p class="hint">This screen reads existing browser records only. It does not import, rewrite, delete, or change stock balances. Legacy-unverified dispatches remain flagged for manual review.</p>';
  return card('Inventory migration preview','Read-only check before any stock-ledger consolidation.',details);
 }
 function stock(){
