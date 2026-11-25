@@ -47,3 +47,12 @@ test('migration preview flags invalid rows, duplicate legacy ids and unallocated
  assert.equal(report.unallocated,1);
  assert.match(report.warning,/Preview only/);
 });
+
+test('material balance can match legacy item names even when newer rows have item IDs',()=>{
+ const rows=ledger.normalizeMaterialRows([
+  {id:'m1',item:'Cotton Fabric',unit:'Meters',direction:'IN',qty:12},
+  {id:'m2',item:'Cotton Fabric',itemId:'MAT-01',unit:'Meters',direction:'IN',qty:8}
+ ]).map(x=>x.record);
+ assert.equal(ledger.balance(rows,{domain:'material',itemName:'Cotton Fabric',unit:'Meters'}),20);
+ assert.equal(ledger.balance(rows,{domain:'material',itemId:'MAT-01',unit:'Meters'}),8);
+});
