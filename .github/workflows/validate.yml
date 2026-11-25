@@ -15,7 +15,7 @@ jobs:
       - name: Check all application JavaScript syntax
         run: |
           set -e
-          for file in app.js erp.js compliance.js supplier-ledger.js tds-ca-handover.js dispatch.js advanced-workflows.js partial-dispatch.js contractor-payables.js fulfilment-quantity.js; do
+          for file in app.js erp.js compliance.js supplier-ledger.js tds-ca-handover.js dispatch.js advanced-workflows.js partial-dispatch.js contractor-payables.js fulfilment-quantity.js inventory-migration.js; do
             echo "Checking $file"
             node --check "$file"
           done
@@ -24,3 +24,5 @@ jobs:
         run: node --test tests/fulfilment-quantity.test.cjs
       - name: Run stock ledger regression tests
         run: node --test tests/stock-ledgers.test.cjs
+      - name: Run inventory migration tests
+        run: node --test tests/inventory-migration.test.cjs
