@@ -1059,3 +1059,17 @@ The following findings were confirmed by inspecting the current source. These ar
 - Tests cover variant isolation, customer-return quarantine vs released returns, legacy garment entries without colour/size remaining unallocated, case-insensitive typed item matching, and the fact that the two ledgers are distinct and must not be implicitly cross-posted.
 - Added the stock test file to GitHub Actions alongside the fulfilment reservation tests.
 - These are regression tests for current calculations and explicitly demonstrate the split-ledger problem; they do not unify the ledgers or prove that all operational modules post to one inventory source. A canonical inventory model and controlled legacy migration remain required.
+
+
+## Canonical inventory ledger foundation — 25 Nov 2026
+
+A non-destructive compatibility foundation now exists in `inventory-ledger.js` (`PAInventoryLedger`). It defines normalized movement records for two stock domains:
+
+- **Finished garments:** exact style + colour + size, pieces as the unit, signed inward/outward quantity, and explicit quarantine handling for unreleased customer returns.
+- **Materials:** item identity/name and unit remain separate (for example, fabric metres are not combined with rolls).
+- Both domains retain source system, source ID/reference, movement type, date, status and legacy marker. Incomplete garment dimensions are marked `unallocated-review`; the helper does not guess missing colour or size.
+- A migration preview reports invalid rows, repeated legacy movement IDs and unallocated garment rows. The preview is deliberately non-writing.
+
+Regression tests cover exact variant balances, quarantined returns, material-unit separation, invalid rows, duplicate IDs and unallocated legacy rows. CI now syntax-checks the new module and runs its test file.
+
+**Important boundary:** this is not yet a single live source of truth. Existing `pa_garment_stock_ledger_v1`, `pa_stock_moves_v1`, fabric-roll and trim ledgers remain separate and authoritative. No automatic migration, posting redirection, cross-ledger consolidation or opening-balance adjustment has been performed. Those changes require source-by-source reconciliation and idempotent cutover tests to avoid duplicate or missing stock. Cloud database/authentication remains deferred to the final phase as requested.
