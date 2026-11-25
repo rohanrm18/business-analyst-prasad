@@ -9,7 +9,6 @@
  const norm=v=>String(v??'').trim();
  const lower=v=>norm(v).toLowerCase();
  const number=v=>{const n=Number(v);return Number.isFinite(n)?n:NaN};
- const stable=(parts)=>parts.map(v=>encodeURIComponent(norm(v))).join('|');
  function normalizeGarment(row,index){
   const type=norm(row.type),qty=number(row.qty);
   if(!Number.isFinite(qty)||qty<=0)return {ok:false,index,reason:'Quantity must be positive'};
@@ -46,7 +45,7 @@
    if(!r||r.domain!==match.domain||r.unit!==match.unit)return sum;
    if(match.domain==='finished-garment'){
     if(lower(r.style)!==lower(match.style)||lower(r.colour)!==lower(match.colour)||lower(r.size)!==lower(match.size))return sum;
-   }else if(lower(r.itemId||r.itemName)!==lower(match.itemId||match.itemName))return sum;
+   }else if(match.itemId?lower(r.itemId)!==lower(match.itemId):lower(r.itemName)!==lower(match.itemName))return sum;
    if(r.status==='quarantine')return sum;
    return sum+number(r.signedQty||0);
   },0);
