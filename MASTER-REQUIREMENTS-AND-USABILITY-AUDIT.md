@@ -1073,3 +1073,14 @@ A non-destructive compatibility foundation now exists in `inventory-ledger.js` (
 Regression tests cover exact variant balances, quarantined returns, material-unit separation, invalid rows, duplicate IDs and unallocated legacy rows. CI now syntax-checks the new module and runs its test file.
 
 **Important boundary:** this is not yet a single live source of truth. Existing `pa_garment_stock_ledger_v1`, `pa_stock_moves_v1`, fabric-roll and trim ledgers remain separate and authoritative. No automatic migration, posting redirection, cross-ledger consolidation or opening-balance adjustment has been performed. Those changes require source-by-source reconciliation and idempotent cutover tests to avoid duplicate or missing stock. Cloud database/authentication remains deferred to the final phase as requested.
+
+
+### Inventory migration preview UI and identity fix — 25 Nov 2026
+
+- Added a read-only **Inventory migration preview** card to the garment stock screen. It reads the existing garment and material local ledgers and reports source row counts, invalid movements, repeated legacy IDs and garment rows missing style/colour/size.
+- The preview explicitly states that it does not import, rewrite, delete or change balances. It is a diagnostic only, not a stock reconciliation sign-off.
+- Corrected canonical material balance matching so legacy name-only rows and newer item-ID rows can be queried correctly without requiring an item ID for older records.
+- Added a regression test for mixed name-only and coded material rows.
+- Refreshed app/service-worker asset versions.
+
+**Validation:** GitHub Actions run is triggered by these commits; verify its final result before treating this incremental change as passed. No live browser/device test has been performed. Dispatch posting still writes to the existing garment ledger; no dispatch cutover or migration has occurred.
