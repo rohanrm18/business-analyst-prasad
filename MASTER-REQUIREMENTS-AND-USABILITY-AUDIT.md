@@ -1084,3 +1084,13 @@ Regression tests cover exact variant balances, quarantined returns, material-uni
 - Refreshed app/service-worker asset versions.
 
 **Validation:** GitHub Actions run is triggered by these commits; verify its final result before treating this incremental change as passed. No live browser/device test has been performed. Dispatch posting still writes to the existing garment ledger; no dispatch cutover or migration has occurred.
+
+
+## Dispatch-to-stock reconciliation — 25 Nov 2026
+
+- Added `dispatch-audit.js`, a read-only reconciliation of full-invoice and partial-dispatch stock issues against `pa_garment_stock_ledger_v1`.
+- Reconciliation checks stable `DSP:<dispatch-id>:<invoice-line-index>` references, expected line quantities and style/colour/size identity, missing issues, duplicate stock rows, mismatched rows, orphan dispatch issues, missing invoice links, duplicate dispatch IDs and legacy-unverified dispatches.
+- Added the read-only summary to the garment inventory migration preview. It does not post, repair, delete, migrate or change dispatch status.
+- Added automated tests for correct full dispatch, duplicate/missing/mismatched rows, partial dispatch line selection, orphan/missing-invoice/legacy cases, and non-mutation.
+- Existing dispatch posting remains on the legacy garment ledger. Do not cut over until current local data has been reviewed and the reconciliation has been exercised against representative real records.
+- CI run for the newest commit is pending at time of this audit update; no deployment is claimed.
