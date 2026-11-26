@@ -1155,3 +1155,8 @@ Regression tests cover exact variant balances, quarantined returns, material-uni
 - The production routing workboard shows packed, QC accepted and receipt-verified quantities by size. Accepted-piece costing uses the sum of verified variant receipts only when the complete variant audit has no exceptions.
 - Regression tests cover exact variant reconciliation, cross-size substitution attempts and legacy routing rows without size allocation.
 - **Limitations:** manufacturing orders currently carry one colour value; multi-colour MO plans still need a colour × size matrix. Existing route rows created before the size field was added remain unallocated and must be reviewed/re-entered with their true size; the app does not guess. This remains browser-local and not concurrency-safe. Browser/device and shop-floor acceptance testing remain pending.
+
+
+### Multi-colour × size production matrix (implementation update)
+
+Manufacturing orders support `Colour|Size:Qty,Size:Qty; Colour|Size:Qty`. Production routing records both colour and size; QC inspection and accepted-stock capacity reconcile the exact colour-size cell. Legacy single-colour size plans remain supported. Exact posted QC receipts are required for verified saleable output. Cutting/BOM reservation, trim issue, job-work and costing allocation are not yet fully matrix-aware; review those linked records before operational use. Browser-local only; live shop-floor acceptance testing remains outstanding.
