@@ -118,7 +118,7 @@ test('QC stock audit counts only exact one-to-one accepted batch receipts', () =
   const stock = [
     { type: 'Production receipt', status: 'posted', reference: 'PA-QC:1', qty: 8, style: 'D100', colour: 'Navy', size: '20' },
     { type: 'Production receipt', status: 'posted', reference: 'PA-QC:2', qty: 50, style: 'D100', colour: 'Navy', size: '22' },
-    { type: 'Production receipt', status: 'posted', reference: 'PA-QC:extra', qty: 99, style: 'D100', colour: 'Navy', size: '24' }
+    { type: 'Production receipt', status: 'posted', reference: 'PA-QC:QC-MO-1-extra', qty: 99, style: 'D100', colour: 'Navy', size: '24' }
   ];
   const audit = context.paFQcReceiptAudit(qc, stock, ['MO-1']);
   assert.equal(audit.expectedAccepted, 17);
