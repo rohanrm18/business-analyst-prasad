@@ -185,7 +185,7 @@ function paFJobworkAudit(challans,moOrders){
  });
  sentByPlan.forEach((sent,key)=>{
   const [moId,operation,size]=key.split('¦'),mo=byMo.get(moId);
-  const plan=String(mo?.sizes||'').split(/[,;\\n]+/).map(s=>s.trim()).filter(Boolean).map(p=>{const z=p.match(/^(.+?)\\s*[:=xX-]\\s*(\\d+)$/);return z?{size:z[1].trim().toLowerCase(),qty:Number(z[2])}:null}).filter(Boolean);
+  const plan=String(mo?.sizes||'').split(/[,;\n]+/).map(s=>s.trim()).filter(Boolean).map(p=>{const z=p.match(/^(.+?)\s*[:=xX-]\s*(\d+)$/);return z?{size:z[1].trim().toLowerCase(),qty:Number(z[2])}:null}).filter(Boolean);
   const target=plan.length?(plan.find(p=>p.size===size)?.qty||0):Number(mo?.qty||0);
   if(sent>target)issues.push({type:'sent-exceeds-operation-plan',moId,operation,size,sent,planned:target});
  });
