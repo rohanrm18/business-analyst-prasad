@@ -1094,3 +1094,15 @@ Regression tests cover exact variant balances, quarantined returns, material-uni
 - Added automated tests for correct full dispatch, duplicate/missing/mismatched rows, partial dispatch line selection, orphan/missing-invoice/legacy cases, and non-mutation.
 - Existing dispatch posting remains on the legacy garment ledger. Do not cut over until current local data has been reviewed and the reconciliation has been exercised against representative real records.
 - CI run for the newest commit is pending at time of this audit update; no deployment is claimed.
+
+
+## QC-to-finished-stock and job-work reconciliation — 26 Nov 2026
+
+- Sales-order fulfilment now counts QC-accepted quantities as verified finished stock only when each accepted QC batch has exactly one posted production receipt with the same quantity and exact style/colour/size.
+- The QC audit flags missing receipt references, missing or duplicate stock receipts, mismatched receipt identity/quantity, duplicate QC references and orphan QC receipts scoped to the manufacturing order.
+- Added a job-work challan audit for duplicate challan IDs/numbers, missing manufacturing orders, invalid or over-returned accepted/rejected/rework quantities, mismatched cumulative returned totals and total pieces sent beyond the manufacturing-order operation/size plan.
+- Sales-order fulfilment displays a warning when linked job-work challans fail reconciliation. Contractor accepted/rework/rejected quantities remain WIP outcomes; they do not themselves create finished stock. Finished stock still requires a separate QC-accepted batch and reconciled posted production receipt.
+- Regression tests cover exact QC receipt matching, MO-scoped orphan checks, job-work return arithmetic, operation/size plan limits, missing MO references and duplicate challan references.
+- These audits are read-only. They do not alter challans, create inventory movements, change contractor payables or post stock automatically. Physical contractor returns and actual QC still require staff confirmation.
+- GitHub Actions validation passed on helper commit `c0ca38d92e098c3e36dad80f9764fec24f62f2c9` after correcting the job-work size-plan parser. Final cache/version refresh commits trigger a fresh validation run; check that run before treating the latest branch state as CI-passed.
+- Browser/device acceptance, representative real-record reconciliation, a unified canonical stock cutover, authenticated approvals and cloud persistence remain pending.
