@@ -267,3 +267,18 @@ function paFOperationCostAudit(costs,challans){
  });
  return {recordCount:rows.length,total:Math.round(total*100)/100,issues};
 }
+
+
+function paFProductionCostAudit(orders,cuts,trimMoves,jobs,jobCosts,materialRates,extraCosts){
+ const os=Array.isArray(orders)?orders:[],cs=Array.isArray(cuts)?cuts:[],tm=Array.isArray(trimMoves)?trimMoves:[],js=Array.isArray(jobs)?jobs:[],jc=Array.isArray(jobCosts)?jobCosts:[],rs=Array.isArray(materialRates)?materialRates:[],xs=Array.isArray(extraCosts)?extraCosts:[];
+ const result=os.filter(o=>o&&!['Cancelled','cancelled'].includes(o.status||'')).map(o=>{
+  const mo=String(o.id),rateMap=new Map(rs.filter(r=>String(r.moId)===mo).map(r=>[String(r.materialType)+'|'+String(r.materialId),Number(r.rate)])),materials=[],missing=[];let materialTotal=0;
+  const fabric=new Map();cs.filter(c=>String(c.moId||c.orderId)===mo).forEach(c=>{const id=String(c.rollId||''),qty=Number(c.used||0)+Number(c.wastage??c.waste??0);if(qty>0)fabric.set(id,(fabric.get(id)||0)+qty)});
+  fabric.forEach((qty,id)=>{const rate=rateMap.get('Fabric|'+id);if(rate===undefined||!Number.isFinite(rate)||rate<0)missing.push({type:'Fabric',id,qty,unit:'m'});else{const amount=qty*rate;materialTotal+=amount;materials.push({type:'Fabric',id,qty,unit:'m',rate,amount})}});
+  const accessories=new Map();tm.filter(t=>String(t.orderId||'')===mo).forEach(t=>{const id=String(t.itemId||'');if(id)accessories.set(id,(accessories.get(id)||0)+(t.kind==='OUT'?Number(t.qty||0):-Number(t.qty||0)))});
+  accessories.forEach((qty,id)=>{if(qty<=0)return;const rate=rateMap.get('Accessory|'+id);if(rate===undefined||!Number.isFinite(rate)||rate<0)missing.push({type:'Accessory',id,qty,unit:'pcs'});else{const amount=qty*rate;materialTotal+=amount;materials.push({type:'Accessory',id,qty,unit:'pcs',rate,amount})}});
+  const moJobs=js.filter(j=>String(j.mo||'')===mo),jobIds=new Set(moJobs.map(j=>String(j.id))),op=jc.filter(c=>jobIds.has(String(c.jobId))),operationTotal=op.reduce((n,c)=>n+Math.max(0,Number(c.amount)||0),0),extra=xs.filter(c=>String(c.moId)===mo),extraTotal=extra.reduce((n,c)=>n+Math.max(0,Number(c.amount)||0),0),planned=Number(o.qty||0),known=materialTotal+operationTotal+extraTotal;
+  return {moId:mo,style:o.style||'',plannedQty:planned,materials,missing,materialTotal:Math.round(materialTotal*100)/100,operationCount:op.length,operationTotal:Math.round(operationTotal*100)/100,extraCount:extra.length,extraTotal:Math.round(extraTotal*100)/100,knownTotal:Math.round(known*100)/100,costPerPlannedPiece:planned>0&&!missing.length?Math.round(known/planned*100)/100:null,complete:missing.length===0};
+ });
+ return {orders:result,knownTotal:Math.round(result.reduce((n,o)=>n+o.knownTotal,0)*100)/100,uncostedMaterials:result.reduce((n,o)=>n+o.missing.length,0)};
+}
