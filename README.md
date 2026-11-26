@@ -303,3 +303,8 @@ The supplier workflow now has a first linked path across existing browser-local 
 6. PO-level advances remain separately labelled from invoice-wise accounts-payable allocations; do not add both figures together as a single supplier balance until advance-to-invoice allocation is implemented.
 
 This is a browser-local workflow improvement, not a shared multi-user ledger. It does not post purchase vouchers to Tally, verify GSTIN/PAN with government services, file GST/TDS returns, or replace CA review. Supplier PAN/constitution defaults are aids only; applicability and deduction must be verified by the CA.
+
+
+### Production acceptance and QC stock control
+
+Record valid Packing-stage good output in **More → Production tracking & problems** before posting an accepted QC batch into saleable garment stock. Accepted QC quantities cannot exceed packed good output. The routing workboard shows packed, QC-accepted and receipt-verified quantities separately. Manufacturing costing shows cost per verified accepted garment only when required material rates, routing and exact posted QC receipts reconcile. This local workflow currently compares packed output at MO-total level; browser/device and shop-floor acceptance testing is still required.
