@@ -221,3 +221,12 @@ test('operation costing flags fractional piece quantities and mismatched amounts
  const audit=context.paFOperationCostAudit([{id:'C1',jobId:'JW-1',basis:'per-piece',qty:1.5,rate:10,amount:15},{id:'C2',jobId:'JW-1',basis:'per-lot',qty:1,rate:20,amount:25}],[{id:'JW-1'}]);
  assert.equal(audit.issues.length,2);
 });
+
+test('production cost roll-up values fabric used plus wastage and net accessory issues',()=>{
+ const r=context.paFProductionCostAudit([{id:'MO-1',style:'PA-1',qty:10}],[{moId:'MO-1',rollId:'R1',used:8,wastage:2,returned:1}],[{orderId:'MO-1',itemId:'A1',kind:'OUT',qty:20},{orderId:'MO-1',itemId:'A1',kind:'IN',qty:2}],[{id:'JW-1',mo:'MO-1'}],[{jobId:'JW-1',amount:50}],[{moId:'MO-1',materialType:'Fabric',materialId:'R1',rate:10},{moId:'MO-1',materialType:'Accessory',materialId:'A1',rate:2}],[{moId:'MO-1',amount:30}]);
+ const m=r.orders[0];assert.equal(m.materialTotal,156);assert.equal(m.operationTotal,50);assert.equal(m.extraTotal,30);assert.equal(m.knownTotal,236);assert.equal(m.costPerPlannedPiece,23.6);assert.equal(m.complete,true);
+});
+test('production costing flags unpriced materials instead of treating them as zero cost',()=>{
+ const r=context.paFProductionCostAudit([{id:'MO-2',qty:5}],[{moId:'MO-2',rollId:'R2',used:4,wastage:1}],[],[],[],[],[]);
+ assert.equal(r.orders[0].complete,false);assert.equal(r.orders[0].missing.length,1);assert.equal(r.orders[0].costPerPlannedPiece,null);
+});
