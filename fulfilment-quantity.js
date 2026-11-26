@@ -119,8 +119,9 @@ function paFValidateDispatchReservation(invoice,dispatch,lines){
  if(dispatch&&['posted','legacy-unverified'].includes(dispatch.stockPostingStatus))return true;
  const slipId=String(invoice?.packing_slip_id||'');if(!slipId){alert('Dispatch blocked: invoice is not linked to an approved packing slip. Link/reconcile the source document first.');return false}
  const slip=paFSlipRows().find(s=>String(s.id)===slipId);if(!slip){alert('Dispatch blocked: the linked approved packing slip could not be found.');return false}
- const stock=paFStockRows(),prior=stock.filter(m=>m.type==='Dispatch / sale issue'&&String(m.invoiceId)===String(invoice.id)&&String(m.dispatchId)!==String(dispatch?.id||'')),needed=new Map();
- lines.forEach(line=>{const it=invoice.items?.[Number(line.itemIndex)];if(!it)return;const key=paFKey({style:paFStyle(it),colour:it.colour,size:it.size});needed.set(key,(needed.get(key)||0)+Number(line.qty||0))});
+ const stock=paFStockRows(),slipInvoiceIds=new Set(paFInvoiceRows().filter(v=>String(v.packing_slip_id||'')===slipId).map(v=>String(v.id))),prior=stock.filter(m=>m.type==='Dispatch / sale issue'&&slipInvoiceIds.has(String(m.invoiceId))&&String(m.dispatchId)!==String(dispatch?.id||'')),needed=new Map();
+ lines.forEach(line=>{const index=Number(line.itemIndex),it=invoice.items?.[index],q=Number(line.qty);if(!Number.isInteger(index)||index<0||!it||!Number.isInteger(q)||q<=0){needed.set('INVALID-LINE',Infinity);return}const key=paFKey({style:paFStyle(it),colour:it.colour,size:it.size});needed.set(key,(needed.get(key)||0)+q)});
+ if(needed.has('INVALID-LINE')){alert('Dispatch blocked: every dispatch allocation must reference a valid invoice item and a positive whole-piece quantity.');return false}
  for(const [key,q] of needed){
   const packed=(slip.items||[]).filter(x=>paFKey(x)===key).reduce((n,x)=>n+Number(x.qty||0),0),already=prior.filter(m=>paFKey(m)===key).reduce((n,m)=>n+Number(m.qty||0),0),remaining=Math.max(0,packed-already);
   if(q>remaining){alert('Dispatch blocked: '+key.replace(/¦/g,' / ')+' has only '+remaining+' reserved pieces remaining on packing slip '+slip.number+'. Requested '+q+'. Correct the invoice/dispatch allocation first.');return false}
