@@ -254,3 +254,25 @@ test('production routing prevents rework batches from exceeding parent rework ba
  ],'2026-11-26');
  assert.equal(a.invalidCount,1);assert.ok(a.issues[0].message.includes('rework balance'));
 });
+
+test('production acceptance requires packed good output and exact QC stock receipt',()=>{
+ const orders=[{id:'MO-A',style:'PA-A',qty:10}],stages=['Packing'],routes=[{id:'P1',orderId:'MO-A',stage:'Packing',worker:'Pack team',date:'2026-11-26',qtyIn:10,good:5,rejected:2,rework:1}],qc=[{id:'Q1',moId:'MO-A',style:'PA-A',colour:'Navy',size:'24',accepted:4,receiptRef:'PA-QC:Q1'}],stock=[{id:'S1',type:'Production receipt',status:'posted',reference:'PA-QC:Q1',qty:4,style:'PA-A',colour:'Navy',size:'24'}];
+ const a=context.paFProductionAcceptanceAudit(orders,stages,routes,qc,stock).orders[0];
+ assert.equal(a.packedGood,5);assert.equal(a.verifiedAccepted,4);assert.equal(a.issues.length,0);
+});
+test('production acceptance blocks QC quantities above packed good output',()=>{
+ const orders=[{id:'MO-B',qty:10}],stages=['Packing'],routes=[{id:'P1',orderId:'MO-B',stage:'Packing',worker:'Pack team',date:'2026-11-26',qtyIn:10,good:3,rejected:0,rework:0}],qc=[{id:'Q1',moId:'MO-B',style:'PA-B',colour:'Navy',size:'24',accepted:4,receiptRef:'PA-QC:Q1'}],stock=[{type:'Production receipt',status:'posted',reference:'PA-QC:Q1',qty:4,style:'PA-B',colour:'Navy',size:'24'}];
+ const a=context.paFProductionAcceptanceAudit(orders,stages,routes,qc,stock).orders[0];
+ assert.equal(a.verifiedAccepted,0);assert.ok(a.issues.some(x=>x.type==='qc-accepted-exceeds-packed'));
+});
+test('production acceptance excludes QC batches without an exact posted receipt',()=>{
+ const orders=[{id:'MO-C',qty:10}],stages=['Packing'],routes=[{id:'P1',orderId:'MO-C',stage:'Packing',worker:'Pack team',date:'2026-11-26',qtyIn:10,good:8,rejected:0,rework:0}],qc=[{id:'Q1',moId:'MO-C',style:'PA-C',colour:'Navy',size:'24',accepted:4,receiptRef:'PA-QC:Q1'}];
+ const a=context.paFProductionAcceptanceAudit(orders,stages,routes,qc,[]).orders[0];
+ assert.equal(a.verifiedAccepted,0);assert.ok(a.issues.some(x=>x.type==='qc-receipt-reconciliation'));
+});
+test('production cost per accepted garment uses only verified QC receipt quantity',()=>{
+ const costs={orders:[{moId:'MO-A',knownTotal:240,complete:true}]},acceptance={orders:[{moId:'MO-A',packedGood:8,verifiedAccepted:6,acceptedOutputCostReady:true}]};
+ assert.equal(context.paFProductionAcceptedCost(costs,acceptance)[0].costPerVerifiedAcceptedPiece,40);
+ acceptance.orders[0].acceptedOutputCostReady=false;
+ assert.equal(context.paFProductionAcceptedCost(costs,acceptance)[0].costPerVerifiedAcceptedPiece,null);
+});
