@@ -343,8 +343,8 @@ function paFProductionVariantAcceptanceAudit(orders,stages,routeRows,qcBatches,s
   const qc=(Array.isArray(qcBatches)?qcBatches:[]).filter(q=>String(q.moId)===id),acceptedBySize={};qc.forEach(q=>{const k=paFNorm(q.size);acceptedBySize[k]=(acceptedBySize[k]||0)+Math.max(0,Number(q.accepted)||0);if(!plan[k])issues.push({type:'qc-size-not-in-plan',size:q.size});if(paFNorm(q.colour||o.colour||'')!==colour)issues.push({type:'qc-colour-mismatch',size:q.size});});
   Object.keys(plan).forEach(k=>{const accepted=acceptedBySize[k]||0,packed=packedBySize[plan[k].size]||0;if(accepted>packed)issues.push({type:'variant-qc-accepted-exceeds-packed',size:plan[k].size,accepted,packed});});
   const receipt=paFQcReceiptAudit(qc,stockRows,[id]);if(receipt.issues.length)issues.push({type:'qc-receipt-reconciliation',count:receipt.issues.length});
-  const verifiedBySize={};Object.keys(plan).forEach(k=>{const size=plan[k].size;verifiedBySize[size]=issues.length?0:qc.filter(q=>paFNorm(q.size)===k).reduce((n,q)=>n+Math.max(0,Number(q.accepted)||0),0);});
   const routeIssues=routes.issues.filter(x=>String(x.orderId)===id);if(routeIssues.length)issues.push({type:'invalid-routing',count:routeIssues.length});
+  const verifiedBySize={};Object.keys(plan).forEach(k=>{const size=plan[k].size;verifiedBySize[size]=issues.length?0:qc.filter(q=>paFNorm(q.size)===k).reduce((n,q)=>n+Math.max(0,Number(q.accepted)||0),0);});
   out.push({moId:id,colour:o.colour||'',packedBySize:packedBySize,acceptedBySize,verifiedBySize,issues});
  });
  return {orders:out,issues:out.flatMap(x=>x.issues.map(i=>({...i,moId:x.moId})))};
