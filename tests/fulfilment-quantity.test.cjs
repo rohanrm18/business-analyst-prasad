@@ -137,3 +137,38 @@ test('QC stock audit ignores other manufacturing orders', () => {
   assert.equal(audit.verifiedAccepted, 0);
   assert.equal(audit.issues.length, 0);
 });
+
+
+test('job-work audit reconciles cumulative returned pieces without treating them as finished stock', () => {
+  const mos = [{ id: 'MO-1', qty: 20, sizes: '20:10, 22:10' }];
+  const jobs = [
+    { id: 'JW-1', challanNo: 'JW-001', mo: 'MO-1', operation: 'Stitching', size: '20', sent: 8, accepted: 5, rejected: 1, rework: 2, returned: 8 },
+    { id: 'JW-2', challanNo: 'JW-002', mo: 'MO-1', operation: 'Stitching', size: '22', sent: 7, accepted: 4, rejected: 1, rework: 1, returned: 6 }
+  ];
+  const audit = context.paFJobworkAudit(jobs, mos);
+  assert.equal(audit.challanCount, 2);
+  assert.equal(audit.issues.length, 0);
+});
+
+test('job-work audit detects over-return, returned-total mismatch and operation plan excess', () => {
+  const mos = [{ id: 'MO-1', qty: 10, sizes: '20:5, 22:5' }];
+  const jobs = [
+    { id: 'JW-1', challanNo: 'JW-001', mo: 'MO-1', operation: 'Stitching', size: '20', sent: 4, accepted: 3, rejected: 1, rework: 1, returned: 4 },
+    { id: 'JW-2', challanNo: 'JW-2', mo: 'MO-1', operation: 'Stitching', size: '20', sent: 3, accepted: 1, rejected: 0, rework: 0, returned: 1 }
+  ];
+  const types = context.paFJobworkAudit(jobs, mos).issues.map(x => x.type);
+  assert.ok(types.includes('invalid-return-quantities'));
+  assert.ok(types.includes('returned-total-mismatch'));
+  assert.ok(types.includes('sent-exceeds-operation-plan'));
+});
+
+test('job-work audit flags challans with missing manufacturing orders and duplicate references', () => {
+  const jobs = [
+    { id: 'JW-1', challanNo: 'JW-001', mo: 'MO-1', operation: 'Stitching', sent: 2, accepted: 0, rejected: 0, rework: 0 },
+    { id: 'JW-1', challanNo: 'JW-001', mo: 'MO-X', operation: 'Stitching', sent: 2, accepted: 0, rejected: 0, rework: 0 }
+  ];
+  const types = context.paFJobworkAudit(jobs, [{ id: 'MO-1', qty: 5 }]).issues.map(x => x.type);
+  assert.ok(types.includes('duplicate-challan-id'));
+  assert.ok(types.includes('duplicate-challan-number'));
+  assert.ok(types.includes('missing-manufacturing-order'));
+});
