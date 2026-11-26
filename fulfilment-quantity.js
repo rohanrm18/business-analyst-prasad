@@ -6,6 +6,26 @@ function paFNorm(v){return String(v??'').trim().toLowerCase()}
 function paFKey(x){return [x.style??x.designNumber??x.itemNumber??'',x.colour??'',x.size??''].map(paFNorm).join('¦')}
 function paFStyle(x){return String(x.designNumber||x.itemNumber||x.style||'').trim()}
 function paFStockRows(){return paFRead('pa_garment_stock_ledger_v1',[])}
+
+function paFQcReceiptAudit(qcBatches,stockRows,moIds){
+ const ids=new Set((moIds||[]).map(String)),qc=(Array.isArray(qcBatches)?qcBatches:[]).filter(q=>ids.has(String(q.moId||''))&&Number(q.accepted||0)>0),stock=(Array.isArray(stockRows)?stockRows:[]).filter(x=>x&&x.type==='Production receipt'&&x.status==='posted'),byRef=new Map();
+ stock.forEach(x=>{const ref=String(x.reference||'');if(!ref)return;const list=byRef.get(ref)||[];list.push(x);byRef.set(ref,list)});
+ const seen=new Set(),issues=[];let verifiedAccepted=0,expectedAccepted=0;
+ qc.forEach(q=>{
+  const ref=String(q.receiptRef||'');expectedAccepted+=Number(q.accepted||0);
+  if(!ref){issues.push({type:'missing-reference',batchId:q.id,qty:Number(q.accepted||0)});return}
+  if(seen.has(ref)){issues.push({type:'duplicate-qc-reference',reference:ref});return}seen.add(ref);
+  const matches=byRef.get(ref)||[];
+  if(matches.length!==1){issues.push({type:matches.length?'duplicate-stock-receipt':'missing-stock-receipt',reference:ref,qty:Number(q.accepted||0)});return}
+  const m=matches[0],same=Number(m.qty)===Number(q.accepted)&&paFNorm(m.style)===paFNorm(q.style)&&paFNorm(m.colour)===paFNorm(q.colour)&&paFNorm(m.size)===paFNorm(q.size);
+  if(!same){issues.push({type:'receipt-mismatch',reference:ref,expected:Number(q.accepted||0),actual:Number(m.qty||0)});return}
+  verifiedAccepted+=Number(q.accepted||0);
+ });
+ const qcRefs=new Set(qc.map(q=>String(q.receiptRef||'')));
+ stock.filter(m=>String(m.reference||'').startsWith('PA-QC:')&&!qcRefs.has(String(m.reference||''))).forEach(m=>issues.push({type:'orphan-stock-receipt',reference:m.reference,qty:Number(m.qty||0)}));
+ return {expectedAccepted,verifiedAccepted,issues};
+}
+
 function paFSlipRows(){return paFRead('pa_packing_slips_v1',[]).filter(s=>s&&s.status==='approved')}
 function paFInvoiceRows(){return paFRead('pa_tax_invoices',[]).filter(v=>v&&v.status!=='reversed')}
 function paFDispatchRows(){return paFRead('pa_dispatches_v1',[])}
