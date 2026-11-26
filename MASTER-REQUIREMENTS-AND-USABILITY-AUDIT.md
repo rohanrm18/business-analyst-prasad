@@ -1106,3 +1106,12 @@ Regression tests cover exact variant balances, quarantined returns, material-uni
 - These audits are read-only. They do not alter challans, create inventory movements, change contractor payables or post stock automatically. Physical contractor returns and actual QC still require staff confirmation.
 - GitHub Actions validation passed on helper commit `c0ca38d92e098c3e36dad80f9764fec24f62f2c9` after correcting the job-work size-plan parser. Final cache/version refresh commits trigger a fresh validation run; check that run before treating the latest branch state as CI-passed.
 - Browser/device acceptance, representative real-record reconciliation, a unified canonical stock cutover, authenticated approvals and cloud persistence remain pending.
+
+## Contractor material custody and WIP — 26 Nov 2026
+
+- Added a separate contractor material custody register within Business Control Centre → Contractor job work. Material issues are linked to an open job-work challan and capture material code/name, unit, quantity, date and issue reference.
+- Against each issue, staff can record material outcomes as separate events: reusable material returned, material consumed/used, and scrap/damaged material. The outstanding balance is calculated as issued less those three outcomes.
+- The reconciliation helper flags duplicate/missing movement IDs, invalid movement types or quantities, missing challan links, missing material identity/unit, returns without an issue, material/unit/job identity mismatches and outcomes exceeding the original issue.
+- The new custody register is included in the Business Control Centre backup key allow-list because it is part of the module's key set.
+- **Important limitation:** this is a separate contractor-custody/WIP sub-ledger. It does not yet deduct issue quantities from the main pa_stock_moves_v1 material stock ledger or post reusable returns back into it. This avoids double-posting while the canonical inventory migration is pending. Physical material issue, return and scrap must be checked against source documents and stock counts.
+- Regression tests cover meter-based material issue, reusable return, consumption, scrap, outstanding balance, over-return, identity mismatch and missing issue reference. Browser/device workflow tests and real-data reconciliation remain pending.
