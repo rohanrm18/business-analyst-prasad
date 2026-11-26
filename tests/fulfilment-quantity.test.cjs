@@ -124,7 +124,7 @@ test('QC stock audit counts only exact one-to-one accepted batch receipts', () =
   assert.equal(audit.expectedAccepted, 17);
   assert.equal(audit.verifiedAccepted, 8);
   assert.equal(audit.issues.length, 3);
-  assert.deepEqual(audit.issues.map(x => x.type).sort(), ['missing-stock-receipt', 'orphan-stock-receipt', 'receipt-mismatch'].sort());
+  assert.equal(audit.issues.map(x => x.type).sort().join(','), ['missing-stock-receipt', 'orphan-stock-receipt', 'receipt-mismatch'].sort().join(','));
 });
 
 test('QC stock audit ignores other manufacturing orders', () => {
