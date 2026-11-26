@@ -330,22 +330,30 @@ function paFProductionAcceptedCost(costAudit,acceptanceAudit){
  return costs.map(c=>{const a=acceptance.find(x=>String(x.moId)===String(c.moId)),ready=!!c.complete&&!!a&&a.acceptedOutputCostReady&&Number(a.verifiedAccepted)>0;return {...c,packedGoodQty:Number(a?.packedGood||0),verifiedAcceptedQty:Number(a?.verifiedAccepted||0),costPerVerifiedAcceptedPiece:ready?Math.round(Number(c.knownTotal)/Number(a.verifiedAccepted)*100)/100:null};});
 }
 
+function paFParseProductionVariantPlan(o){
+ const rows=[];
+ if(Array.isArray(o?.variants)&&o.variants.length)o.variants.forEach(v=>rows.push({colour:String(v.colour||'').trim(),size:String(v.size||'').trim(),qty:Number(v.qty)}));
+ else if(String(o?.variantPlan||'').trim())String(o.variantPlan).split(/[;\n]+/).map(x=>x.trim()).filter(Boolean).forEach(g=>{const p=g.split('|');if(p.length!==2){rows.push({colour:'',size:'',qty:NaN});return;}p[1].split(',').map(x=>x.trim()).filter(Boolean).forEach(c=>{const m=c.match(/^(.+?)\s*[:=xX-]\s*(\d+)$/);rows.push(m?{colour:p[0].trim(),size:m[1].trim(),qty:Number(m[2])}:{colour:p[0].trim(),size:'',qty:NaN});});});
+ else String(o?.sizes||'').split(/[,;\n]+/).map(x=>x.trim()).filter(Boolean).forEach(c=>{const m=c.match(/^(.+?)\s*[:=xX-]\s*(\d+)$/);rows.push(m?{colour:String(o?.colour||'').trim(),size:m[1].trim(),qty:Number(m[2])}:{colour:String(o?.colour||'').trim(),size:'',qty:NaN});});
+ return rows;
+}
+function paFVariantKey(colour,size){return paFNorm(colour)+'¦'+paFNorm(size)}
 function paFProductionVariantAcceptanceAudit(orders,stages,routeRows,qcBatches,stockRows){
- const routes=paFProductionRouteAudit(orders,stages,routeRows),out=[],allIssues=[];
+ const routes=paFProductionRouteAudit(orders,stages,routeRows),out=[];
  (Array.isArray(orders)?orders:[]).forEach(o=>{
-  const id=String(o.id),plan={},issues=[],colour=paFNorm(o.colour||'');
-  String(o.sizes||'').split(/[,;\n]+/).map(x=>x.trim()).filter(Boolean).forEach(part=>{const m=part.match(/^(.+?)\s*[:=xX-]\s*(\d+)$/);if(!m||Object.prototype.hasOwnProperty.call(plan,paFNorm(m[1])))issues.push({type:'invalid-size-plan'});else plan[paFNorm(m[1])]={size:m[1].trim(),qty:Number(m[2])};});
-  if(!Object.keys(plan).length)issues.push({type:'missing-size-plan'});
-  const rows=(Array.isArray(routeRows)?routeRows:[]).filter(r=>String(r.orderId)===id),packedBySize={};
-  rows.forEach(r=>{const size=paFNorm(r.size),rowColour=paFNorm(r.colour||o.colour||'');if(!size)issues.push({type:'routing-size-missing',entryId:r.id});else if(!plan[size])issues.push({type:'routing-size-not-in-plan',entryId:r.id,size:r.size});if(!rowColour||rowColour!==colour)issues.push({type:'routing-colour-mismatch',entryId:r.id});});
-  if(!issues.length){let prior={};Object.keys(plan).forEach(k=>prior[k]=plan[k].qty);(Array.isArray(stages)?stages:[]).forEach(stage=>{const current={};Object.keys(plan).forEach(k=>current[k]=0);rows.filter(r=>r.stage===stage&&!r.reworkOfId).forEach(r=>{const k=paFNorm(r.size);current[k]=(current[k]||0)+Number(r.qtyIn||0);});Object.keys(plan).forEach(k=>{if(current[k]>prior[k])issues.push({type:'variant-stage-input-exceeds-previous-good',stage,size:plan[k].size,input:current[k],available:prior[k]});});const good={};Object.keys(plan).forEach(k=>good[k]=0);rows.filter(r=>r.stage===stage).forEach(r=>{const k=paFNorm(r.size);good[k]=(good[k]||0)+Number(r.good||0);});prior=good;});}
-  Object.keys(plan).forEach(k=>{packedBySize[plan[k].size]=rows.filter(r=>r.stage==='Packing'&&paFNorm(r.size)===k).reduce((n,r)=>n+Number(r.good||0),0);});
-  const qc=(Array.isArray(qcBatches)?qcBatches:[]).filter(q=>String(q.moId)===id),acceptedBySize={};qc.forEach(q=>{const k=paFNorm(q.size);acceptedBySize[k]=(acceptedBySize[k]||0)+Math.max(0,Number(q.accepted)||0);if(!plan[k])issues.push({type:'qc-size-not-in-plan',size:q.size});if(paFNorm(q.colour||o.colour||'')!==colour)issues.push({type:'qc-colour-mismatch',size:q.size});});
-  Object.keys(plan).forEach(k=>{const accepted=acceptedBySize[k]||0,packed=packedBySize[plan[k].size]||0;if(accepted>packed)issues.push({type:'variant-qc-accepted-exceeds-packed',size:plan[k].size,accepted,packed});});
-  const receipt=paFQcReceiptAudit(qc,stockRows,[id]);if(receipt.issues.length)issues.push({type:'qc-receipt-reconciliation',count:receipt.issues.length});
-  const routeIssues=routes.issues.filter(x=>String(x.orderId)===id);if(routeIssues.length)issues.push({type:'invalid-routing',count:routeIssues.length});
-  const verifiedBySize={};Object.keys(plan).forEach(k=>{const size=plan[k].size;verifiedBySize[size]=issues.length?0:qc.filter(q=>paFNorm(q.size)===k).reduce((n,q)=>n+Math.max(0,Number(q.accepted)||0),0);});
-  out.push({moId:id,colour:o.colour||'',packedBySize:packedBySize,acceptedBySize,verifiedBySize,issues});
+  const id=String(o.id),plan=new Map(),issues=[],packedByVariant={},acceptedByVariant={},verifiedByVariant={},rows=(Array.isArray(routeRows)?routeRows:[]).filter(r=>String(r.orderId)===id),planRows=paFParseProductionVariantPlan(o);
+  if(!planRows.length)issues.push({type:'missing-variant-plan'});
+  planRows.forEach(v=>{const k=paFVariantKey(v.colour,v.size);if(!v.colour||!v.size||!Number.isSafeInteger(v.qty)||v.qty<1||plan.has(k))issues.push({type:'invalid-variant-plan',colour:v.colour,size:v.size});else plan.set(k,{colour:v.colour,size:v.size,qty:v.qty});});
+  const total=[...plan.values()].reduce((n,v)=>n+v.qty,0);if(plan.size&&total!==Number(o.qty||0))issues.push({type:'variant-plan-total-mismatch',planned:total,moQty:Number(o.qty||0)});
+  rows.forEach(r=>{const k=paFVariantKey(r.colour||o.colour,r.size);if(!r.size)issues.push({type:'routing-size-missing',entryId:r.id});if(!String(r.colour||o.colour||'').trim())issues.push({type:'routing-colour-missing',entryId:r.id});else if(!plan.has(k))issues.push({type:'routing-variant-not-in-plan',entryId:r.id});});
+  if(!issues.length){let prior=new Map([...plan].map(([k,v])=>[k,v.qty]));(Array.isArray(stages)?stages:[]).forEach(stage=>{const current=new Map([...plan.keys()].map(k=>[k,0]));rows.filter(r=>r.stage===stage&&!r.reworkOfId).forEach(r=>{const k=paFVariantKey(r.colour||o.colour,r.size);current.set(k,(current.get(k)||0)+Number(r.qtyIn||0));});plan.forEach((v,k)=>{if((current.get(k)||0)>(prior.get(k)||0))issues.push({type:'variant-stage-input-exceeds-previous-good',stage,colour:v.colour,size:v.size});});const good=new Map([...plan.keys()].map(k=>[k,0]));rows.filter(r=>r.stage===stage).forEach(r=>{const k=paFVariantKey(r.colour||o.colour,r.size);good.set(k,(good.get(k)||0)+Number(r.good||0));});prior=good;});}
+  plan.forEach((v,k)=>packedByVariant[k]=rows.filter(r=>r.stage==='Packing'&&paFVariantKey(r.colour||o.colour,r.size)===k).reduce((n,r)=>n+Number(r.good||0),0));
+  const qc=(Array.isArray(qcBatches)?qcBatches:[]).filter(q=>String(q.moId)===id);qc.forEach(q=>{const k=paFVariantKey(q.colour||o.colour,q.size);acceptedByVariant[k]=(acceptedByVariant[k]||0)+Math.max(0,Number(q.accepted)||0);if(!plan.has(k))issues.push({type:'qc-variant-not-in-plan'});});
+  plan.forEach((v,k)=>{if((acceptedByVariant[k]||0)>(packedByVariant[k]||0))issues.push({type:'variant-qc-accepted-exceeds-packed',colour:v.colour,size:v.size,accepted:acceptedByVariant[k],packed:packedByVariant[k]});});
+  const receipt=paFQcReceiptAudit(qc,stockRows,[id]);if(receipt.issues.length)issues.push({type:'qc-receipt-reconciliation',count:receipt.issues.length});if(routes.issues.some(x=>String(x.orderId)===id))issues.push({type:'invalid-routing'});
+  plan.forEach((v,k)=>verifiedByVariant[k]=issues.length?0:qc.filter(q=>paFVariantKey(q.colour||o.colour,q.size)===k).reduce((n,q)=>n+Math.max(0,Number(q.accepted)||0),0));
+  const oneColour=new Set([...plan.values()].map(v=>paFNorm(v.colour))).size<=1,packedBySize={},verifiedBySize={};if(oneColour)plan.forEach((v,k)=>{packedBySize[v.size]=packedByVariant[k]||0;verifiedBySize[v.size]=verifiedByVariant[k]||0;});
+  out.push({moId:id,colour:o.colour||'',packedBySize,packedByVariant,acceptedByVariant,verifiedBySize,verifiedByVariant,issues});
  });
  return {orders:out,issues:out.flatMap(x=>x.issues.map(i=>({...i,moId:x.moId})))};
 }
