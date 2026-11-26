@@ -107,3 +107,33 @@ test('dispatch reservation validation rejects fractional, zero, negative and inv
     ), false);
   }
 });
+
+
+test('QC stock audit counts only exact one-to-one accepted batch receipts', () => {
+  const qc = [
+    { id: 'Q1', moId: 'MO-1', receiptRef: 'PA-QC:1', accepted: 8, style: 'D100', colour: 'Navy', size: '20' },
+    { id: 'Q2', moId: 'MO-1', receiptRef: 'PA-QC:2', accepted: 5, style: 'D100', colour: 'Navy', size: '22' },
+    { id: 'Q3', moId: 'MO-1', receiptRef: 'PA-QC:3', accepted: 4, style: 'D100', colour: 'Navy', size: '24' }
+  ];
+  const stock = [
+    { type: 'Production receipt', status: 'posted', reference: 'PA-QC:1', qty: 8, style: 'D100', colour: 'Navy', size: '20' },
+    { type: 'Production receipt', status: 'posted', reference: 'PA-QC:2', qty: 50, style: 'D100', colour: 'Navy', size: '22' },
+    { type: 'Production receipt', status: 'posted', reference: 'PA-QC:extra', qty: 99, style: 'D100', colour: 'Navy', size: '24' }
+  ];
+  const audit = context.paFQcReceiptAudit(qc, stock, ['MO-1']);
+  assert.equal(audit.expectedAccepted, 17);
+  assert.equal(audit.verifiedAccepted, 8);
+  assert.equal(audit.issues.length, 3);
+  assert.deepEqual(audit.issues.map(x => x.type).sort(), ['missing-stock-receipt', 'orphan-stock-receipt', 'receipt-mismatch'].sort());
+});
+
+test('QC stock audit ignores other manufacturing orders', () => {
+  const audit = context.paFQcReceiptAudit(
+    [{ id: 'Q1', moId: 'MO-2', receiptRef: 'PA-QC:2', accepted: 3, style: 'D100', colour: 'Navy', size: '20' }],
+    [{ type: 'Production receipt', status: 'posted', reference: 'PA-QC:2', qty: 3, style: 'D100', colour: 'Navy', size: '20' }],
+    ['MO-1']
+  );
+  assert.equal(audit.expectedAccepted, 0);
+  assert.equal(audit.verifiedAccepted, 0);
+  assert.equal(audit.issues.length, 0);
+});
