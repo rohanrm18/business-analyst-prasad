@@ -165,3 +165,37 @@ if(typeof paMultiStock==='function'){
   return paFBaseMultiStock(invoice,dispatch);
  };
 }
+
+
+/* Job-work challan reconciliation: contractor returns are WIP outcomes, not finished stock. */
+function paFJobworkAudit(challans,moOrders){
+ const mos=Array.isArray(moOrders)?moOrders:[],byMo=new Map(mos.map(m=>[String(m.id),m])),rows=Array.isArray(challans)?challans:[],issues=[],seenIds=new Set(),seenNos=new Set(),sentByPlan=new Map();
+ rows.forEach(j=>{
+  const id=String(j.id||''),no=String(j.challanNo||'').trim().toLowerCase(),mo=byMo.get(String(j.mo||''));
+  if(id&&seenIds.has(id))issues.push({type:'duplicate-challan-id',id});else if(id)seenIds.add(id);
+  if(no&&seenNos.has(no))issues.push({type:'duplicate-challan-number',challanNo:j.challanNo});else if(no)seenNos.add(no);
+  if(!mo){issues.push({type:'missing-manufacturing-order',challanNo:j.challanNo,moId:j.mo});return}
+  const sent=Number(j.sent),accepted=Number(j.accepted||0),rejected=Number(j.rejected||0),rework=Number(j.rework||0);
+  if(!Number.isInteger(sent)||sent<=0||![accepted,rejected,rework].every(Number.isInteger)||[accepted,rejected,rework].some(n=>n<0)||accepted+rejected+rework>sent){
+   issues.push({type:'invalid-return-quantities',challanNo:j.challanNo,sent,accepted,rejected,rework});
+  }
+  if(j.returned!==undefined&&Number(j.returned)!==accepted+rejected+rework)issues.push({type:'returned-total-mismatch',challanNo:j.challanNo,recorded:Number(j.returned),calculated:accepted+rejected+rework});
+  const operation=String(j.operation||'').trim().toLowerCase(),size=String(j.size||'').trim().toLowerCase(),key=[String(mo.id),operation,size].join('¦');
+  sentByPlan.set(key,(sentByPlan.get(key)||0)+(Number.isFinite(sent)&&sent>0?sent:0));
+ });
+ sentByPlan.forEach((sent,key)=>{
+  const [moId,operation,size]=key.split('¦'),mo=byMo.get(moId);
+  const plan=String(mo?.sizes||'').split(/[,;\\n]+/).map(s=>s.trim()).filter(Boolean).map(p=>{const z=p.match(/^(.+?)\\s*[:=xX-]\\s*(\\d+)$/);return z?{size:z[1].trim().toLowerCase(),qty:Number(z[2])}:null}).filter(Boolean);
+  const target=plan.length?(plan.find(p=>p.size===size)?.qty||0):Number(mo?.qty||0);
+  if(sent>target)issues.push({type:'sent-exceeds-operation-plan',moId,operation,size,sent,planned:target});
+ });
+ return {challanCount:rows.length,issues};
+}
+if(typeof salesOrderProgressHtml==='function'){
+ const paFJobBaseProgress=salesOrderProgressHtml;
+ salesOrderProgressHtml=function(o){
+  const base=paFJobBaseProgress(o),mos=(paFRead('pa_manufacturing_v1',{orders:[]}).orders||[]).filter(m=>String(m.sourceSalesOrderId||'')===String(o.id)&&!['cancelled','Cancelled'].includes(m.status||'')),ids=new Set(mos.map(m=>String(m.id))),jobs=paFRead('pa_jobwork_challans_v2',[]).filter(j=>ids.has(String(j.mo||''))),audit=paFJobworkAudit(jobs,mos);
+  if(!audit.issues.length)return base;
+  return base+'<p class="hint" role="status">Job-work reconciliation warning: '+audit.issues.length+' issue(s) found across '+audit.challanCount+' challan(s). Contractor accepted/rework/rejected quantities are not finished stock; only separately QC-accepted and reconciled production receipts count as saleable stock. Review the Contractor job work register.</p>';
+ };
+}
