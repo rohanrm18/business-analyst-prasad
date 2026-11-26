@@ -230,3 +230,27 @@ test('production costing flags unpriced materials instead of treating them as ze
  const r=context.paFProductionCostAudit([{id:'MO-2',qty:5}],[{moId:'MO-2',rollId:'R2',used:4,wastage:1}],[],[],[],[],[]);
  assert.equal(r.orders[0].complete,false);assert.equal(r.orders[0].missing.length,1);assert.equal(r.orders[0].costPerPlannedPiece,null);
 });
+test('production routing accepts sequential stage output and rework returns',()=>{
+ const orders=[{id:'MO-RT',style:'PA-RT',qty:10}],stages=['Cutting','Stitching','Finishing'],rows=[
+ {id:'R1',orderId:'MO-RT',stage:'Cutting',worker:'A',date:'2026-11-25',qtyIn:10,good:8,rejected:0,rework:2},
+ {id:'R2',orderId:'MO-RT',stage:'Cutting',worker:'A',date:'2026-11-25',qtyIn:2,good:1,rejected:1,rework:0,reworkOfId:'R1'},
+ {id:'R3',orderId:'MO-RT',stage:'Stitching',worker:'B',date:'2026-11-26',qtyIn:9,good:8,rejected:1,rework:0}
+ ];
+ const a=context.paFProductionRouteAudit(orders,stages,rows,'2026-11-26');
+ assert.equal(a.invalidCount,0);assert.equal(a.orders[0].stages[0].good,9);assert.equal(a.orders[0].stages[0].reworkPending,0);assert.equal(a.orders[0].stages[1].good,8);
+});
+test('production routing blocks excess upstream quantity, fractional pieces and future dates',()=>{
+ const a=context.paFProductionRouteAudit([{id:'MO-RT2',qty:10}],['Cutting','Stitching'],[
+ {id:'R1',orderId:'MO-RT2',stage:'Cutting',worker:'A',date:'2026-11-26',qtyIn:10,good:7,rejected:1,rework:2},
+ {id:'R2',orderId:'MO-RT2',stage:'Stitching',worker:'B',date:'2026-11-26',qtyIn:8,good:8,rejected:0,rework:0},
+ {id:'R3',orderId:'MO-RT2',stage:'Cutting',worker:'C',date:'2026-11-27',qtyIn:0.5,good:0.5,rejected:0,rework:0}
+ ],'2026-11-26');
+ assert.equal(a.invalidCount,2);assert.ok(a.issues.some(x=>x.id==='R2'&&x.message.includes('available 7')));assert.ok(a.issues.some(x=>x.id==='R3'));
+});
+test('production routing prevents rework batches from exceeding parent rework balance',()=>{
+ const a=context.paFProductionRouteAudit([{id:'MO-RT3',qty:5}],['Cutting'],[
+ {id:'R1',orderId:'MO-RT3',stage:'Cutting',worker:'A',date:'2026-11-26',qtyIn:5,good:3,rejected:0,rework:2},
+ {id:'R2',orderId:'MO-RT3',stage:'Cutting',worker:'B',date:'2026-11-26',qtyIn:3,good:3,rejected:0,rework:0,reworkOfId:'R1'}
+ ],'2026-11-26');
+ assert.equal(a.invalidCount,1);assert.ok(a.issues[0].message.includes('rework balance'));
+});
