@@ -1145,3 +1145,13 @@ Regression tests cover exact variant balances, quarantined returns, material-uni
 - Regression tests cover valid packed/QC/receipt reconciliation, QC accepted quantities above packed output, missing posted receipts, and accepted-piece cost denominator.
 - **Process note:** the current control expects Packing-stage output to be recorded before posting an accepted QC batch into saleable stock. Teams should record actual completed packing output first, then post accepted QC stock. This is a deliberate local workflow gate; confirm it matches the shop-floor sequence before live use.
 - **Limitations:** routing records are MO-level, not size/colour-specific. QC receipt checks still enforce exact style/colour/size at the receipt level, but the packing-capacity comparison is MO-total only. This remains local browser data and is not concurrency-safe. Existing historical QC receipts are not automatically rewritten or reversed; audit exceptions must be reconciled manually. Browser/device acceptance and representative shop-floor data testing remain pending.
+
+
+## Variant-specific production routing and QC acceptance — 26 Nov 2026
+
+- Production routing entries now capture garment size and inherit the manufacturing order colour. Routing rows are checked against the MO's explicit size plan; missing sizes, sizes outside the plan, and colour mismatches are review exceptions rather than being distributed across variants.
+- Packing good output is aggregated separately for each size. QC accepted quantities are checked against packed good output for the same MO, colour and size. A size-20 packing balance cannot justify QC acceptance for size 22.
+- QC stock posting now passes the selected size and MO colour into the production-capacity check. Previously accepted QC quantities are counted only for that same size and colour.
+- The production routing workboard shows packed, QC accepted and receipt-verified quantities by size. Accepted-piece costing uses the sum of verified variant receipts only when the complete variant audit has no exceptions.
+- Regression tests cover exact variant reconciliation, cross-size substitution attempts and legacy routing rows without size allocation.
+- **Limitations:** manufacturing orders currently carry one colour value; multi-colour MO plans still need a colour × size matrix. Existing route rows created before the size field was added remain unallocated and must be reviewed/re-entered with their true size; the app does not guess. This remains browser-local and not concurrency-safe. Browser/device and shop-floor acceptance testing remain pending.
