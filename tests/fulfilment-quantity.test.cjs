@@ -202,3 +202,8 @@ test('contractor material custody flags over-return, mismatched identity and mis
   assert.ok(types.includes('material-return-exceeds-issue'));
   assert.ok(types.includes('return-without-issue'));
 });
+
+test('operation costing flags fractional piece quantities and mismatched amounts',()=>{
+ const audit=context.paFOperationCostAudit([{id:'C1',jobId:'JW-1',basis:'per-piece',qty:1.5,rate:10,amount:15},{id:'C2',jobId:'JW-1',basis:'per-lot',qty:1,rate:20,amount:25}],[{id:'JW-1'}]);
+ assert.equal(audit.issues.length,2);
+});
