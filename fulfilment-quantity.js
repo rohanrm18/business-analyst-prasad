@@ -199,3 +199,35 @@ if(typeof salesOrderProgressHtml==='function'){
   return base+'<p class="hint" role="status">Job-work reconciliation warning: '+audit.issues.length+' issue(s) found across '+audit.challanCount+' challan(s). Contractor accepted/rework/rejected quantities are not finished stock; only separately QC-accepted and reconciled production receipts count as saleable stock. Review the Contractor job work register.</p>';
  };
 }
+
+
+/* Contractor material custody: separate from on-hand stock until source-ledger cutover. */
+function paFJobworkMaterialAudit(challans,movements){
+ const jobs=Array.isArray(challans)?challans:[],rows=Array.isArray(movements)?movements:[],jobById=new Map(jobs.map(j=>[String(j.id),j])),issues=[],issuesById=new Set(),movementIds=new Set(),issued=new Map(),returned=new Map();
+ rows.forEach((m,index)=>{
+  const id=String(m.id||''),kind=String(m.kind||''),issueId=String(m.issueId||'');
+  if(!id||movementIds.has(id))issues.push({type:'duplicate-or-missing-movement-id',id,index});else movementIds.add(id);
+  if(!['issue','reusable-return','consumed','scrap'].includes(kind)){issues.push({type:'invalid-movement-kind',id,kind});return}
+  const qty=Number(m.qty);
+  if(!Number.isFinite(qty)||qty<=0){issues.push({type:'invalid-material-quantity',id,qty});return}
+  const job=jobById.get(String(m.jobId||''));
+  if(!job){issues.push({type:'missing-jobwork-challan',id,jobId:m.jobId});return}
+  if(!String(m.itemId||m.item||'').trim()||!String(m.unit||'').trim()){issues.push({type:'missing-material-identity',id});return}
+  if(kind==='issue'){
+   if(issued.has(id))issues.push({type:'duplicate-material-issue',id});
+   issued.set(id,{movement:m,qty,item:String(m.itemId||m.item).trim().toLowerCase(),unit:String(m.unit).trim().toLowerCase(),jobId:String(job.id)});
+   return;
+  }
+  const source=issued.get(issueId);
+  if(!source){issues.push({type:'return-without-issue',id,issueId});return}
+  if(source.jobId!==String(job.id)||source.item!==String(m.itemId||m.item).trim().toLowerCase()||source.unit!==String(m.unit).trim().toLowerCase())issues.push({type:'material-return-identity-mismatch',id,issueId});
+  returned.set(issueId,(returned.get(issueId)||0)+qty);
+ });
+ const balances=[];
+ issued.forEach((x,id)=>{
+  const back=returned.get(id)||0,pending=x.qty-back;
+  if(back>x.qty+1e-9)issues.push({type:'material-return-exceeds-issue',issueId:id,issued:x.qty,returned:back});
+  balances.push({issueId:id,jobId:x.jobId,item:x.movement.item||x.movement.itemId,unit:x.movement.unit,issued:x.qty,returned:back,pending:Math.max(0,pending)});
+ });
+ return {issueCount:issued.size,balances,issues};
+}
