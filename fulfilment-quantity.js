@@ -21,8 +21,8 @@ function paFQcReceiptAudit(qcBatches,stockRows,moIds){
   if(!same){issues.push({type:'receipt-mismatch',reference:ref,expected:Number(q.accepted||0),actual:Number(m.qty||0)});return}
   verifiedAccepted+=Number(q.accepted||0);
  });
- const qcRefs=new Set(qc.map(q=>String(q.receiptRef||'')));
- stock.filter(m=>String(m.reference||'').startsWith('PA-QC:')&&!qcRefs.has(String(m.reference||''))).forEach(m=>issues.push({type:'orphan-stock-receipt',reference:m.reference,qty:Number(m.qty||0)}));
+ const qcRefs=new Set(qc.map(q=>String(q.receiptRef||''))),moPrefixes=[...ids].map(id=>'PA-QC:QC-'+encodeURIComponent(id)+'-');
+ stock.filter(m=>moPrefixes.some(prefix=>String(m.reference||'').startsWith(prefix))&&!qcRefs.has(String(m.reference||''))).forEach(m=>issues.push({type:'orphan-stock-receipt',reference:m.reference,qty:Number(m.qty||0)}));
  return {expectedAccepted,verifiedAccepted,issues};
 }
 
