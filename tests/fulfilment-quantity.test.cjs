@@ -276,3 +276,16 @@ test('production cost per accepted garment uses only verified QC receipt quantit
  acceptance.orders[0].acceptedOutputCostReady=false;
  assert.equal(context.paFProductionAcceptedCost(costs,acceptance)[0].costPerVerifiedAcceptedPiece,null);
 });
+
+test('variant production acceptance isolates packing and QC by size and colour',()=>{
+ const orders=[{id:'MO-V',style:'PA-V',colour:'Navy',sizes:'20:6,22:4',qty:10}],stages=['Packing'],routes=[{id:'P20',orderId:'MO-V',stage:'Packing',size:'20',colour:'Navy',worker:'Pack',date:'2026-11-26',qtyIn:6,good:5,rejected:1,rework:0},{id:'P22',orderId:'MO-V',stage:'Packing',size:'22',colour:'Navy',worker:'Pack',date:'2026-11-26',qtyIn:4,good:4,rejected:0,rework:0}],qc=[{id:'Q20',moId:'MO-V',style:'PA-V',colour:'Navy',size:'20',accepted:5,receiptRef:'R20'},{id:'Q22',moId:'MO-V',style:'PA-V',colour:'Navy',size:'22',accepted:3,receiptRef:'R22'}],stock=[{type:'Production receipt',status:'posted',reference:'R20',qty:5,style:'PA-V',colour:'Navy',size:'20'},{type:'Production receipt',status:'posted',reference:'R22',qty:3,style:'PA-V',colour:'Navy',size:'22'}];
+ const a=context.paFProductionVariantAcceptanceAudit(orders,stages,routes,qc,stock).orders[0];assert.equal(a.packedBySize['20'],5);assert.equal(a.packedBySize['22'],4);assert.equal(a.verifiedBySize['20'],5);assert.equal(a.verifiedBySize['22'],3);assert.equal(a.issues.length,0);
+});
+test('variant production acceptance blocks size substitution even when MO total is within capacity',()=>{
+ const orders=[{id:'MO-W',style:'PA-W',colour:'Navy',sizes:'20:6,22:4',qty:10}],stages=['Packing'],routes=[{id:'P20',orderId:'MO-W',stage:'Packing',size:'20',colour:'Navy',worker:'Pack',date:'2026-11-26',qtyIn:6,good:6,rejected:0,rework:0},{id:'P22',orderId:'MO-W',stage:'Packing',size:'22',colour:'Navy',worker:'Pack',date:'2026-11-26',qtyIn:4,good:0,rejected:4,rework:0}],qc=[{id:'Q22',moId:'MO-W',style:'PA-W',colour:'Navy',size:'22',accepted:1,receiptRef:'RW'}],stock=[{type:'Production receipt',status:'posted',reference:'RW',qty:1,style:'PA-W',colour:'Navy',size:'22'}];
+ const a=context.paFProductionVariantAcceptanceAudit(orders,stages,routes,qc,stock).orders[0];assert.ok(a.issues.some(x=>x.type==='variant-qc-accepted-exceeds-packed'));assert.equal(a.verifiedBySize['22'],0);
+});
+test('variant production acceptance flags legacy unallocated routing entries',()=>{
+ const orders=[{id:'MO-X',style:'PA-X',colour:'Navy',sizes:'20:2',qty:2}],routes=[{id:'P',orderId:'MO-X',stage:'Packing',worker:'Pack',date:'2026-11-26',qtyIn:2,good:2,rejected:0,rework:0}];
+ const a=context.paFProductionVariantAcceptanceAudit(orders,['Packing'],routes,[],[]).orders[0];assert.ok(a.issues.some(x=>x.type==='routing-size-missing'));assert.equal(a.verifiedBySize['20'],0);
+});
