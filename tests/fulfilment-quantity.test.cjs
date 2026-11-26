@@ -172,3 +172,33 @@ test('job-work audit flags challans with missing manufacturing orders and duplic
   assert.ok(types.includes('duplicate-challan-number'));
   assert.ok(types.includes('missing-manufacturing-order'));
 });
+
+
+test('contractor material custody tracks reusable returns, consumption and outstanding quantity', () => {
+  const jobs = [{ id: 'JW-1', challanNo: 'JW-001' }];
+  const movements = [
+    { id: 'MI-1', kind: 'issue', jobId: 'JW-1', itemId: 'FAB-01', item: 'Peach fabric', unit: 'm', qty: 25 },
+    { id: 'MR-1', kind: 'reusable-return', issueId: 'MI-1', jobId: 'JW-1', itemId: 'FAB-01', item: 'Peach fabric', unit: 'm', qty: 4 },
+    { id: 'MC-1', kind: 'consumed', issueId: 'MI-1', jobId: 'JW-1', itemId: 'FAB-01', item: 'Peach fabric', unit: 'm', qty: 18 },
+    { id: 'MS-1', kind: 'scrap', issueId: 'MI-1', jobId: 'JW-1', itemId: 'FAB-01', item: 'Peach fabric', unit: 'm', qty: 1 }
+  ];
+  const audit = context.paFJobworkMaterialAudit(jobs, movements);
+  assert.equal(audit.issueCount, 1);
+  assert.equal(audit.issues.length, 0);
+  assert.equal(audit.balances[0].returned, 23);
+  assert.equal(audit.balances[0].pending, 2);
+});
+
+test('contractor material custody flags over-return, mismatched identity and missing source issue', () => {
+  const jobs = [{ id: 'JW-1' }];
+  const movements = [
+    { id: 'MI-1', kind: 'issue', jobId: 'JW-1', itemId: 'TRIM-1', item: 'Buttons', unit: 'pcs', qty: 100 },
+    { id: 'MR-1', kind: 'reusable-return', issueId: 'MI-1', jobId: 'JW-1', itemId: 'TRIM-2', item: 'Buttons', unit: 'pcs', qty: 90 },
+    { id: 'MC-1', kind: 'consumed', issueId: 'MI-1', jobId: 'JW-1', itemId: 'TRIM-1', item: 'Buttons', unit: 'pcs', qty: 20 },
+    { id: 'MX-1', kind: 'scrap', issueId: 'MISSING', jobId: 'JW-1', itemId: 'TRIM-1', item: 'Buttons', unit: 'pcs', qty: 1 }
+  ];
+  const types = context.paFJobworkMaterialAudit(jobs, movements).issues.map(x => x.type);
+  assert.ok(types.includes('material-return-identity-mismatch'));
+  assert.ok(types.includes('material-return-exceeds-issue'));
+  assert.ok(types.includes('return-without-issue'));
+});
