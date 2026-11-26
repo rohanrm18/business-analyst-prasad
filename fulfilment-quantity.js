@@ -353,7 +353,7 @@ function paFProductionVariantAcceptanceAudit(orders,stages,routeRows,qcBatches,s
   const receipt=paFQcReceiptAudit(qc,stockRows,[id]);if(receipt.issues.length)issues.push({type:'qc-receipt-reconciliation',count:receipt.issues.length});if(routes.issues.some(x=>String(x.orderId)===id))issues.push({type:'invalid-routing'});
   plan.forEach((v,k)=>verifiedByVariant[k]=issues.length?0:qc.filter(q=>paFVariantKey(q.colour||o.colour,q.size)===k).reduce((n,q)=>n+Math.max(0,Number(q.accepted)||0),0));
   const oneColour=new Set([...plan.values()].map(v=>paFNorm(v.colour))).size<=1,packedBySize={},verifiedBySize={};if(oneColour)plan.forEach((v,k)=>{packedBySize[v.size]=packedByVariant[k]||0;verifiedBySize[v.size]=verifiedByVariant[k]||0;});
-  out.push({moId:id,colour:o.colour||'',packedBySize,packedByVariant,acceptedByVariant,verifiedBySize,verifiedByVariant,issues});
+  const packedGood=Object.values(packedByVariant).reduce((n,v)=>n+Number(v||0),0),qcAccepted=Object.values(acceptedByVariant).reduce((n,v)=>n+Number(v||0),0),verifiedAccepted=Object.values(verifiedByVariant).reduce((n,v)=>n+Number(v||0),0);out.push({moId:id,colour:o.colour||'',packedGood,qcAccepted,verifiedAccepted,acceptedOutputCostReady:issues.length===0&&verifiedAccepted>0,packedBySize,packedByVariant,acceptedByVariant,verifiedBySize,verifiedByVariant,issues});
  });
  return {orders:out,issues:out.flatMap(x=>x.issues.map(i=>({...i,moId:x.moId})))};
 }
