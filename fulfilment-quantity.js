@@ -324,3 +324,8 @@ function paFProductionAcceptanceAudit(orders,stages,routeRows,qcBatches,stockRow
  });
  return {orders:result,issues:result.flatMap(x=>x.issues.map(i=>({...i,moId:x.moId})))};
 }
+
+function paFProductionAcceptedCost(costAudit,acceptanceAudit){
+ const costs=costAudit?.orders||[],acceptance=acceptanceAudit?.orders||[];
+ return costs.map(c=>{const a=acceptance.find(x=>String(x.moId)===String(c.moId)),ready=!!c.complete&&!!a&&a.acceptedOutputCostReady&&Number(a.verifiedAccepted)>0;return {...c,packedGoodQty:Number(a?.packedGood||0),verifiedAcceptedQty:Number(a?.verifiedAccepted||0),costPerVerifiedAcceptedPiece:ready?Math.round(Number(c.knownTotal)/Number(a.verifiedAccepted)*100)/100:null};});
+}
