@@ -3,7 +3,7 @@
    statutory accounting automation, cloud sync or CA-approved tax calculations. */
 (()=>{
 'use strict';
-const KEY={returns:'pa_sales_returns_v1',job:'pa_jobwork_challans_v2',accounts:'pa_manual_accounts_v1',journals:'pa_manual_journals_v1',sizes:'pa_size_sets_v1',counts:'pa_stock_counts_v1',purchaseReturns:'pa_purchase_returns_v1',stockReturns:'pa_purchase_return_stock_v1',prices:'pa_customer_price_lists_v1',promises:'pa_collection_promises_v1',qc:'pa_mfg_qc_v1',cutting:'pa_cutting_batches_v1',fy:'pa_financial_years_v1',sequences:'pa_document_sequences_v1',cheques:'pa_cheque_register_v1',capital:'pa_capital_loan_register_v1',postingMaps:'pa_account_posting_maps_v1'};
+const KEY={returns:'pa_sales_returns_v1',job:'pa_jobwork_challans_v2',jobMaterials:'pa_jobwork_material_custody_v1',accounts:'pa_manual_accounts_v1',journals:'pa_manual_journals_v1',sizes:'pa_size_sets_v1',counts:'pa_stock_counts_v1',purchaseReturns:'pa_purchase_returns_v1',stockReturns:'pa_purchase_return_stock_v1',prices:'pa_customer_price_lists_v1',promises:'pa_collection_promises_v1',qc:'pa_mfg_qc_v1',cutting:'pa_cutting_batches_v1',fy:'pa_financial_years_v1',sequences:'pa_document_sequences_v1',cheques:'pa_cheque_register_v1',capital:'pa_capital_loan_register_v1',postingMaps:'pa_account_posting_maps_v1'};
 const read=(k,d=[])=>{try{const x=JSON.parse(localStorage.getItem(k)||JSON.stringify(d));return x??d}catch(_){return d}};
 const save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -14,7 +14,7 @@ function fyFor(date){const d=String(date||today()),y=Number(d.slice(0,4)),m=Numb
 function awNextNo(type,date=today()){const fy=fyFor(date),k=type+'|'+fy,n=Number(docSequences[k]||0)+1;docSequences[k]=n;save(KEY.sequences,docSequences);return 'PA-'+type+'/'+fy+'/'+String(n).padStart(5,'0')}
 function awDateAllowed(date){const d=String(date||''),locked=financialYears.find(x=>x.status==='Locked'&&d>=x.start&&d<=x.end);if(locked){alert('This financial year '+locked.name+' is locked. New entries are blocked in this local workflow.');return false;}return true};
 /* Company-wide date guard: runs before individual form handlers, including modules loaded earlier. */
-const fyGuardFormIds=new Set(['entry','customer-po-form','orderform','invoiceform','garment-stock-form','customer-master-form','ar-receipt','style-cost-form','mfg-order','moveform','holdform','cut-in','bom-order','supplier-form','purchase-plan-form','grn-form','qc-form','payment-form','supplier-advance-allocation-form','supplier-payment-form','photo-form','jw-form','tds-form','tds-deposit-form','tds-allocation-form','aw-return','aw-account','aw-journal','aw-count','aw-preturn','aw-qc','aw-cut','aw-cheque','aw-capital','aw-matrix']);
+const fyGuardFormIds=new Set(['entry','customer-po-form','orderform','invoiceform','garment-stock-form','customer-master-form','ar-receipt','style-cost-form','mfg-order','moveform','holdform','cut-in','bom-order','supplier-form','purchase-plan-form','grn-form','qc-form','payment-form','supplier-advance-allocation-form','supplier-payment-form','photo-form','jw-form','tds-form','tds-deposit-form','tds-allocation-form','aw-return','aw-job-material','aw-account','aw-journal','aw-count','aw-preturn','aw-qc','aw-cut','aw-cheque','aw-capital','aw-matrix']);
 window.addEventListener('submit',function(e){
  const f=e.target;if(!f||!fyGuardFormIds.has(String(f.id||'')))return;
  const dateField=f.querySelector('[name="date"],[name="invoiceDate"],[name="billDate"],[name="receiptDate"],[name="paymentDate"],[name="lrDate"]');
@@ -27,7 +27,7 @@ const card=(title,sub,body)=>'<section class="card"><div class="cardhead"><div><
 const input=(name,label,type='text',attrs='')=>'<label>'+label+'<input name="'+name+'" type="'+type+'" '+attrs+'></label>';
 const text=(name,label,attrs='')=>'<label>'+label+'<textarea name="'+name+'" '+attrs+'></textarea></label>';
 let awTab='returns';
-let returns=read(KEY.returns),jobs=read(KEY.job),accounts=read(KEY.accounts),journals=read(KEY.journals),postingMaps=read(KEY.postingMaps),sizeSets=read(KEY.sizes),counts=read(KEY.counts),purchaseReturns=read(KEY.purchaseReturns),purchaseReturnStock=read(KEY.stockReturns),priceLists=read(KEY.prices),promises=read(KEY.promises),qcBatches=read(KEY.qc),cuttingBatches=read(KEY.cutting),financialYears=read(KEY.fy),docSequences=read(KEY.sequences,{}),cheques=read(KEY.cheques),capitalRows=read(KEY.capital);
+let returns=read(KEY.returns),jobs=read(KEY.job),jobMaterials=read(KEY.jobMaterials),accounts=read(KEY.accounts),journals=read(KEY.journals),postingMaps=read(KEY.postingMaps),sizeSets=read(KEY.sizes),counts=read(KEY.counts),purchaseReturns=read(KEY.purchaseReturns),purchaseReturnStock=read(KEY.stockReturns),priceLists=read(KEY.prices),promises=read(KEY.promises),qcBatches=read(KEY.qc),cuttingBatches=read(KEY.cutting),financialYears=read(KEY.fy),docSequences=read(KEY.sequences,{}),cheques=read(KEY.cheques),capitalRows=read(KEY.capital);
 const persist=()=>Object.entries({[KEY.returns]:returns,[KEY.job]:jobs,[KEY.accounts]:accounts,[KEY.journals]:journals,[KEY.postingMaps]:postingMaps,[KEY.sizes]:sizeSets,[KEY.counts]:counts,[KEY.purchaseReturns]:purchaseReturns,[KEY.stockReturns]:purchaseReturnStock,[KEY.prices]:priceLists,[KEY.promises]:promises,[KEY.qc]:qcBatches,[KEY.cutting]:cuttingBatches,[KEY.fy]:financialYears,[KEY.sequences]:docSequences,[KEY.cheques]:cheques,[KEY.capital]:capitalRows}).forEach(([k,v])=>save(k,v));
 const inv=()=>typeof taxInvoices!=='undefined'&&Array.isArray(taxInvoices)?taxInvoices:[];
 const stockMoves=()=>read('pa_garment_stock_ledger_v1');
@@ -64,6 +64,46 @@ function bindJob(){
  document.querySelectorAll('[data-aw-jobpay]').forEach(b=>b.onclick=()=>{const j=jobs.find(x=>x.id===b.dataset.awJobpay);if(!j||j.status==='closed')return;const due=Math.max(0,jobPayable(j)-Number(j.paid||0));if(due<=0){alert('No contractor balance is currently payable.');return;}const date=prompt('Payment date (YYYY-MM-DD):',today());if(date===null)return;const reference=prompt('Unique bank / cash payment reference:','');if(reference===null)return;const amount=prompt('Payment amount ₹ (maximum '+money(due)+'):','');if(amount===null)return;const value=Number(amount),ref=reference.trim().toLowerCase();if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||date>today()||!awDateAllowed(date)||!reference.trim()||!Number.isFinite(value)||value<=0||value>due){alert('Enter a valid date, unique payment reference and an amount not exceeding '+money(due)+'.');return;}const duplicate=jobs.some(x=>(x.payments||[]).some(p=>String(p.reference||'').trim().toLowerCase()===ref));if(duplicate){alert('This payment reference is already used on another contractor payment.');return;}j.payments=Array.isArray(j.payments)?j.payments:[];const payment={id:uid('JWPAY'),date,reference:reference.trim(),amount:Math.round(value*100)/100,createdAt:new Date().toISOString()};if(typeof window.prasadPrepareContractorPayment!=='function'){alert('Supplier-ledger contractor bridge is unavailable. No payment was saved.');return;}const settlement=window.prasadPrepareContractorPayment(j,payment,due);if(!settlement)return;Object.assign(payment,settlement);j.payments.push(payment);j.paid=Math.round((Number(j.paid||0)+payment.amount)*100)/100;j.history=Array.isArray(j.history)?j.history:[];j.history.push({at:payment.createdAt,action:'payment',paymentId:payment.id,date,reference:payment.reference,amount:payment.amount,paidToDate:j.paid});persist();render();});
  document.querySelectorAll('[data-aw-jobclose]').forEach(b=>b.onclick=()=>{const j=jobs.find(x=>x.id===b.dataset.awJobclose);if(!j)return;if(j.accepted+j.rejected+j.rework!==j.sent){alert('Cannot close: sent pieces must reconcile to accepted + rejected + rework.');return;}if(j.paid>jobPayable(j)){alert('Payments exceed payable.');return;}if(!confirm('Close challan '+j.challanNo+'?'))return;j.status='closed';j.closedAt=new Date().toISOString();persist();render();});
 }
+/* Contractor materials remain in a custody sub-ledger until canonical material-stock cutover. */
+function jobMaterialPage(){
+ const audit=typeof paFJobworkMaterialAudit==='function'?paFJobworkMaterialAudit(jobs,jobMaterials):{balances:[],issues:[{type:'audit-helper-unavailable'}]};
+ const open=jobs.filter(j=>j.status!=='closed');
+ const options=open.map(j=>'<option value="'+esc(j.id)+'">'+esc(j.challanNo+' · '+j.contractor+' · '+j.operation)+'</option>').join('');
+ const rows=audit.balances.map(x=>{
+  const j=jobs.find(z=>String(z.id)===x.jobId),hasPending=x.pending>0;
+  return '<div class="line"><div><b>'+esc(j?.challanNo||x.jobId)+' · '+esc(x.item)+'</b><small>'+esc(j?.contractor||'')+' · '+esc(x.unit)+' · Issued '+x.issued+' · Returned/used '+x.returned+' · With contractor '+x.pending+'</small></div>'+(hasPending?'<button class="secondary" data-aw-material-return="'+esc(x.issueId)+'">Record return / use</button>':'<span class="tag">RECONCILED</span>')+'</div>';
+ }).join('');
+ const issueRows=jobMaterials.slice().reverse().filter(x=>x.kind==='issue').slice(0,30).map(x=>'<div class="line"><div><b>'+esc(x.item||x.itemId)+' · '+esc(x.unit)+'</b><small>'+esc(x.date)+' · '+esc(x.reference||x.id)+' · '+esc(jobs.find(j=>j.id===x.jobId)?.challanNo||x.jobId)+'</small></div><strong>'+x.qty+'</strong></div>').join('');
+ return card('Contractor material issue','Record fabric, trims and accessories transferred against an open job-work challan. Use consistent material codes and units.','<form id="aw-job-material"><div class="two"><label>Job-work challan<select name="jobId" required><option value="">Choose challan</option>'+options+'</select></label>'+input('date','Issue date','date','required value="'+today()+'"')+'</div><div class="two">'+input('itemId','Material code / ID','text','required maxlength="60"')+input('item','Material name','text','required maxlength="100"')+'</div><div class="two">'+input('unit','Unit (m / pcs / kg)','text','required maxlength="16"')+input('qty','Quantity issued','number','required min="0.001" step="any"')+'</div>'+input('reference','Issue reference','text','maxlength="80"')+text('notes','Notes','rows="2"')+'<button class="primary">Record material issue</button></form><p class="hint">This creates a contractor-custody record only. It does not yet deduct the main material stock ledger; that cutover must be reconciled separately to avoid double-posting.</p>')+
+ card('Material with contractors','Returned reusable, consumed and scrap quantities are recorded against the original issue. The remaining balance is the quantity still with the contractor.',rows||'<div class="empty">No contractor material issues recorded.</div>')+
+ card('Recent material issues','Latest contractor material transfers.',issueRows||'<div class="empty">No material issue records yet.</div>')+
+ (audit.issues.length?card('Material custody exceptions','Review before relying on contractor material balances.',audit.issues.map(x=>'<div class="line"><b>'+esc(x.type)+'</b><small>'+esc(x.id||x.issueId||x.jobId||'Review movement')+'</small></div>').join('')):'<p class="hint">No material custody reconciliation exceptions found in the recorded transfers.</p>');
+}
+function bindJobMaterials(){
+ const f=document.getElementById('aw-job-material');
+ if(f)f.onsubmit=e=>{
+  e.preventDefault();const d=Object.fromEntries(new FormData(f)),job=jobs.find(x=>String(x.id)===String(d.jobId)),qty=Number(d.qty),item=String(d.item||'').trim(),itemId=String(d.itemId||'').trim(),unit=String(d.unit||'').trim();
+  if(!job||job.status==='closed'||!awDateAllowed(d.date)||!item||!itemId||!unit||!Number.isFinite(qty)||qty<=0){alert('Choose an open challan and enter material identity, unit, date and positive quantity.');return;}
+  const movement={id:uid('JWMAT'),kind:'issue',jobId:job.id,itemId,item,unit,qty:Math.round(qty*10000)/10000,date:d.date,reference:String(d.reference||'').trim(),notes:String(d.notes||'').trim(),createdAt:new Date().toISOString()};
+  jobMaterials.push(movement);save(KEY.jobMaterials,jobMaterials);render();
+ };
+ document.querySelectorAll('[data-aw-material-return]').forEach(b=>b.onclick=()=>{
+  const issue=jobMaterials.find(x=>x.id===b.dataset.awMaterialReturn&&x.kind==='issue');if(!issue)return;
+  const audit=paFJobworkMaterialAudit(jobs,jobMaterials),balance=audit.balances.find(x=>x.issueId===issue.id);if(!balance||balance.pending<=0)return;
+  const reusable=prompt('Reusable material returned ('+issue.unit+'), max '+balance.pending+':','0');if(reusable===null)return;
+  const consumed=prompt('Material consumed / used ('+issue.unit+'), max remaining:','0');if(consumed===null)return;
+  const scrap=prompt('Scrap / damaged material ('+issue.unit+'), max remaining:','0');if(scrap===null)return;
+  const values=[Number(reusable),Number(consumed),Number(scrap)];
+  if(!values.every(n=>Number.isFinite(n)&&n>=0)||values.some(n=>!Number.isInteger(n*10000))||values.reduce((a,n)=>a+n,0)<=0||values.reduce((a,n)=>a+n,0)>balance.pending+1e-9){alert('Enter valid quantities. Reusable + consumed + scrap cannot exceed the remaining contractor balance.');return;}
+  const job=jobs.find(x=>x.id===issue.jobId),date=prompt('Return / usage date (YYYY-MM-DD):',today());if(date===null||!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)||!awDateAllowed(date))return;
+  const kinds=['reusable-return','consumed','scrap'];
+  values.forEach((qty,i)=>{if(qty>0)jobMaterials.push({id:uid('JWMAT'),kind:kinds[i],issueId:issue.id,jobId:issue.jobId,itemId:issue.itemId,item:issue.item,unit:issue.unit,qty:Math.round(qty*10000)/10000,date,contractor:job?.contractor||'',createdAt:new Date().toISOString()})});
+  save(KEY.jobMaterials,jobMaterials);render();
+ });
+}
+const baseJobPage=jobPage;jobPage=function(){return baseJobPage()+jobMaterialPage()};
+const baseBindJob=bindJob;bindJob=function(){baseBindJob();bindJobMaterials()};
+
  const postingEvents=[['sales','Sales invoice / revenue'],['customer_receipt','Customer receipt'],['purchase','Supplier purchase bill'],['supplier_advance_payment','Supplier PO advance payment'],['supplier_advance_allocation','Supplier advance allocation'],['supplier_payment','Supplier payment'],['contractor_jobwork','Contractor job-work charge'],['tds_withheld','TDS withheld from contractor'],['customer_credit_note','Customer credit note'],['purchase_return','Supplier purchase return'],['stock_issue','Garment stock issue / cost of goods'],['stock_adjustment','Stock adjustment'],['expense','General business expense'],['bank_charge','Bank charge']];
 function buildMappedJournalDraft(event,sourceEventId,date,amount,memo,sourceReference){
  const mapping=postingMaps.find(x=>x.event===event);
