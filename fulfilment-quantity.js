@@ -311,3 +311,16 @@ function paFProductionRouteAudit(orders,stages,rows,today){
  byOrder.forEach(o=>o.stages.forEach(s=>{const valid=[...validById.values()].filter(r=>String(r.orderId)===o.orderId&&r.stage===s.stage);s.reworkPending=Math.max(0,valid.reduce((n,r)=>n+Number(r.rework||0),0)-valid.filter(r=>r.reworkOfId).reduce((n,r)=>n+Math.max(0,Number(r.qtyIn)||0),0));}));
  return {orders:[...byOrder.values()],issues,validCount:validById.size,invalidCount:issues.length};
 }
+
+function paFProductionAcceptanceAudit(orders,stages,routeRows,qcBatches,stockRows){
+ const os=Array.isArray(orders)?orders:[],routes=paFProductionRouteAudit(os,stages,routeRows),result=[];
+ os.forEach(o=>{
+  const id=String(o.id),route=routes.orders.find(x=>x.orderId===id),packed=Number(route?.stages.find(x=>x.stage==='Packing')?.good||0),qc=(Array.isArray(qcBatches)?qcBatches:[]).filter(q=>String(q.moId)===id),accepted=qc.reduce((n,q)=>n+Math.max(0,Number(q.accepted)||0),0),receipt=paFQcReceiptAudit(qc,stockRows,[id]),issues=[];
+  if(routes.issues.some(x=>String(x.orderId)===id))issues.push({type:'invalid-routing'});
+  if(accepted>packed)issues.push({type:'qc-accepted-exceeds-packed',accepted,packed});
+  if(receipt.issues.length)issues.push({type:'qc-receipt-reconciliation',count:receipt.issues.length});
+  const verified=issues.length?0:Math.min(packed,receipt.verifiedAccepted);
+  result.push({moId:id,packedGood:packed,qcAccepted:accepted,verifiedAccepted:verified,issues,acceptedOutputCostReady:verified>0});
+ });
+ return {orders:result,issues:result.flatMap(x=>x.issues.map(i=>({...i,moId:x.moId})))};
+}
