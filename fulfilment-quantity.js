@@ -294,10 +294,10 @@ function paFProductionRouteAudit(orders,stages,rows,today){
   else if(seen.has(id))error='Duplicate route entry ID';
   else {seen.add(id);}
   if(!error&&!byOrder.has(mo))error='Manufacturing order not found';
-  else if(si<0)error='Unknown production stage';
-  else if(!String(r?.worker||'').trim())error='Worker / contractor is required';
-  else if(!/^\d{4}-\d{2}-\d{2}$/.test(String(r?.date||''))||r.date>day)error='Invalid or future production date';
-  else if(!Number.isInteger(input)||input<1||!outputs.every(Number.isInteger)||outputs.some(x=>x<0)||sum>input)error='Enter whole-piece quantities; good + rejected + rework cannot exceed input';
+  if(!error&&si<0)error='Unknown production stage';
+  if(!error&&!String(r?.worker||'').trim())error='Worker / contractor is required';
+  if(!error&&(!/^\d{4}-\d{2}-\d{2}$/.test(String(r?.date||''))||r.date>day))error='Invalid or future production date';
+  if(!error&&(!Number.isInteger(input)||input<1||!outputs.every(Number.isInteger)||outputs.some(x=>x<0)||sum>input))error='Enter whole-piece quantities; good + rejected + rework cannot exceed input';
   if(!error&&r.reworkOfId){parent=validById.get(String(r.reworkOfId));if(!parent||String(parent.orderId)!==mo||parent.stage!==stage)error='Rework must link to an earlier valid batch from the same order and stage';else if(input>Number(parent.rework||0)-(reworkInputs.get(String(parent.id))||0))error='Rework input exceeds the parent batch rework balance';}
   if(!error&&!r.reworkOfId){const order=byOrder.get(mo),prior=si===0?order.plannedQty:order.stages[si-1].good,key=mo+'|'+stage,used=normalInputs.get(key)||0;if(input>prior-used)error='Input exceeds available quantity from the previous stage (available '+Math.max(0,prior-used)+')';}
   if(error){addIssue(r,error);return;}
