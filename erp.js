@@ -33,6 +33,7 @@ function productionRoutingPage(){
  card('Routing audit exceptions',audit.invalidCount+' issue(s)',issues||'<div class="empty compact">No routing quantity or reference exceptions.</div>')+
  card('Recent operation entries',routeRows.length+' total entries',recent||'<div class="empty compact">No operation output recorded.</div>');
 }
+window.prasadProductionRouteQcCapacity=function(moId){const audit=paFProductionRouteAudit(orders(),ROUTE_STAGES,routeRows,today()),o=audit.orders.find(x=>x.orderId===String(moId));if(audit.issues.some(x=>String(x.orderId)===String(moId)))return {ok:false,packedGood:0,message:'Correct production routing audit exceptions before posting QC stock.'};return {ok:true,packedGood:Number(o?.stages.find(x=>x.stage==='Packing')?.good||0)};};
 function bindProductionRouting(){
  const form=document.getElementById('routeform');if(!form)return;
  form.onsubmit=e=>{e.preventDefault();const d=Object.fromEntries(new FormData(form)),row={id:'ROUTE-'+Date.now()+'-'+Math.floor(Math.random()*10000),orderId:String(d.orderId||''),stage:String(d.stage||''),worker:String(d.worker||'').trim(),date:String(d.date||''),qtyIn:Number(d.qtyIn),good:Number(d.good),rejected:Number(d.rejected),rework:Number(d.rework),reworkOfId:String(d.reworkOfId||''),notes:String(d.notes||'').trim(),createdAt:new Date().toISOString()};
