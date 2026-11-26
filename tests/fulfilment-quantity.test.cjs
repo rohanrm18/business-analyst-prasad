@@ -203,6 +203,20 @@ test('contractor material custody flags over-return, mismatched identity and mis
   assert.ok(types.includes('return-without-issue'));
 });
 
+test('contractor rework cycles reconcile repeat work against returned rework quantities',()=>{
+ const audit=context.paFJobworkReworkAudit([{id:'JW-1',rework:5}],[
+  {id:'RW-1',jobId:'JW-1',qty:3,returnedQty:3,outcome:'Rework',date:'2026-11-01',cycleNo:1},
+  {id:'RW-2',jobId:'JW-1',parentCycleId:'RW-1',qty:3,returnedQty:3,outcome:'Accepted',date:'2026-11-02',cycleNo:2}
+ ]);
+ assert.equal(audit.cycleCount,2);assert.equal(audit.open,0);assert.equal(audit.issues.length,0);
+});
+test('contractor rework audit blocks initial and repeat-cycle quantity excess',()=>{
+ const audit=context.paFJobworkReworkAudit([{id:'JW-1',rework:2}],[
+  {id:'RW-1',jobId:'JW-1',qty:3,returnedQty:3,outcome:'Rework',cycleNo:1},
+  {id:'RW-2',jobId:'JW-1',parentCycleId:'RW-1',qty:4,returnedQty:0,outcome:'Pending',cycleNo:2}
+ ]);
+ const types=audit.issues.map(x=>x.type);assert.ok(types.includes('rework-cycles-exceed-challan-rework'));assert.ok(types.includes('rework-child-exceeds-parent-return'));
+});
 test('operation costing flags fractional piece quantities and mismatched amounts',()=>{
  const audit=context.paFOperationCostAudit([{id:'C1',jobId:'JW-1',basis:'per-piece',qty:1.5,rate:10,amount:15},{id:'C2',jobId:'JW-1',basis:'per-lot',qty:1,rate:20,amount:25}],[{id:'JW-1'}]);
  assert.equal(audit.issues.length,2);
