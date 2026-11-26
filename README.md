@@ -308,3 +308,6 @@ This is a browser-local workflow improvement, not a shared multi-user ledger. It
 ### Production acceptance and QC stock control
 
 Record valid Packing-stage good output in **More → Production tracking & problems** before posting an accepted QC batch into saleable garment stock. Accepted QC quantities cannot exceed packed good output. The routing workboard shows packed, QC-accepted and receipt-verified quantities separately. Manufacturing costing shows cost per verified accepted garment only when required material rates, routing and exact posted QC receipts reconcile. This local workflow currently compares packed output at MO-total level; browser/device and shop-floor acceptance testing is still required.
+
+
+Production routing now records garment size against each operation. QC accepted stock is limited by packed good output for the same manufacturing order, colour and size. Legacy route entries without a size are flagged for review; the app does not allocate them automatically.
