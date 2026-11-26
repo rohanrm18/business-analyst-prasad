@@ -231,3 +231,39 @@ function paFJobworkMaterialAudit(challans,movements){
  });
  return {issueCount:issued.size,balances,issues};
 }
+
+
+/* Contractor rework cycle and operation cost estimate audits. */
+function paFJobworkReworkAudit(challans,cycles){
+ const jobs=Array.isArray(challans)?challans:[],rows=Array.isArray(cycles)?cycles:[],byJob=new Map(jobs.map(j=>[String(j.id),j])),byCycle=new Map(),issues=[],ids=new Set(),initial=new Map();
+ rows.slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))||Number(a.cycleNo||0)-Number(b.cycleNo||0)).forEach(c=>{
+  const id=String(c.id||''),job=byJob.get(String(c.jobId||'')),qty=Number(c.qty),returned=Number(c.returnedQty||0);
+  if(!id||ids.has(id))issues.push({type:'duplicate-or-missing-rework-cycle-id',id});ids.add(id);
+  if(!job){issues.push({type:'missing-jobwork-challan',id,jobId:c.jobId});return}
+  if(!Number.isInteger(qty)||qty<=0||!Number.isInteger(returned)||returned<0||returned>qty||(c.outcome&&c.outcome!=='Pending'&&returned!==qty))issues.push({type:'invalid-rework-cycle-quantity',id,qty,returned});
+  if(!['Pending','Accepted','Rework','Rejected'].includes(c.outcome||'Pending'))issues.push({type:'invalid-rework-outcome',id,outcome:c.outcome});
+  if(c.parentCycleId){
+   const parent=byCycle.get(String(c.parentCycleId));
+   if(!parent||parent.jobId!==c.jobId||parent.outcome!=='Rework')issues.push({type:'invalid-rework-parent',id,parentCycleId:c.parentCycleId});
+   else {parent.childQty=(parent.childQty||0)+qty;if(parent.childQty>Number(parent.returnedQty||0))issues.push({type:'rework-child-exceeds-parent-return',id,parentCycleId:parent.id,childQty:parent.childQty,eligible:Number(parent.returnedQty||0)})}
+  }else{
+   const used=(initial.get(String(job.id))||0)+qty;initial.set(String(job.id),used);
+   if(used>Number(job.rework||0))issues.push({type:'rework-cycles-exceed-challan-rework',jobId:job.id,used,eligible:Number(job.rework||0)});
+  }
+  if(c.outcome==='Pending'&&returned>0)issues.push({type:'pending-cycle-has-returned-quantity',id});
+  if(c.outcome!=='Pending'&&returned===0)issues.push({type:'closed-cycle-missing-return-quantity',id});
+  byCycle.set(id,c);
+ });
+ return {cycleCount:rows.length,issues,open:rows.filter(c=>(c.outcome||'Pending')==='Pending').length};
+}
+function paFOperationCostAudit(costs,challans){
+ const jobs=new Map((Array.isArray(challans)?challans:[]).map(j=>[String(j.id),j])),rows=Array.isArray(costs)?costs:[],issues=[],ids=new Set();let total=0;
+ rows.forEach(c=>{
+  const id=String(c.id||''),job=jobs.get(String(c.jobId||'')),qty=Number(c.qty),rate=Number(c.rate),amount=Number(c.amount);
+  if(!id||ids.has(id))issues.push({type:'duplicate-or-missing-operation-cost-id',id});ids.add(id);
+  if(!job)issues.push({type:'operation-cost-missing-challan',id,jobId:c.jobId});
+  if(!['per-piece','per-lot'].includes(c.basis)||!Number.isFinite(qty)||qty<=0||(c.basis==='per-piece'&&!Number.isInteger(qty))||!Number.isFinite(rate)||rate<0||!Number.isFinite(amount)||Math.abs(amount-(c.basis==='per-piece'?qty*rate:rate))>0.011)issues.push({type:'invalid-operation-cost-calculation',id});
+  if(Number.isFinite(amount)&&amount>=0)total+=amount;
+ });
+ return {recordCount:rows.length,total:Math.round(total*100)/100,issues};
+}
