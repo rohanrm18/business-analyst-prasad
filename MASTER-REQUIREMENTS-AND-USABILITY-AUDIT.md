@@ -1115,3 +1115,22 @@ Regression tests cover exact variant balances, quarantined returns, material-uni
 - The new custody register is included in the Business Control Centre backup key allow-list because it is part of the module's key set.
 - **Important limitation:** this is a separate contractor-custody/WIP sub-ledger. It does not yet deduct issue quantities from the main pa_stock_moves_v1 material stock ledger or post reusable returns back into it. This avoids double-posting while the canonical inventory migration is pending. Physical material issue, return and scrap must be checked against source documents and stock counts.
 - Regression tests cover meter-based material issue, reusable return, consumption, scrap, outstanding balance, over-return, identity mismatch and missing issue reference. Browser/device workflow tests and real-data reconciliation remain pending.
+
+## Garment-wise manufacturing cost worksheet — 26 Nov 2026
+
+- Added a MO-level costing worksheet under Contractor job work / production costing. It reads cutting fabric consumption plus wastage, net accessory issues less returns, contractor operation cost estimates, and separately recorded direct production charges.
+- Material rates are entered against the relevant manufacturing order and fabric roll or accessory item. Missing rates are shown as uncosted and suppress the per-planned-piece figure rather than being silently valued at zero.
+- Contractor operation estimates and additional production charges remain management estimates. They are not added to contractor payables, TDS, journals, or stock valuation, avoiding an automatic double post.
+- The current per-piece denominator is planned MO quantity. It is not yet an accepted-output cost allocation based on verified finished QC receipts. Fabric cost currently uses used meters plus recorded wastage; returned reusable meters are not costed as consumption. Accessory valuation is based on net issue quantities.
+- Automated helper tests cover fabric and accessory arithmetic, operation estimates, direct charges, and missing-rate handling. UI/browser acceptance and comparison to source bills and real production records remain pending.
+
+
+## Stage-wise production routing and worker output — 26 Nov 2026
+
+- Added a separate production routing register to More → Production tracking & problems for Cutting, Stitching, Finishing, Ironing and Packing.
+- Each entry records manufacturing order, operation, worker/contractor, date, input pieces, good output, rejected pieces, rework quantity and notes. Order-wise stage summaries and worker-wise output are displayed.
+- Quantity controls enforce whole-piece entries, prevent stage input exceeding the preceding stage's recorded good output, and prevent rework passes exceeding the linked parent batch's outstanding rework quantity. Rework batches must be linked to an earlier batch in the same order and operation. Invalid historical rows are surfaced as audit exceptions.
+- Existing production holds remain the delay/problem register and are shown against the relevant stage in the routing summary. Routing does not automatically resolve holds.
+- The routing register is included in local backup export and restore validation.
+- **Important limitations:** stage routing is an operational sub-ledger. It does not alter the manufacturing order's legacy progress map, fabric/accessory stock, QC batches, finished-goods receipts, contractor payables, worker wages, or accounting journals. Cutting stage quantities are separate from the existing fabric cutting/consumption register; staff must continue to record both where required. Stage routing has not yet been reconciled against real shop-floor batches.
+- Regression tests cover sequential stage hand-off, rework passes, excess upstream quantities, fractional pieces, future dates and rework over-issue. Browser/device acceptance and physical workflow testing remain pending.
