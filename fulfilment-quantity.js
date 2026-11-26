@@ -282,3 +282,31 @@ function paFProductionCostAudit(orders,cuts,trimMoves,jobs,jobCosts,materialRate
  });
  return {orders:result,knownTotal:Math.round(result.reduce((n,o)=>n+o.knownTotal,0)*100)/100,uncostedMaterials:result.reduce((n,o)=>n+o.missing.length,0)};
 }
+
+function paFProductionRouteAudit(orders,stages,rows,today){
+ const os=Array.isArray(orders)?orders:[],ss=Array.isArray(stages)?stages:[],rs=Array.isArray(rows)?rows:[],day=String(today||new Date().toISOString().slice(0,10)),issues=[],byOrder=new Map(),seen=new Set(),validById=new Map(),normalInputs=new Map(),reworkInputs=new Map();
+ os.forEach(o=>byOrder.set(String(o.id),{orderId:String(o.id),style:o.style||'',plannedQty:Number(o.qty||0),stages:ss.map(stage=>({stage,input:0,good:0,rejected:0,rework:0,reworkPending:0,workers:{}}))}));
+ const addIssue=(r,message)=>issues.push({id:r?.id||'',orderId:r?.orderId||'',message});
+ rs.forEach(r=>{
+  const id=String(r?.id||''),mo=String(r?.orderId||''),stage=String(r?.stage||''),si=ss.indexOf(stage),input=Number(r?.qtyIn),outputs=[r?.good,r?.rejected,r?.rework].map(Number),sum=outputs.reduce((n,x)=>n+x,0);
+  let error='',parent=null;
+  if(!id)error='Missing route entry ID';
+  else if(seen.has(id))error='Duplicate route entry ID';
+  else if(!byOrder.has(mo))error='Manufacturing order not found';
+  else if(si<0)error='Unknown production stage';
+  else if(!String(r?.worker||'').trim())error='Worker / contractor is required';
+  else if(!/^\d{4}-\d{2}-\d{2}$/.test(String(r?.date||''))||r.date>day)error='Invalid or future production date';
+  else if(!Number.isInteger(input)||input<1||!outputs.every(Number.isInteger)||outputs.some(x=>x<0)||sum>input)error='Enter whole-piece quantities; good + rejected + rework cannot exceed input';
+  if(!error&&r.reworkOfId){parent=validById.get(String(r.reworkOfId));if(!parent||String(parent.orderId)!==mo||parent.stage!==stage)error='Rework must link to an earlier valid batch from the same order and stage';else if(input>Number(parent.rework||0)-(reworkInputs.get(String(parent.id))||0))error='Rework input exceeds the parent batch rework balance';}
+  if(!error&&!r.reworkOfId){const order=byOrder.get(mo),prior=si===0?order.plannedQty:order.stages[si-1].good,key=mo+'|'+stage,used=normalInputs.get(key)||0;if(input>prior-used)error='Input exceeds available quantity from the previous stage (available '+Math.max(0,prior-used)+')';}
+  if(error){addIssue(r,error);return;}
+  seen.add(id);validById.set(id,r);
+  if(parent)reworkInputs.set(String(parent.id),(reworkInputs.get(String(parent.id))||0)+input);
+  else normalInputs.set(mo+'|'+stage,(normalInputs.get(mo+'|'+stage)||0)+input);
+  const sr=byOrder.get(mo).stages[si],worker=String(r.worker).trim(),w=sr.workers[worker]||(sr.workers[worker]={input:0,good:0,rejected:0,rework:0});
+  sr.input+=input;sr.good+=Number(r.good);sr.rejected+=Number(r.rejected);sr.rework+=Number(r.rework);
+  w.input+=input;w.good+=Number(r.good);w.rejected+=Number(r.rejected);w.rework+=Number(r.rework);
+ });
+ byOrder.forEach(o=>o.stages.forEach(s=>{s.reworkPending=Math.max(0,s.rework-rs.filter(r=>r.stage===s.stage&&String(r.orderId)===o.orderId&&r.reworkOfId).reduce((n,r)=>n+Math.max(0,Number(r.qtyIn)||0),0));}));
+ return {orders:[...byOrder.values()],issues,validCount:validById.size,invalidCount:issues.length};
+}
