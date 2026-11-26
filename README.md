@@ -311,3 +311,8 @@ Record valid Packing-stage good output in **More → Production tracking & probl
 
 
 Production routing now records garment size against each operation. QC accepted stock is limited by packed good output for the same manufacturing order, colour and size. Legacy route entries without a size are flagged for review; the app does not allocate them automatically.
+
+
+### Multi-colour production planning
+
+Manufacturing orders support a colour × size matrix using `Colour|Size:Qty,Size:Qty; Colour|Size:Qty`. All cells must total the MO quantity. Routing and QC reconcile by exact colour and size. BOM/cutting/accessory/job-work cost allocation still needs matrix integration before live production use.
