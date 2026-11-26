@@ -67,3 +67,43 @@ test('available-to-reserve is physical saleable stock less other orders reservat
   assert.equal(navy20.free, 30);
   assert.equal(navy22.free, 40);
 });
+
+
+test('dispatch reservation validation counts issues across every invoice linked to the same packing slip', () => {
+  reset();
+  put('pa_packing_slips_v1', [
+    { id: 'PS-1', number: 'PA-PS-1', orderId: 'SO-1', status: 'approved', items: [{ itemNumber: 'D100', colour: 'Navy', size: '20', qty: 100 }] }
+  ]);
+  put('pa_tax_invoices', [
+    { id: 'INV-1', packing_slip_id: 'PS-1', status: 'issued', items: [{ itemNumber: 'D100', colour: 'Navy', size: '20', qty: 60 }] },
+    { id: 'INV-2', packing_slip_id: 'PS-1', status: 'issued', items: [{ itemNumber: 'D100', colour: 'Navy', size: '20', qty: 40 }] }
+  ]);
+  put('pa_garment_stock_ledger_v1', [
+    { type: 'Dispatch / sale issue', dispatchId: 'DSP-1', invoiceId: 'INV-1', itemNumber: 'D100', colour: 'Navy', size: '20', qty: 60 }
+  ]);
+  assert.equal(context.paFValidateDispatchReservation(
+    { id: 'INV-2', packing_slip_id: 'PS-1', items: [{ itemNumber: 'D100', colour: 'Navy', size: '20', qty: 40 }] },
+    { id: 'DSP-2' },
+    [{ itemIndex: 0, qty: 40 }]
+  ), true);
+  assert.equal(context.paFValidateDispatchReservation(
+    { id: 'INV-2', packing_slip_id: 'PS-1', items: [{ itemNumber: 'D100', colour: 'Navy', size: '20', qty: 40 }] },
+    { id: 'DSP-3' },
+    [{ itemIndex: 0, qty: 41 }]
+  ), false);
+});
+
+test('dispatch reservation validation rejects fractional, zero, negative and invalid item allocations', () => {
+  reset();
+  put('pa_packing_slips_v1', [
+    { id: 'PS-1', orderId: 'SO-1', status: 'approved', items: [{ itemNumber: 'D100', colour: 'Navy', size: '20', qty: 10 }] }
+  ]);
+  put('pa_tax_invoices', [{ id: 'INV-1', packing_slip_id: 'PS-1', status: 'issued', items: [{ itemNumber: 'D100', colour: 'Navy', size: '20', qty: 10 }] }]);
+  for (const allocation of [{ itemIndex: 0, qty: 1.5 }, { itemIndex: 0, qty: 0 }, { itemIndex: 0, qty: -1 }, { itemIndex: 9, qty: 1 }]) {
+    assert.equal(context.paFValidateDispatchReservation(
+      { id: 'INV-1', packing_slip_id: 'PS-1', items: [{ itemNumber: 'D100', colour: 'Navy', size: '20', qty: 10 }] },
+      { id: 'DSP-X' },
+      [allocation]
+    ), false);
+  }
+});
