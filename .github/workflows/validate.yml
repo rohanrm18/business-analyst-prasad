@@ -31,3 +31,6 @@ jobs:
 
       - name: Run backup and restore safety tests
         run: node --test tests/backup-restore.test.cjs
+
+      - name: Run invoice and dispatch print regression tests
+        run: node --test tests/dispatch-print.test.cjs
