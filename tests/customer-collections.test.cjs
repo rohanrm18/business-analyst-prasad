@@ -15,7 +15,7 @@ function extract(source, name) {
   throw new Error('unterminated ' + name);
 }
 const source = fs.readFileSync('app.js', 'utf8');
-const names = ['arInvoices','arInvoiceTotal','arReceived','arCredited','arBal','arDue','arCaseFor','arOpen','arReminderStage'];
+const names = ['arInvoices','arInvoiceTotal','arReceived','arCredited','arBal','arDue','arAge','arCaseFor','arOpen','arReminderStage'];
 const state = vm.createContext({
   taxInvoices: [],
   arOpening: [],
