@@ -34,3 +34,6 @@ jobs:
 
       - name: Run invoice and dispatch print regression tests
         run: node --test tests/dispatch-print.test.cjs
+
+      - name: Run end-to-end order-to-delivery regression tests
+        run: node --test tests/order-to-delivery.test.cjs
