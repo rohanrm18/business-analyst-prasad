@@ -413,7 +413,7 @@ function paFProductionVariantMaterialConsumptionAudit(orders,bomRows,cuts,trimMo
      const mapped=fl.filter(r=>String(r.code||'').trim().toLowerCase()===materialId&&(!c.colour||paFNorm(r.colour)===paFNorm(c.colour)));
      if(!mapped.length)row.issues.push('No fabric roll maps to this BOM material code and fabric shade.');
      const ids=new Set(mapped.map(r=>String(r.id)));
-     const relevant=cs.filter(x=>String(x.moId||x.orderId)===mo&&ids.has(String(x.rollId)));
+     const moCuts=cs.filter(x=>String(x.moId||x.orderId)===mo),relevant=moCuts.filter(x=>ids.has(String(x.rollId)));\n     moCuts.filter(x=>paFVariantKey(x.garmentColour||x.colour,x.size)===v.key&&!ids.has(String(x.rollId))).forEach(x=>row.issues.push('No fabric roll mapping for movement '+String(x.rollId||x.id||'unknown')+' to this BOM component.'));
      relevant.forEach(x=>{
       if(!String(x.garmentColour||x.colour||'').trim()||!String(x.size||'').trim()){row.issues.push('Fabric movement '+String(x.id||x.rollId)+' lacks garment colour or size; left unallocated.');return;}
       if(paFVariantKey(x.garmentColour||x.colour,x.size)!==v.key)return;
