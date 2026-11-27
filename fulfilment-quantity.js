@@ -451,3 +451,16 @@ function paFProductionVariantMaterialConsumptionAudit(orders,bomRows,cuts,trimMo
   return {moId:mo,validPlan:plan.valid,variants,issues};
  });
 }
+
+
+function paFProductionVariantMovementCheck(order,colour,size,pieces,existingCuts){
+ const matrix=paFProductionVariantMaterialPlan(order);
+ if(!matrix.valid)return {valid:false,reason:'Invalid colour-size production plan: '+(matrix.issues||[]).join('; ')};
+ const c=String(colour||'').trim(),z=String(size||'').trim(),key=paFVariantKey(c,z),planned=matrix.qtyByVariant[key];
+ if(!c||!z||!planned)return {valid:false,reason:'Select a garment colour and size that exist in this manufacturing order.'};
+ const qty=Number(pieces);
+ if(!Number.isInteger(qty)||qty<1)return {valid:false,reason:'Cut pieces must be a positive whole number.'};
+ const already=(Array.isArray(existingCuts)?existingCuts:[]).filter(x=>String(x.moId||x.orderId)===String(order.id)&&paFVariantKey(x.garmentColour||x.colour,x.size)===key).reduce((n,x)=>n+Math.max(0,Number(x.pieces)||0),0);
+ const remaining=Math.max(0,Number(planned)-already);
+ return {valid:qty<=remaining,colour:c,size:z,key,planned,already,remaining,requested:qty,reason:qty>remaining?'Cutting exceeds the remaining planned quantity for '+c+' / '+z+'. Remaining: '+remaining+' pieces.':''};
+}
