@@ -1188,3 +1188,12 @@ Manufacturing orders support `Colour|Size:Qty,Size:Qty; Colour|Size:Qty`. Produc
 - For colour-size MOs, the material requirement calculator filters each BOM line to its exact garment-colour/size cell; size-only lines aggregate that size across colours, colour-only lines aggregate that colour across sizes, and untagged lines apply to the whole MO.
 - The existing reservation workflow now uses these calculated quantities and reserves the resulting shared physical material requirement by material identity. This avoids double-reserving the same shared fabric/trim stock across colour cells while preserving variant-specific demand calculation.
 - This is still a material reservation gate, not automatic variant-wise stock issue. Fabric cutting and accessory issue movements remain separately recorded; legacy BOM snapshots without garment-colour tags continue to behave as shared/common components.
+
+
+### Variant-wise material consumption reconciliation (implementation update)
+
+- Added a read-only colour-size reconciliation of BOM demand against actual fabric and accessory movement records.
+- Fabric BOM material codes are mapped to fabric-roll records; fabric shade remains separate from garment colour. Exact garment colour-size cutting rows report issued, returned, used and wastage separately. Fabric issue alone is never treated as consumption.
+- Accessory OUT and IN movements are matched by item and garment variant. Net issued is explicitly a custody figure, not proof of physical consumption.
+- Untagged legacy movements remain unallocated and are surfaced as exceptions. Missing roll mappings, invalid BOM demand and shortages/excesses are review statuses; no automatic stock adjustment or issue posting occurs.
+- Browser/shop-floor acceptance testing remains pending.
