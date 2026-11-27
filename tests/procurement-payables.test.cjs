@@ -57,7 +57,7 @@ test('GRN accepts only approved purchase orders and valid dates', () => {
 test('GRN prevents cumulative over-receipt and duplicate fabric roll numbers', () => {
   const line = { itemType: 'Fabric', qty: 50 };
   assert.match(erp.grnReceiptValidation({ status: 'Part received' }, line, 5, '2026-11-27', 'ROLL-2', 48, []), /cannot exceed the remaining/);
-  assert.match(erp.grnReceiptValidation({ status: 'Approved' }, line, 5, '2026-11-27', 'ROLL-1', 0, [{ roll: 'ROLL-1' }]), /unique fabric roll/);
+  assert.match(erp.grnReceiptValidation({ status: 'Approved' }, line, 5, '2026-11-27', 'ROLL-1', 0, [{ roll: 'ROLL-1' }]), /unique roll number/);
 });
 test('accessory GRN requires whole-piece quantities', () => {
   assert.match(erp.grnReceiptValidation({ status: 'Approved' }, { itemType: 'Accessory', qty: 20 }, 1.5, '2026-11-27', '', 0, []), /whole number/);
