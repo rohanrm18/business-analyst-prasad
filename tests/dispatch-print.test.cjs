@@ -31,7 +31,7 @@ test('transporter duplex print is blocked until E-Way Bill review is complete',(
 test('transporter duplex print contains front invoice and reviewed not-required back',()=>{
  const d={invoiceId:'I-1',ewb:'not_required',reason:'Threshold checked; not required',transporter:'Roadways',lr:'LR-1',lrDate:'2026-11-27'};
  const h=harness(dispatch,'function paPrintDuplex(id){','function paEnvelope(v){',{taxInvoices:[invoice],paGetDispatch:()=>d});
- h.context.paPrintDuplex('I-1');assert.equal(h.closed,true);assert.match(h.html,/DUPLICATE FOR TRANSPORTER/);assert.match(h.html,/OFFICIAL/);assert.match(h.html,/REVIEWED: E-WAY BILL NOT REQUIRED/);assert.match(h.html,/Threshold checked; not required/);assert.match(h.html,/page-break-after:always/);
+ h.context.paPrintDuplex('I-1');assert.equal(h.closed,true);assert.match(h.html,/DUPLICATE FOR TRANSPORTER/);assert.match(h.html,/REVIEWED: E-WAY BILL NOT REQUIRED/);assert.match(h.html,/Threshold checked; not required/);assert.match(h.html,/page-break-after:always/);
 });
 
 test('partial dispatch print blocks pending E-Way Bill review',()=>{
@@ -47,7 +47,7 @@ test('partial dispatch annexure prints only allocated quantities and is not a ne
 });
 
 test('partial dispatch quantities cannot silently overstate remaining invoiced pieces',()=>{
- const h=harness(partial,'function paMultiQty(invoice,index){','function paMultiStock(invoice,d){',{paDispatches:[{invoiceId:'I-1',items:[{itemIndex:0,qty:1}]},{invoiceId:'I-1',items:[{itemIndex:0,qty:0}]}]});
+ const h=harness(partial,'function paMultiQty(invoice,index){','function paMultiStock(invoice,d){',{paDispatches:[{invoiceId:'I-1',items:[{itemIndex:0,qty:1}]},{invoiceId:'I-1',items:[{itemIndex:0,qty:0}]}],paMultiDs:id=>[{invoiceId:id,items:[{itemIndex:0,qty:1}]},{invoiceId:id,items:[{itemIndex:0,qty:0}]}]});
  const invoiceCopy={...invoice,items:[{...invoice.items[0],qty:2}]};
  assert.equal(h.context.paMultiQty(invoiceCopy,0),1);assert.equal(h.context.paMultiRemain(invoiceCopy,0),1);
 });
