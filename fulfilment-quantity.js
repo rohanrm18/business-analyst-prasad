@@ -464,3 +464,32 @@ function paFProductionVariantMovementCheck(order,colour,size,pieces,existingCuts
  const remaining=Math.max(0,Number(planned)-already);
  return {valid:qty<=remaining,colour:c,size:z,key,planned,already,remaining,requested:qty,reason:qty>remaining?'Cutting exceeds the remaining planned quantity for '+c+' / '+z+'. Remaining: '+remaining+' pieces.':''};
 }
+
+
+function paFProductionCuttingHandoverAudit(orders,cuttingBatches,routeRows){
+ const os=Array.isArray(orders)?orders:[],cuts=Array.isArray(cuttingBatches)?cuttingBatches:[],routes=Array.isArray(routeRows)?routeRows:[];
+ return os.filter(o=>!['Cancelled','cancelled'].includes(o.status||'')).map(o=>{
+  const plan=paFProductionVariantMaterialPlan(o),cells=plan.rows.map(v=>({colour:v.colour,size:v.size,key:paFVariantKey(v.colour,v.size),planned:v.qty,cutPieces:0,cuttingGood:0,cuttingRejected:0,cuttingRework:0,stitchingHandover:0,unhandedGood:0,fabricIssued:0,fabricUsed:0,fabricWastage:0,fabricReturned:0,issues:[]})),issues=[],byKey=new Map(cells.map(v=>[v.key,v]));
+  if(!plan.valid)issues.push({type:'invalid-variant-plan',detail:plan.issues.join('; ')});
+  cuts.filter(x=>String(x.moId||x.orderId)===String(o.id)).forEach(x=>{
+   const key=paFVariantKey(x.garmentColour||x.colour||o.colour,x.size),v=byKey.get(key);
+   if(!v){issues.push({type:'unallocated-cut-batch',id:x.id||'',detail:'Cutting batch is missing a valid garment colour-size cell.'});return;}
+   v.cutPieces+=Math.max(0,Number(x.pieces)||0);v.fabricIssued+=Math.max(0,Number(x.issued)||0);v.fabricUsed+=Math.max(0,Number(x.used)||0);v.fabricWastage+=Math.max(0,Number(x.wastage??x.waste)||0);v.fabricReturned+=Math.max(0,Number(x.returned)||0);
+  });
+  routes.filter(x=>String(x.orderId)===String(o.id)).forEach(x=>{
+   const key=paFVariantKey(x.colour||o.colour,x.size),v=byKey.get(key);
+   if(!v){issues.push({type:'unallocated-route-entry',id:x.id||'',detail:'Routing entry is missing a valid garment colour-size cell.'});return;}
+   if(x.stage==='Cutting'){v.cuttingGood+=Math.max(0,Number(x.good)||0);v.cuttingRejected+=Math.max(0,Number(x.rejected)||0);v.cuttingRework+=Math.max(0,Number(x.rework)||0);}
+   if(x.stage==='Stitching'&&!x.reworkOfId)v.stitchingHandover+=Math.max(0,Number(x.qtyIn)||0);
+  });
+  cells.forEach(v=>{
+   if(v.cutPieces>v.planned) v.issues.push('Actual cut pieces exceed planned variant quantity.');
+   if(v.cuttingGood>v.cutPieces)v.issues.push('Cutting-stage good output exceeds recorded cut-batch pieces.');
+   if(v.stitchingHandover>v.cuttingGood)v.issues.push('Stitching handover exceeds Cutting-stage good output.');
+   v.unhandedGood=Math.max(0,v.cuttingGood-v.stitchingHandover);
+   if(v.cutPieces>0&&v.cuttingGood===0)v.issues.push('Cut batches exist but no Cutting-stage good output is recorded.');
+   if(v.cuttingGood>0&&v.cutPieces===0)v.issues.push('Cutting-stage good output has no matching cut-batch record.');
+  });
+  return {moId:String(o.id),validPlan:plan.valid,variants:cells,issues:issues.concat(cells.flatMap(v=>v.issues.map(detail=>({type:'variant-reconciliation',colour:v.colour,size:v.size,detail}))))};
+ });
+}
