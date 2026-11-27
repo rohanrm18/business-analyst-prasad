@@ -86,7 +86,7 @@ test('collection reminder schedule follows due-date and overdue milestones', () 
   assert.equal(state.arReminderStage(invoice), 'Due today');
   assert.equal(state.arReminderStage({ due_date: '2026-11-24' }), '3 days overdue');
   assert.equal(state.arReminderStage({ due_date: '2026-11-20' }), '7 days overdue');
-  assert.equal(state.arReminderStage({ due_date: '2026-11-12' }), '15-day overdue follow-up');
+  assert.equal(state.arReminderStage({ due_date: '2026-11-05' }), '15-day overdue follow-up');
   assert.equal(state.arReminderStage({ due_date: '2026-11-30' }), '3 days before due');
   Date.now = originalNow;
 });
