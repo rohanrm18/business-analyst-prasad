@@ -1197,3 +1197,11 @@ Manufacturing orders support `Colour|Size:Qty,Size:Qty; Colour|Size:Qty`. Produc
 - Accessory OUT and IN movements are matched by item and garment variant. Net issued is explicitly a custody figure, not proof of physical consumption.
 - Untagged legacy movements remain unallocated and are surfaced as exceptions. Missing roll mappings, invalid BOM demand and shortages/excesses are review statuses; no automatic stock adjustment or issue posting occurs.
 - Browser/shop-floor acceptance testing remains pending.
+
+
+### Variant-specific material movement controls (implementation update)
+
+- Cutting entries now capture garment colour and size for colour-size manufacturing orders and block a cut quantity that exceeds the remaining planned pieces for that exact variant. This applies to the standard cutting form and Business Control Centre fabric-cut postings.
+- Cutting entries validate date and preserve the exact variant against the BOM material/shade component. Legacy untagged rows are not assigned retrospectively.
+- Accessory movements require garment colour and size for colour-size MOs, validate whole-piece quantities and movement dates, and match the BOM component to the exact variant. Returns are limited to the outstanding issue for that same colour-size cell; one variant cannot return another variant's issued accessories.
+- These controls are still local-record workflows; no automatic stock posting or server-side concurrency protection is claimed. Browser and shop-floor acceptance testing remains pending.
