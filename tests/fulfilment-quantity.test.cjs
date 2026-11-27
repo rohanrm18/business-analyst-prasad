@@ -385,3 +385,37 @@ test('cutting handover audit leaves untagged legacy batches unallocated',()=>{
  assert.ok(out.issues.some(x=>x.type==='unallocated-cut-batch'));
  assert.equal(out.variants[0].cutPieces,0);
 });
+
+test('stitching-finishing audit reconciles worker output and downstream handovers per variant',()=>{
+ const mo={id:'MO-SF',qty:4,variants:[{colour:'Navy',size:'20',qty:2},{colour:'Peach',size:'20',qty:2}]};
+ const routes=[
+  {orderId:'MO-SF',stage:'Stitching',colour:'Navy',size:'20',qtyIn:2,good:2,rejected:0,rework:0},
+  {orderId:'MO-SF',stage:'Stitching',colour:'Peach',size:'20',qtyIn:2,good:1,rejected:0,rework:1},
+  {orderId:'MO-SF',stage:'Finishing',colour:'Navy',size:'20',qtyIn:1,good:1,rejected:0,rework:0},
+  {orderId:'MO-SF',stage:'Finishing',colour:'Peach',size:'20',qtyIn:1,good:1,rejected:0,rework:0},
+  {orderId:'MO-SF',stage:'Ironing',colour:'Navy',size:'20',qtyIn:1},
+  {orderId:'MO-SF',stage:'Stitching',colour:'Peach',size:'20',qtyIn:1,good:1,rework:0,reworkOfId:'R1'}
+ ];
+ const out=context.paFProductionStitchingFinishingAudit([mo],routes)[0],navy=out.variants.find(v=>v.colour==='Navy'),peach=out.variants.find(v=>v.colour==='Peach');
+ assert.equal(navy.goodAwaitingFinishing,1);assert.equal(navy.goodAwaitingIroning,0);
+ assert.equal(peach.stitchingRework,1);assert.equal(peach.goodAwaitingFinishing,0);
+ assert.equal(out.issues.length,0);
+});
+test('stitching-finishing audit flags over-handover and excess stage output',()=>{
+ const mo={id:'MO-SF-ERR',qty:2,variants:[{colour:'Navy',size:'20',qty:2}]};
+ const out=context.paFProductionStitchingFinishingAudit([mo],[
+  {orderId:'MO-SF-ERR',stage:'Stitching',colour:'Navy',size:'20',qtyIn:2,good:3},
+  {orderId:'MO-SF-ERR',stage:'Finishing',colour:'Navy',size:'20',qtyIn:4,good:5},
+  {orderId:'MO-SF-ERR',stage:'Ironing',colour:'Navy',size:'20',qtyIn:6}
+ ])[0];
+ assert.ok(out.variants[0].issues.some(x=>x.includes('Stitching good output exceeds')));
+ assert.ok(out.variants[0].issues.some(x=>x.includes('Finishing input exceeds')));
+ assert.ok(out.variants[0].issues.some(x=>x.includes('Finishing good output exceeds')));
+ assert.ok(out.variants[0].issues.some(x=>x.includes('Ironing input exceeds')));
+});
+test('stitching-finishing audit leaves legacy untagged production rows unallocated',()=>{
+ const mo={id:'MO-SF-OLD',qty:1,variants:[{colour:'Navy',size:'20',qty:1}]};
+ const out=context.paFProductionStitchingFinishingAudit([mo],[{orderId:'MO-SF-OLD',stage:'Stitching',qtyIn:1,good:1}])[0];
+ assert.ok(out.issues.some(x=>x.type==='unallocated-stage-entry'));
+ assert.equal(out.variants[0].stitchingGood,0);
+});
