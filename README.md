@@ -362,3 +362,12 @@ For colour-size manufacturing orders, cutting records require garment colour and
 - The same view shows fabric issued, used, wastage and reusable returns from cutting batches.
 - New Cutting-stage good-output entries are blocked when they exceed the recorded cutting-batch piece balance for that exact garment colour and size. Existing Stitching input remains constrained by the prior stage's good output through the production-route audit.
 - Unmatched or untagged cutting and routing records are reported as exceptions; no retrospective allocation or automatic stock transfer is performed. Browser and shop-floor acceptance testing remains pending.
+
+
+### Stitching-to-finishing handover and desktop workspace (implementation update)
+
+- Production tracking now shows colour-size Stitching input, good, rejected and rework quantities; Finishing input, good, rejected and rework; and Ironing input. It calculates good pieces awaiting Finishing and awaiting Ironing. Rework-pass entries are excluded from first-pass handover totals to avoid double counting.
+- The reconciliation flags downstream input above upstream good output, output above received input, unallocated legacy entries and variant plan issues. The production route validation remains the save-time control for stage input.
+- A wide-screen desktop layout is included in the same responsive web/PWA app: at 1200px and above navigation becomes a persistent left sidebar, with a wider workspace. Tablet and mobile layouts remain available. This is not a separate Windows .exe/native desktop package.
+- The separate Windows Tally connector is a different component; its earlier setup was not completed because the expected connector `server.py` file was missing from the PC folder. Tally live integration is not claimed.
+- Browser testing on actual desktop hardware remains pending.
