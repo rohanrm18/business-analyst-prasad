@@ -20,7 +20,7 @@ test('backup export key list and restore whitelist stay compatible',()=>{
  const source=fs.readFileSync(require.resolve('../app.js'),'utf8');
  const match=source.match(/function backupKeys\(\)\{([\s\S]*?)\}\s*function downloadBusinessBackup/);
  assert.ok(match,'backupKeys function must remain discoverable for compatibility testing');
- const sandbox={localStorage:{getItem:()=>null},ARK:'pa_ar_receipts_v1',ACK:'pa_ar_credits_v1',AHK:'pa_ar_reminders_v1',AOK:'pa_ar_opening_v1',ANCK:'pa_ar_credit_notes_v1',ASCK:'pa_ar_status_v1'};
+ const sandbox={localStorage:{getItem:()=>null},ARK:'pa_customer_receipts_v1',ACK:'pa_customer_credit_v1',AHK:'pa_collection_reminders_v1',AOK:'pa_customer_opening_balances_v1',ANCK:'pa_customer_credit_notes_v1',ASCK:'pa_customer_ar_status_events_v1'};
  vm.runInNewContext(match[0].replace(/\s*function downloadBusinessBackup[\s\S]*/,'')+';globalThis.keys=backupKeys();',sandbox);
  const restoreStart=source.indexOf('function restoreBusinessBackup');
  const restoreEnd=source.indexOf('\n\nfunction styleCosts',restoreStart);
