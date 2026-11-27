@@ -37,3 +37,6 @@ jobs:
 
       - name: Run end-to-end order-to-delivery regression tests
         run: node --test tests/order-to-delivery.test.cjs
+
+      - name: Run procurement and supplier payables regression tests
+        run: node --test tests/procurement-payables.test.cjs
