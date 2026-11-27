@@ -37,7 +37,7 @@ test('bank matching sources include only valid completed non-cash records', () =
     { id: 'A1', date: '2026-11-09', amount: 700, supplier: 'Supplier', mode: 'UPI', status: 'approved' }
   ]);
   const rows = context.bankSources();
-  assert.deepEqual(rows.map(x => x.id), ['R1', 'P1', 'A1']);
+  assert.deepEqual(Array.from(rows, x => x.id), ['R1', 'P1', 'A1']);
   assert.equal(rows[0].direction, 'credit');
   assert.equal(rows[1].direction, 'debit');
   assert.equal(rows[0].reference, 'UTR1');
