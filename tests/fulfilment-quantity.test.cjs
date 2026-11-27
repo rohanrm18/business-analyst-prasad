@@ -419,3 +419,26 @@ test('stitching-finishing audit leaves legacy untagged production rows unallocat
  assert.ok(out.issues.some(x=>x.type==='unallocated-stage-entry'));
  assert.equal(out.variants[0].stitchingGood,0);
 });
+
+test('stitching-finishing audit reconciles ironing-to-packing and final packed good quantity',()=>{
+ const mo={id:'MO-PACK',qty:3,variants:[{colour:'Navy',size:'20',qty:3}]};
+ const rows=[
+  {orderId:'MO-PACK',stage:'Stitching',colour:'Navy',size:'20',qtyIn:3,good:3},
+  {orderId:'MO-PACK',stage:'Finishing',colour:'Navy',size:'20',qtyIn:3,good:3},
+  {orderId:'MO-PACK',stage:'Ironing',colour:'Navy',size:'20',qtyIn:3,good:3},
+  {orderId:'MO-PACK',stage:'Packing',colour:'Navy',size:'20',qtyIn:2,good:2,rejected:0,rework:0}
+ ];
+ const v=context.paFProductionStitchingFinishingAudit([mo],rows)[0].variants[0];
+ assert.equal(v.goodAwaitingPacking,1);assert.equal(v.packingInput,2);assert.equal(v.packingGood,2);assert.equal(v.packingRejected,0);
+});
+test('packing input and packed good cannot exceed ironing output and received packing input',()=>{
+ const mo={id:'MO-PACK-ERR',qty:2,variants:[{colour:'Navy',size:'20',qty:2}]};
+ const v=context.paFProductionStitchingFinishingAudit([mo],[
+  {orderId:'MO-PACK-ERR',stage:'Stitching',colour:'Navy',size:'20',qtyIn:2,good:2},
+  {orderId:'MO-PACK-ERR',stage:'Finishing',colour:'Navy',size:'20',qtyIn:2,good:2},
+  {orderId:'MO-PACK-ERR',stage:'Ironing',colour:'Navy',size:'20',qtyIn:1,good:1},
+  {orderId:'MO-PACK-ERR',stage:'Packing',colour:'Navy',size:'20',qtyIn:3,good:4}
+ ])[0].variants[0];
+ assert.ok(v.issues.some(x=>x.includes('Packing input exceeds ironing good')));
+ assert.ok(v.issues.some(x=>x.includes('Packing good output exceeds packing input')));
+});
