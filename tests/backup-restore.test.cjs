@@ -59,7 +59,7 @@ test('failed storage write rolls back every touched key',()=>{
   setItem(key,value){calls++;if(calls===2)throw new Error('simulated quota failure');base.setItem(key,value);}
  };
  assert.throws(()=>core.applyBackupEntries(storage,[['pa_orders','after'],['pa_tax_invoices','after-invoices']],['pa_orders','pa_tax_invoices']),/simulated quota failure/);
- assert.deepEqual(base.snapshot(),{pa_orders:'before',pa_tax_invoices:'before-invoices',pa_invoice_seq_26-27:'7'});
+ assert.deepEqual(base.snapshot(),{pa_orders:'before',pa_tax_invoices:'before-invoices','pa_invoice_seq_26-27':'7'});
 });
 
 test('malformed restore entries are rejected and existing data is retained',()=>{
