@@ -327,3 +327,12 @@ Manufacturing orders support a colour × size matrix using `Colour|Size:Qty,Size
 - Accessory issues now capture garment colour and size for matrix orders, calculate the cell-specific expected trim quantity and block cumulative issue beyond that variant's requirement; legacy orders retain their existing flow.
 - Job-work challans now validate garment colour and size against the MO matrix and cap sent pieces independently for each colour-size-operation combination. Legacy single-colour MOs retain their previous size-plan check. Fabric roll issue/used/waste/return remains the existing fabric ledger movement; it is not yet an automatic colour-wise fabric consumption allocation or a full variant-level reservation ledger. Accessory issue and contractor job-work still need the same variant-level enforcement before live use.
 - Added a unit test for colour aggregation into size-specific BOM demand and duplicate-cell rejection. Browser/shop-floor acceptance testing remains pending.
+
+
+### Variant-level manufacturing costing (implementation update)
+
+- Added colour-size cost reconciliation using garment-colour/size-tagged fabric cutting records, net accessory issue/return movements, and contractor job-work costs attached to colour-size challans.
+- Material rates remain MO/material-specific. Missing rates and unallocated variant movements are explicit costing exceptions; no guessed variant cost is published.
+- MO-wide other production charges without a colour-size tag are allocated by planned quantity across the MO variants. Charges carrying a valid colour and size are assigned directly to that cell.
+- Cost per verified accepted garment is shown per colour-size cell only when that cell's costing inputs and the MO's production/QC receipt audit are clean. The MO-level accepted denominator now uses total variant acceptance, including multi-colour MOs.
+- This is a costing worksheet, not accounting or stock valuation. Historical untagged cutting, trim or job-work rows remain unallocated and need correction; material reservation and automatic consumption posting are not yet implemented. Browser/shop-floor testing remains pending.
