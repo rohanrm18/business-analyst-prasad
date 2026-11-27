@@ -28,7 +28,7 @@ test('backup export key list and restore whitelist stay compatible',()=>{
  const allowedMatch=restore.match(/const allowed=\[(.*?)\],entries=/s);
  assert.ok(allowedMatch,'restore allowlist must remain discoverable');
  const literals=[...allowedMatch[1].matchAll(/'([^']+)'/g)].map(x=>x[1]);
- const dynamicKeys=['pa_ar_receipts_v1','pa_ar_credits_v1','pa_ar_reminders_v1','pa_ar_opening_v1','pa_ar_credit_notes_v1','pa_ar_status_v1'];
+ const dynamicKeys=['pa_customer_receipts_v1','pa_customer_credit_v1','pa_collection_reminders_v1','pa_customer_opening_balances_v1','pa_customer_credit_notes_v1','pa_customer_ar_status_events_v1'];
  for(const key of sandbox.keys){
   if(key.startsWith('pa_invoice_seq_'))assert.match(key,/^pa_invoice_seq_\d{2}-\d{2}$/);
   else assert.ok(literals.includes(key)||dynamicKeys.includes(key),'exported key missing from restore allowlist: '+key);
