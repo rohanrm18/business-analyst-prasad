@@ -52,7 +52,7 @@ test('restore applies a valid snapshot and replaces only registered business key
 
 test('failed storage write rolls back every touched key',()=>{
  let calls=0;
- const base=memoryStorage({pa_orders:'before',pa_tax_invoices:'before-invoices',pa_invoice_seq_26-27:'7'});
+ const base=memoryStorage({pa_orders:'before',pa_tax_invoices:'before-invoices','pa_invoice_seq_26-27':'7'});
  const storage={
   getItem:key=>base.getItem(key),
   removeItem:key=>base.removeItem(key),
