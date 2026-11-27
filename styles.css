@@ -92,3 +92,10 @@
  .nav i{width:24px;font-size:21px;text-align:center}
  .hero{margin-top:20px}
 }
+
+/* Desktop app installation entry point */
+.top-actions{display:flex;align-items:center;gap:10px}
+.desktop-install{width:auto;margin:0;padding:10px 13px;border:1px solid #d8b978;border-radius:10px;background:#26344a;color:#f1d69e;font-size:12px;font-weight:700;white-space:nowrap}
+.desktop-install[hidden]{display:none}
+@media(max-width:600px){.desktop-install{font-size:10px;padding:8px 9px}}
+@media(min-width:1200px){.desktop-install{padding:11px 16px;font-size:13px}}
