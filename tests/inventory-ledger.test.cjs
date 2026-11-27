@@ -36,23 +36,64 @@ test('normalizes materials with item identity and unit kept separate',()=>{
  assert.equal(ledger.balance(rows,{domain:'material',itemName:'Navy Fabric',unit:'Rolls'}),2);
 });
 
-test('migration preview flags invalid rows, duplicate legacy ids and unallocated garments',()=>{
- const report=ledger.preview([
-  {id:'same',type:'Production receipt',style:'PA-1',qty:4},
-  {id:'same',type:'Production receipt',style:'PA-2',colour:'Red',size:'20',qty:2},
-  {id:'bad',type:'Production receipt',style:'PA-3',qty:0}
- ],[{id:'m1',item:'Thread',unit:'Kg',direction:'IN',qty:1}]);
- assert.equal(report.invalid.length,1);
- assert.equal(report.duplicates.length,1);
- assert.equal(report.unallocated,1);
- assert.match(report.warning,/Preview only/);
+test('rejects unknown garment movement types, missing styles and invalid quantities',()=>{
+ const out=ledger.normalizeGarmentRows([
+  {id:'bad1',type:'Mystery type',style:'PA-1',colour:'Red',size:'20',qty:5},
+  {id:'bad2',type:'Production receipt',style:'',colour:'Red',size:'20',qty:5},
+  {id:'bad3',type:'Production receipt',style:'PA-1',qty:-1}
+ ]);
+ assert.deepEqual(out.map(x=>x.ok),[false,false,false]);
+ assert.match(out[0].reason,/Unknown garment movement type/);
+ assert.match(out[1].reason,/Missing style/);
 });
 
-test('material balance can match legacy item names even when newer rows have item IDs',()=>{
+test('reference values are not movement identities; different rows sharing a reference remain distinct',()=>{
+ const rows=ledger.normalizeGarmentRows([
+  {id:'g-a',reference:'GRN-10',type:'Production receipt',style:'PA-1',colour:'Red',size:'20',qty:5},
+  {id:'g-b',reference:'GRN-10',type:'Production receipt',style:'PA-2',colour:'Blue',size:'22',qty:7}
+ ]);
+ assert.notEqual(rows[0].record.movementId,rows[1].record.movementId);
+ assert.equal(ledger.preview([
+  {id:'g-a',reference:'GRN-10',type:'Production receipt',style:'PA-1',colour:'Red',size:'20',qty:5},
+  {id:'g-b',reference:'GRN-10',type:'Production receipt',style:'PA-2',colour:'Blue',size:'22',qty:7}
+ ],[]).duplicates.length,0);
+});
+
+test('rows without IDs use content-derived stable IDs, not their array positions',()=>{
+ const a={type:'Production receipt',style:'PA-1',colour:'Red',size:'20',qty:5,date:'2026-06-01',reference:'same-ref'};
+ const b={type:'Production receipt',style:'PA-2',colour:'Blue',size:'22',qty:7,date:'2026-06-02',reference:'same-ref'};
+ const forward=ledger.normalizeGarmentRows([a,b]).map(x=>x.record.movementId).sort();
+ const reversed=ledger.normalizeGarmentRows([b,a]).map(x=>x.record.movementId).sort();
+ assert.deepEqual(forward,reversed);
+ assert.notEqual(ledger.normalizeGarmentRows([a])[0].record.movementId,ledger.normalizeGarmentRows([b])[0].record.movementId);
+});
+
+test('material rows reject missing item, missing unit, invalid quantity and unknown direction',()=>{
+ const out=ledger.normalizeMaterialRows([
+  {id:'m1',item:'',unit:'Kg',direction:'IN',qty:1},
+  {id:'m2',item:'Thread',unit:'',direction:'IN',qty:1},
+  {id:'m3',item:'Thread',unit:'Kg',direction:'IN',qty:0},
+  {id:'m4',item:'Thread',unit:'Kg',direction:'SIDEWAYS',qty:1}
+ ]);
+ assert.deepEqual(out.map(x=>x.ok),[false,false,false,false]);
+});
+
+test('duplicate audit is based on stable movement IDs, not shared references',()=>{
+ const report=ledger.preview([
+  {id:'same',reference:'REF-1',type:'Production receipt',style:'PA-1',colour:'Red',size:'20',qty:4},
+  {id:'same',reference:'REF-2',type:'Production receipt',style:'PA-1',colour:'Blue',size:'22',qty:2}
+ ],[]);
+ assert.equal(report.duplicates.length,1);
+ assert.equal(report.duplicates[0].movementId,'LEGACY-GARMENT:garment:same');
+});
+
+test('keeps existing item-name compatibility and units separate',()=>{
  const rows=ledger.normalizeMaterialRows([
   {id:'m1',item:'Cotton Fabric',unit:'Meters',direction:'IN',qty:12},
-  {id:'m2',item:'Cotton Fabric',itemId:'MAT-01',unit:'Meters',direction:'IN',qty:8}
+  {id:'m2',item:'Cotton Fabric',itemId:'MAT-01',unit:'Meters',direction:'IN',qty:8},
+  {id:'m3',item:'Cotton Fabric',unit:'Rolls',direction:'IN',qty:2}
  ]).map(x=>x.record);
  assert.equal(ledger.balance(rows,{domain:'material',itemName:'Cotton Fabric',unit:'Meters'}),20);
  assert.equal(ledger.balance(rows,{domain:'material',itemId:'MAT-01',unit:'Meters'}),8);
+ assert.equal(ledger.balance(rows,{domain:'material',itemName:'Cotton Fabric',unit:'Rolls'}),2);
 });
