@@ -1160,3 +1160,12 @@ Regression tests cover exact variant balances, quarantined returns, material-uni
 ### Multi-colour × size production matrix (implementation update)
 
 Manufacturing orders support `Colour|Size:Qty,Size:Qty; Colour|Size:Qty`. Production routing records both colour and size; QC inspection and accepted-stock capacity reconcile the exact colour-size cell. Legacy single-colour size plans remain supported. Exact posted QC receipts are required for verified saleable output. Cutting/BOM reservation, trim issue, job-work and costing allocation are not yet fully matrix-aware; review those linked records before operational use. Browser-local only; live shop-floor acceptance testing remains outstanding.
+
+
+### Colour-size material planning and cutting control (implementation update)
+
+- The locked MO colour × size matrix is validated for duplicate cells, positive whole-piece quantities and exact total against the MO quantity.
+- BOM material requirements aggregate each size across the MO's colour cells, so size-specific consumption is calculated from all planned colours rather than a legacy single-colour size string. Common BOM components continue to apply across the full MO.
+- The production cutting register now captures garment colour separately from the fabric roll shade and blocks cutting for a colour-size cell not in the MO matrix or above that cell's planned pieces. Existing legacy single-colour size-plan behaviour remains as fallback.
+- Cutting quantities are recorded per garment colour and size for reconciliation. Fabric roll issue/used/waste/return remains the existing fabric ledger movement; it is not yet an automatic colour-wise fabric consumption allocation or a full variant-level reservation ledger. Accessory issue and contractor job-work still need the same variant-level enforcement before live use.
+- Added a unit test for colour aggregation into size-specific BOM demand and duplicate-cell rejection. Browser/shop-floor acceptance testing remains pending.
