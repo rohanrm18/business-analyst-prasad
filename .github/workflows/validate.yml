@@ -46,3 +46,6 @@ jobs:
 
       - name: Run customer collections and ageing regression tests
         run: node --test tests/customer-collections.test.cjs
+
+      - name: Run month-end accounting checklist regression tests
+        run: node --test tests/month-end-closing.test.cjs
