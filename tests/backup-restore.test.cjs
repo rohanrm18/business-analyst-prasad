@@ -46,7 +46,7 @@ test('restore applies a valid snapshot and replaces only registered business key
  const storage=memoryStorage({pa_orders:'old-orders',pa_tax_invoices:'old-invoices',unrelated_preference:'keep'});
  const entries=[['pa_orders','[]'],['pa_tax_invoices','[]'],['pa_invoice_seq_26-27','12']];
  core.applyBackupEntries(storage,entries,['pa_orders','pa_tax_invoices','pa_invoice_seq_26-27']);
- assert.deepEqual(storage.snapshot(),{unrelated_preference:'keep',pa_orders:'[]',pa_tax_invoices:'[]',pa_invoice_seq_26-27:'12'});
+ assert.deepEqual(storage.snapshot(),{unrelated_preference:'keep',pa_orders:'[]',pa_tax_invoices:'[]','pa_invoice_seq_26-27':'12'});
 });
 
 test('failed storage write rolls back every touched key',()=>{
