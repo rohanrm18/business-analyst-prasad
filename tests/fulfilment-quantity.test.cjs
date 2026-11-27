@@ -312,3 +312,11 @@ test('variant costing blocks unallocated material movements',()=>{
  const out=context.paFProductionVariantCostAudit(orders,[{moId:'MO-MISS',rollId:'R1',used:2}],[],[],[],[{moId:'MO-MISS',materialType:'Fabric',materialId:'R1',rate:10}],[],acceptance)[0];
  assert.ok(out.variants[0].issues.some(x=>x.type==='fabric-cost-unallocated'));assert.equal(out.variants[0].costPerVerifiedAcceptedPiece,null);
 });
+
+test('BOM component demand filters exact garment colour and size',()=>{
+ const mo={id:'MO-BOM',qty:9,variants:[{colour:'Navy',size:'20',qty:2},{colour:'Navy',size:'22',qty:3},{colour:'Peach',size:'20',qty:4}]};
+ assert.equal(context.paFProductionBomVariantQuantity({size:'20'},mo).qty,6);
+ assert.equal(context.paFProductionBomVariantQuantity({garmentColour:'Navy',size:'20'},mo).qty,2);
+ assert.equal(context.paFProductionBomVariantQuantity({garmentColour:'Peach'},mo).qty,4);
+ assert.equal(context.paFProductionBomVariantQuantity({garmentColour:'Black',size:'20'},mo).valid,false);
+});
