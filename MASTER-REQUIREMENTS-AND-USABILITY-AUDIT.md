@@ -1222,3 +1222,11 @@ Manufacturing orders support `Colour|Size:Qty,Size:Qty; Colour|Size:Qty`. Produc
 - A wide-screen desktop layout is included in the same responsive web/PWA app: at 1200px and above navigation becomes a persistent left sidebar, with a wider workspace. Tablet and mobile layouts remain available. This is not a separate Windows .exe/native desktop package.
 - The separate Windows Tally connector is a different component; its earlier setup was not completed because the expected connector `server.py` file was missing from the PC folder. Tally live integration is not claimed.
 - Browser testing on actual desktop hardware remains pending.
+
+
+### Final packing stage and desktop installation
+
+- Production tracking now reconciles Ironing good output against Packing input, then Packing good/rejected/rework quantities for each MO colour-size variant. It calculates good pieces awaiting packing and flags input/output above the preceding stage quantities.
+- The production Packing stage is an operational output record. It does not itself create a sales-order carton packing slip, post finished stock, or authorize invoicing. Existing approved carton packing slips and invoice controls remain the separate commercial fulfilment process; explicit MO-to-sales-order traceability and full carton-level production allocation remain to be integrated.
+- Added a desktop-install action for supported Chrome/Edge PWA installation, plus fallback installation instructions. The app remains the same responsive web app, installable as a desktop app window; this is not a compiled Windows `.exe`.
+- Desktop install depends on the deployed HTTPS site, valid manifest icons, browser install eligibility and successful service-worker registration. Verify on an actual Windows desktop after Pages deployment.
