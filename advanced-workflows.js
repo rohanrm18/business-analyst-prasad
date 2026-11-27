@@ -95,7 +95,7 @@ function bindJobMaterials(){
   const scrap=prompt('Scrap / damaged material ('+issue.unit+'), max remaining:','0');if(scrap===null)return;
   const values=[Number(reusable),Number(consumed),Number(scrap)];
   if(!values.every(n=>Number.isFinite(n)&&n>=0)||values.some(n=>!Number.isInteger(n*10000))||values.reduce((a,n)=>a+n,0)<=0||values.reduce((a,n)=>a+n,0)>balance.pending+1e-9){alert('Enter valid quantities. Reusable + consumed + scrap cannot exceed the remaining contractor balance.');return;}
-  const job=jobs.find(x=>x.id===issue.jobId),date=prompt('Return / usage date (YYYY-MM-DD):',today());if(date===null||!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)||!awDateAllowed(date))return;
+  const job=jobs.find(x=>x.id===issue.jobId),date=prompt('Return / usage date (YYYY-MM-DD):',today());if(date===null||!/^\d{4}-\d{2}-\d{2}$/.test(date)||!awDateAllowed(date))return;
   const kinds=['reusable-return','consumed','scrap'];
   values.forEach((qty,i)=>{if(qty>0)jobMaterials.push({id:uid('JWMAT'),kind:kinds[i],issueId:issue.id,jobId:issue.jobId,itemId:issue.itemId,item:issue.item,unit:issue.unit,qty:Math.round(qty*10000)/10000,date,contractor:job?.contractor||'',createdAt:new Date().toISOString()})});
   save(KEY.jobMaterials,jobMaterials);render();
