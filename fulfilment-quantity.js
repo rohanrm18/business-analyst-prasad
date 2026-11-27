@@ -493,3 +493,30 @@ function paFProductionCuttingHandoverAudit(orders,cuttingBatches,routeRows){
   return {moId:String(o.id),validPlan:plan.valid,variants:cells,issues:issues.concat(cells.flatMap(v=>v.issues.map(detail=>({type:'variant-reconciliation',colour:v.colour,size:v.size,detail}))))};
  });
 }
+
+
+function paFProductionStitchingFinishingAudit(orders,routeRows){
+ const os=Array.isArray(orders)?orders:[],rows=Array.isArray(routeRows)?routeRows:[];
+ return os.filter(o=>!['Cancelled','cancelled'].includes(o.status||'')).map(o=>{
+  const plan=paFProductionVariantMaterialPlan(o),variants=plan.rows.map(v=>({colour:v.colour,size:v.size,key:paFVariantKey(v.colour,v.size),planned:v.qty,stitchingInput:0,stitchingGood:0,stitchingRejected:0,stitchingRework:0,finishingInput:0,finishingGood:0,finishingRejected:0,finishingRework:0,ironingInput:0,goodAwaitingFinishing:0,goodAwaitingIroning:0,issues:[]})),issues=[],byKey=new Map(variants.map(v=>[v.key,v]));
+  if(!plan.valid)issues.push({type:'invalid-variant-plan',detail:plan.issues.join('; ')});
+  rows.filter(r=>String(r.orderId)===String(o.id)).forEach(r=>{
+   const v=byKey.get(paFVariantKey(r.colour||o.colour,r.size));
+   if(!v){issues.push({type:'unallocated-stage-entry',id:r.id||'',detail:'Production entry has no matching colour-size plan cell.'});return;}
+   if(r.reworkOfId)return;
+   if(r.stage==='Stitching'){v.stitchingInput+=Math.max(0,Number(r.qtyIn)||0);v.stitchingGood+=Math.max(0,Number(r.good)||0);v.stitchingRejected+=Math.max(0,Number(r.rejected)||0);v.stitchingRework+=Math.max(0,Number(r.rework)||0);}
+   if(r.stage==='Finishing'){v.finishingInput+=Math.max(0,Number(r.qtyIn)||0);v.finishingGood+=Math.max(0,Number(r.good)||0);v.finishingRejected+=Math.max(0,Number(r.rejected)||0);v.finishingRework+=Math.max(0,Number(r.rework)||0);}
+   if(r.stage==='Ironing')v.ironingInput+=Math.max(0,Number(r.qtyIn)||0);
+  });
+  variants.forEach(v=>{
+   v.goodAwaitingFinishing=Math.max(0,v.stitchingGood-v.finishingInput);
+   v.goodAwaitingIroning=Math.max(0,v.finishingGood-v.ironingInput);
+   if(v.stitchingGood>v.stitchingInput)v.issues.push('Stitching good output exceeds stitching input.');
+   if(v.finishingInput>v.stitchingGood)v.issues.push('Finishing input exceeds stitching good output.');
+   if(v.finishingGood>v.finishingInput)v.issues.push('Finishing good output exceeds finishing input.');
+   if(v.ironingInput>v.finishingGood)v.issues.push('Ironing input exceeds finishing good output.');
+   if(v.stitchingInput>v.planned)v.issues.push('Stitching input exceeds planned variant quantity.');
+  });
+  return {moId:String(o.id),validPlan:plan.valid,variants,issues:issues.concat(variants.flatMap(v=>v.issues.map(detail=>({type:'stage-handover',colour:v.colour,size:v.size,detail}))))};
+ });
+}
