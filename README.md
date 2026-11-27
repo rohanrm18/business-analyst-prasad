@@ -354,3 +354,11 @@ The production costing workspace now includes a read-only colour-size material r
 ### Variant-specific cutting and accessory issue controls
 
 For colour-size manufacturing orders, cutting records require garment colour and size and cannot exceed the remaining planned quantity for that cell. Accessory OUT/IN movements require the exact garment variant, whole-piece quantities and valid dates; returns are capped at the outstanding issue for that same cell. BOM matching includes garment colour and size. Legacy untagged records are not guessed into a variant. These are local-record controls pending browser/shop-floor acceptance testing.
+
+
+### Cutting-to-stitching output reconciliation (implementation update)
+
+- Production routing now displays a colour-size reconciliation of MO planned quantity, actual saved cutting-batch pieces, Cutting-stage good/rejected/rework output, first-pass Stitching input, and good pieces awaiting handover.
+- The same view shows fabric issued, used, wastage and reusable returns from cutting batches.
+- New Cutting-stage good-output entries are blocked when they exceed the recorded cutting-batch piece balance for that exact garment colour and size. Existing Stitching input remains constrained by the prior stage's good output through the production-route audit.
+- Unmatched or untagged cutting and routing records are reported as exceptions; no retrospective allocation or automatic stock transfer is performed. Browser and shop-floor acceptance testing remains pending.
