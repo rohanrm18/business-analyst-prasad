@@ -338,6 +338,13 @@ function paFParseProductionVariantPlan(o){
  return rows;
 }
 function paFVariantKey(colour,size){return paFNorm(colour)+'¦'+paFNorm(size)}
+function paFProductionVariantMaterialPlan(o){
+ const rows=paFParseProductionVariantPlan(o),issues=[],seen=new Set(),qtyBySize={},qtyByVariant={};
+ if(!rows.length)issues.push('A colour-size production plan is required.');
+ rows.forEach(v=>{const k=paFVariantKey(v.colour,v.size);if(!v.colour||!v.size||!Number.isSafeInteger(v.qty)||v.qty<1)issues.push('Every variant needs a colour, size and positive whole-piece quantity.');else if(seen.has(k))issues.push('Duplicate colour-size cell: '+v.colour+' / '+v.size);else{seen.add(k);qtyBySize[v.size]=(qtyBySize[v.size]||0)+v.qty;qtyByVariant[k]=v.qty;}});
+ const total=rows.reduce((n,v)=>n+(Number.isSafeInteger(v.qty)&&v.qty>0?v.qty:0),0);if(total!==Number(o?.qty||0))issues.push('Variant quantities total '+total+' but the manufacturing order quantity is '+Number(o?.qty||0)+'.');
+ return {valid:issues.length===0,rows,qtyBySize,qtyByVariant,total,issues};
+}
 function paFProductionVariantAcceptanceAudit(orders,stages,routeRows,qcBatches,stockRows){
  const routes=paFProductionRouteAudit(orders,stages,routeRows),out=[];
  (Array.isArray(orders)?orders:[]).forEach(o=>{
