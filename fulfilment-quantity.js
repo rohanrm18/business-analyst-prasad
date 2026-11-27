@@ -331,6 +331,16 @@ function paFProductionAcceptedCost(costAudit,acceptanceAudit){
 }
 
 
+function paFProductionBomVariantQuantity(component,order){
+ const variants=paFParseProductionVariantPlan(order),hasMatrix=!!String(order?.variantPlan||'').trim()||(Array.isArray(order?.variants)&&order.variants.length>0),colour=String(component?.garmentColour||'').trim().toLowerCase(),size=String(component?.size||'').trim().toLowerCase();
+ if(!hasMatrix&&!variants.length){if(size){const m=String(order?.sizes||'').split(/[,;\n]+/).map(x=>x.trim()).filter(Boolean).map(x=>{const z=x.match(/^(.+?)\s*[:=xX-]\s*(\d+)$/);return z?{size:z[1].trim(),qty:Number(z[2])}:null}).filter(Boolean);const hit=m.find(x=>x.size.toLowerCase()===size);return {valid:!!hit,qty:hit?.qty??null,byVariant:{},reason:hit?'':'Size not found in MO size plan'};}return {valid:true,qty:Number(order?.qty||0),byVariant:{},reason:''};}
+ const plan=paFProductionVariantMaterialPlan(order);if(!plan.valid)return {valid:false,qty:null,byVariant:{},reason:plan.issues.join('; ')};
+ const selected=variants.filter(v=>(!colour||v.colour.toLowerCase()===colour)&&(!size||v.size.toLowerCase()===size));
+ if(!selected.length)return {valid:false,qty:null,byVariant:{},reason:'No planned colour-size cell matches this BOM component.'};
+ const byVariant={};selected.forEach(v=>byVariant[paFVariantKey(v.colour,v.size)]=v.qty);
+ return {valid:true,qty:selected.reduce((n,v)=>n+v.qty,0),byVariant,reason:''};
+}
+
 function paFProductionVariantCostAudit(orders,cuts,trimMoves,jobs,jobCosts,materialRates,extraCosts,acceptanceAudit){
  const os=Array.isArray(orders)?orders:[],cs=Array.isArray(cuts)?cuts:[],tm=Array.isArray(trimMoves)?trimMoves:[],js=Array.isArray(jobs)?jobs:[],jc=Array.isArray(jobCosts)?jobCosts:[],rs=Array.isArray(materialRates)?materialRates:[],xs=Array.isArray(extraCosts)?extraCosts:[],accepted=acceptanceAudit?.orders||[];
  return os.filter(o=>!['Cancelled','cancelled'].includes(o.status||'')).map(o=>{
