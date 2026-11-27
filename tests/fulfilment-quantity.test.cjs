@@ -320,3 +320,27 @@ test('BOM component demand filters exact garment colour and size',()=>{
  assert.equal(context.paFProductionBomVariantQuantity({garmentColour:'Peach'},mo).qty,4);
  assert.equal(context.paFProductionBomVariantQuantity({garmentColour:'Black',size:'20'},mo).valid,false);
 });
+
+test('variant material audit reconciles fabric used and accessory net issue per exact cell',()=>{
+ const mo={id:'MO-USE',qty:3,variants:[{colour:'Navy',size:'20',qty:1},{colour:'Peach',size:'20',qty:2}]};
+ const bom=[{kind:'Fabric',code:'F-1',colour:'Ivory',perPiece:1, wastePct:10},{kind:'Accessory',itemId:'T-1',perPiece:2}];
+ const cuts=[{moId:'MO-USE',rollId:'R-1',garmentColour:'Navy',size:'20',issued:1.1,used:1,wastage:.1,returned:0},{moId:'MO-USE',rollId:'R-1',garmentColour:'Peach',size:'20',issued:2.2,used:2,wastage:.2,returned:0}];
+ const trims=[{orderId:'MO-USE',itemId:'T-1',garmentColour:'Navy',size:'20',kind:'OUT',qty:3},{orderId:'MO-USE',itemId:'T-1',garmentColour:'Navy',size:'20',kind:'IN',qty:1},{orderId:'MO-USE',itemId:'T-1',garmentColour:'Peach',size:'20',kind:'OUT',qty:4}];
+ const out=context.paFProductionVariantMaterialConsumptionAudit([mo],bom,cuts,trims,[{id:'R-1',code:'F-1',colour:'Ivory'}],[{id:'T-1',code:'BTN'}])[0];
+ const navy=out.variants.find(v=>v.colour==='Navy').components,peach=out.variants.find(v=>v.colour==='Peach').components;
+ assert.equal(navy[0].actualRecorded,1.1);assert.equal(navy[0].variance,0);assert.equal(navy[1].netIssued,2);assert.equal(navy[1].variance,0);
+ assert.equal(peach[0].actualRecorded,2.2);assert.equal(peach[1].netIssued,4);
+});
+test('variant material audit never allocates untagged issues or treats fabric issue as consumption',()=>{
+ const mo={id:'MO-UNTAG',qty:1,variants:[{colour:'Navy',size:'20',qty:1}]},bom=[{kind:'Fabric',code:'F',perPiece:1}];
+ const out=context.paFProductionVariantMaterialConsumptionAudit([mo],bom,[{moId:'MO-UNTAG',rollId:'R',issued:1,returned:0}],[],[{id:'R',code:'F'}],[])[0];
+ assert.ok(out.issues.some(x=>x.type==='unallocated-fabric-movement'));
+ assert.equal(out.variants[0].components[0].actualRecorded,null);
+ assert.equal(out.variants[0].components[0].status,'REVIEW');
+});
+test('variant material audit flags missing roll mapping and does not cross-allocate colours',()=>{
+ const mo={id:'MO-MAP',qty:2,variants:[{colour:'Navy',size:'20',qty:1},{colour:'Peach',size:'20',qty:1}]},bom=[{kind:'Fabric',code:'F',perPiece:1}];
+ const out=context.paFProductionVariantMaterialConsumptionAudit([mo],bom,[{moId:'MO-MAP',rollId:'R1',garmentColour:'Navy',size:'20',issued:1,used:1},{moId:'MO-MAP',rollId:'R2',garmentColour:'Peach',size:'20',issued:1,used:1}],[],[{id:'R1',code:'F'}],[])[0];
+ assert.equal(out.variants.find(v=>v.colour==='Navy').components[0].actualRecorded,1);
+ assert.ok(out.variants.find(v=>v.colour==='Peach').components[0].issues.some(x=>x.includes('No fabric roll')));
+});
