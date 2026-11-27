@@ -146,7 +146,7 @@ function buildMappedJournalDraft(event,sourceEventId,date,amount,memo,sourceRefe
  if(!debitCode||!creditCode||debitCode===creditCode||!accounts.some(a=>a.code===debitCode)||!accounts.some(a=>a.code===creditCode))throw Error('Mapped debit and credit accounts must both exist and be different.');
  const eventId=String(sourceEventId||'').trim(),day=String(date||'');
  if(!eventId||eventId.length>180)throw Error('A stable source event ID (1–180 characters) is required.');
- if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(day)||!Number.isFinite(Date.parse(day+'T00:00:00Z'))||new Date(day+'T00:00:00Z').toISOString().slice(0,10)!==day)throw Error('A valid YYYY-MM-DD transaction date is required.');
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(day)||!Number.isFinite(Date.parse(day+'T00:00:00Z'))||new Date(day+'T00:00:00Z').toISOString().slice(0,10)!==day)throw Error('A valid YYYY-MM-DD transaction date is required.');
  const paise=Math.round(Number(amount)*100);
  if(!Number.isFinite(Number(amount))||!Number.isSafeInteger(paise)||paise<=0)throw Error('Posting amount must be a positive valid amount in rupees, rounded to paise.');
  const value=paise/100;
