@@ -344,3 +344,20 @@ test('variant material audit flags missing roll mapping and does not cross-alloc
  assert.equal(out.variants.find(v=>v.colour==='Navy').components[0].actualRecorded,1);
  assert.ok(out.variants.find(v=>v.colour==='Peach').components[0].issues.some(x=>x.includes('No fabric roll')));
 });
+
+test('variant movement guard blocks over-cutting and keeps colour-size quantities separate',()=>{
+ const mo={id:'MO-CUT-GUARD',qty:5,variants:[{colour:'Navy',size:'20',qty:2},{colour:'Peach',size:'20',qty:3}]};
+ const existing=[{orderId:'MO-CUT-GUARD',garmentColour:'Navy',size:'20',pieces:1},{orderId:'MO-CUT-GUARD',garmentColour:'Peach',size:'20',pieces:2}];
+ const navy=context.paFProductionVariantMovementCheck(mo,'Navy','20',1,existing);
+ assert.equal(navy.valid,true);assert.equal(navy.remaining,1);
+ const over=context.paFProductionVariantMovementCheck(mo,'Navy','20',2,existing);
+ assert.equal(over.valid,false);assert.equal(over.remaining,1);
+ const peach=context.paFProductionVariantMovementCheck(mo,'Peach','20',1,existing);
+ assert.equal(peach.valid,true);assert.equal(peach.remaining,1);
+});
+test('variant movement guard rejects missing or unknown garment colour-size cells',()=>{
+ const mo={id:'MO-CUT-GUARD2',qty:2,variants:[{colour:'Navy',size:'20',qty:2}]};
+ assert.equal(context.paFProductionVariantMovementCheck(mo,'','20',1,[]).valid,false);
+ assert.equal(context.paFProductionVariantMovementCheck(mo,'Peach','20',1,[]).valid,false);
+ assert.equal(context.paFProductionVariantMovementCheck(mo,'Navy','20',0,[]).valid,false);
+});
