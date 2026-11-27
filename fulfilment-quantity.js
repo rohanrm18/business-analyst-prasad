@@ -392,3 +392,61 @@ function paFProductionVariantAcceptanceAudit(orders,stages,routeRows,qcBatches,s
  });
  return {orders:out,issues:out.flatMap(x=>x.issues.map(i=>({...i,moId:x.moId})))};
 }
+
+
+function paFProductionVariantMaterialConsumptionAudit(orders,bomRows,cuts,trimMoves,fabricLots,accessoryItems){
+ const os=Array.isArray(orders)?orders:[],bs=Array.isArray(bomRows)?bomRows:[],cs=Array.isArray(cuts)?cuts:[],ts=Array.isArray(trimMoves)?trimMoves:[],fl=Array.isArray(fabricLots)?fabricLots:[],ai=Array.isArray(accessoryItems)?accessoryItems:[];
+ return os.filter(o=>!['Cancelled','cancelled'].includes(o.status||'')).map(o=>{
+  const mo=String(o.id),plan=paFProductionVariantMaterialPlan(o),variants=plan.rows.map(v=>({colour:v.colour,size:v.size,key:paFVariantKey(v.colour,v.size),plannedQty:v.qty,components:[],issues:[]})),issues=[];
+  if(!plan.valid)issues.push({type:'invalid-variant-plan',detail:plan.issues.join('; ')});
+  const components=bs.filter(x=>!x.moId||String(x.moId)===mo);
+  if(!components.length)issues.push({type:'missing-bom',detail:'No BOM components supplied for this MO.'});
+  const rollFor=rollId=>fl.find(r=>String(r.id)===String(rollId)),trimFor=itemId=>ai.find(r=>String(r.id)===String(itemId));
+  components.forEach((c,index)=>{
+   const demand=paFProductionBomVariantQuantity(c,o),kind=String(c.kind||''),materialId=kind==='Fabric'?String(c.code||'').trim().toLowerCase():String(c.itemId||'');
+   if(!demand.valid){issues.push({type:'invalid-bom-demand',component:index,detail:demand.reason});return;}
+   const targets=variants.filter(v=>Object.prototype.hasOwnProperty.call(demand.byVariant,v.key));
+   targets.forEach(v=>{
+    const required=demand.byVariant[v.key]*Number(c.perPiece||0)*(1+Number(c.wastePct||0)/100),row={component:index,kind,material:kind==='Fabric'?(c.code||''):((trimFor(c.itemId)?.code)||c.itemId||''),materialId,required,issued:0,returned:0,netIssued:0,used:null,wastage:null,actualRecorded:null,variance:null,status:'REVIEW',issues:[]};
+    if(!Number.isFinite(required)||required<0){row.issues.push('Invalid BOM per-piece quantity or waste allowance.');}
+    if(kind==='Fabric'){
+     const mapped=fl.filter(r=>String(r.code||'').trim().toLowerCase()===materialId&&(!c.colour||paFNorm(r.colour)===paFNorm(c.colour)));
+     if(!mapped.length)row.issues.push('No fabric roll maps to this BOM material code and fabric shade.');
+     const ids=new Set(mapped.map(r=>String(r.id)));
+     const relevant=cs.filter(x=>String(x.moId||x.orderId)===mo&&ids.has(String(x.rollId)));
+     relevant.forEach(x=>{
+      if(!String(x.garmentColour||x.colour||'').trim()||!String(x.size||'').trim()){row.issues.push('Fabric movement '+String(x.id||x.rollId)+' lacks garment colour or size; left unallocated.');return;}
+      if(paFVariantKey(x.garmentColour||x.colour,x.size)!==v.key)return;
+      row.issued+=Number(x.issued||0);row.returned+=Number(x.returned||0);row.used=(row.used||0)+Number(x.used||0);row.wastage=(row.wastage||0)+Number(x.wastage??x.waste??0);
+     });
+     row.netIssued=row.issued-row.returned;
+     row.actualRecorded=row.used===null?null:row.used+(row.wastage||0);
+     if(row.actualRecorded===null)row.issues.push('No recorded fabric used quantity; issue is not treated as consumption.');
+     else row.variance=row.actualRecorded-required;
+    }else if(kind==='Accessory'){
+     const relevant=ts.filter(x=>String(x.orderId||'')===mo&&String(x.itemId||'')===String(c.itemId||''));
+     relevant.forEach(x=>{
+      if(!String(x.garmentColour||x.colour||'').trim()||!String(x.size||'').trim()){row.issues.push('Accessory movement '+String(x.id||x.itemId)+' lacks garment colour or size; left unallocated.');return;}
+      if(paFVariantKey(x.garmentColour||x.colour,x.size)!==v.key)return;
+      if(x.kind==='OUT')row.issued+=Number(x.qty||0);else if(x.kind==='IN')row.returned+=Number(x.qty||0);
+     });
+     row.netIssued=row.issued-row.returned;
+     row.actualRecorded=null;
+     row.variance=row.netIssued-required;
+     row.issues.push('Net issued is a custody figure, not proof of physical accessory consumption.');
+    }else row.issues.push('Unsupported BOM component kind: '+kind);
+    if(row.issues.some(x=>x.includes('lacks garment colour or size')))issues.push({type:'unallocated-movement',component:index,variant:v.key});
+    if(row.issues.some(x=>x.startsWith('No fabric roll')))issues.push({type:'missing-material-mapping',component:index,variant:v.key});
+    if(row.variance!==null&&Number.isFinite(row.variance)&&Math.abs(row.variance)>0.0001)row.status=row.variance>0?'EXCESS':'SHORT';
+    else if(!row.issues.length||row.issues.every(x=>x.includes('custody figure')))row.status='MATCH';
+    if(row.issues.length)row.status='REVIEW';
+    v.components.push(row);
+   });
+  });
+  const cutRows=cs.filter(x=>String(x.moId||x.orderId)===mo),trimRows=ts.filter(x=>String(x.orderId||'')===mo);
+  cutRows.filter(x=>!String(x.garmentColour||x.colour||'').trim()||!String(x.size||'').trim()).forEach(x=>issues.push({type:'unallocated-fabric-movement',detail:String(x.id||x.rollId||'cut row')}));
+  trimRows.filter(x=>!String(x.garmentColour||x.colour||'').trim()||!String(x.size||'').trim()).forEach(x=>issues.push({type:'unallocated-accessory-movement',detail:String(x.id||x.itemId||'trim row')}));
+  variants.forEach(v=>{v.complete=v.components.length>0&&v.components.every(c=>!c.issues.length&&c.variance!==null);});
+  return {moId:mo,validPlan:plan.valid,variants,issues};
+ });
+}
