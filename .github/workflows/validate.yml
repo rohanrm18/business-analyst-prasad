@@ -41,5 +41,8 @@ jobs:
       - name: Run procurement and supplier payables regression tests
         run: node --test tests/procurement-payables.test.cjs
 
+      - name: Run supplier bill and TDS reconciliation tests
+        run: node --test tests/supplier-bill-tds-reconciliation.test.cjs
+
       - name: Run customer collections and ageing regression tests
         run: node --test tests/customer-collections.test.cjs
