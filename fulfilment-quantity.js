@@ -506,15 +506,20 @@ function paFProductionStitchingFinishingAudit(orders,routeRows){
    if(r.reworkOfId)return;
    if(r.stage==='Stitching'){v.stitchingInput+=Math.max(0,Number(r.qtyIn)||0);v.stitchingGood+=Math.max(0,Number(r.good)||0);v.stitchingRejected+=Math.max(0,Number(r.rejected)||0);v.stitchingRework+=Math.max(0,Number(r.rework)||0);}
    if(r.stage==='Finishing'){v.finishingInput+=Math.max(0,Number(r.qtyIn)||0);v.finishingGood+=Math.max(0,Number(r.good)||0);v.finishingRejected+=Math.max(0,Number(r.rejected)||0);v.finishingRework+=Math.max(0,Number(r.rework)||0);}
-   if(r.stage==='Ironing'){v.ironingInput+=Math.max(0,Number(r.qtyIn)||0);v.ironingGood+=Math.max(0,Number(r.good)||0);v.ironingRejected+=Math.max(0,Number(r.rejected)||0);}\n   if(r.stage==='Packing'){v.packingInput+=Math.max(0,Number(r.qtyIn)||0);v.packingGood+=Math.max(0,Number(r.good)||0);v.packingRejected+=Math.max(0,Number(r.rejected)||0);v.packingRework+=Math.max(0,Number(r.rework)||0);}
+   if(r.stage==='Ironing'){v.ironingInput+=Math.max(0,Number(r.qtyIn)||0);v.ironingGood+=Math.max(0,Number(r.good)||0);v.ironingRejected+=Math.max(0,Number(r.rejected)||0);}
+   if(r.stage==='Packing'){v.packingInput+=Math.max(0,Number(r.qtyIn)||0);v.packingGood+=Math.max(0,Number(r.good)||0);v.packingRejected+=Math.max(0,Number(r.rejected)||0);v.packingRework+=Math.max(0,Number(r.rework)||0);}
   });
   variants.forEach(v=>{
    v.goodAwaitingFinishing=Math.max(0,v.stitchingGood-v.finishingInput);
-   v.goodAwaitingIroning=Math.max(0,v.finishingGood-v.ironingInput);\n   v.goodAwaitingPacking=Math.max(0,v.ironingGood-v.packingInput);
+   v.goodAwaitingIroning=Math.max(0,v.finishingGood-v.ironingInput);
+   v.goodAwaitingPacking=Math.max(0,v.ironingGood-v.packingInput);
    if(v.stitchingGood>v.stitchingInput)v.issues.push('Stitching good output exceeds stitching input.');
    if(v.finishingInput>v.stitchingGood)v.issues.push('Finishing input exceeds stitching good output.');
    if(v.finishingGood>v.finishingInput)v.issues.push('Finishing good output exceeds finishing input.');
-   if(v.ironingInput>v.finishingGood)v.issues.push('Ironing input exceeds finishing good output.');\n   if(v.ironingGood>v.ironingInput)v.issues.push('Ironing good output exceeds ironing input.');\n   if(v.packingInput>v.ironingGood)v.issues.push('Packing input exceeds ironing good output.');\n   if(v.packingGood>v.packingInput)v.issues.push('Packing good output exceeds packing input.');
+   if(v.ironingInput>v.finishingGood)v.issues.push('Ironing input exceeds finishing good output.');
+   if(v.ironingGood>v.ironingInput)v.issues.push('Ironing good output exceeds ironing input.');
+   if(v.packingInput>v.ironingGood)v.issues.push('Packing input exceeds ironing good output.');
+   if(v.packingGood>v.packingInput)v.issues.push('Packing good output exceeds packing input.');
    if(v.stitchingInput>v.planned)v.issues.push('Stitching input exceeds planned variant quantity.');
   });
   return {moId:String(o.id),validPlan:plan.valid,variants,issues:issues.concat(variants.flatMap(v=>v.issues.map(detail=>({type:'stage-handover',colour:v.colour,size:v.size,detail}))))};
