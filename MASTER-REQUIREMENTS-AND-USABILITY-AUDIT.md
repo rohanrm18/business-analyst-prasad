@@ -1205,3 +1205,11 @@ Manufacturing orders support `Colour|Size:Qty,Size:Qty; Colour|Size:Qty`. Produc
 - Cutting entries validate date and preserve the exact variant against the BOM material/shade component. Legacy untagged rows are not assigned retrospectively.
 - Accessory movements require garment colour and size for colour-size MOs, validate whole-piece quantities and movement dates, and match the BOM component to the exact variant. Returns are limited to the outstanding issue for that same colour-size cell; one variant cannot return another variant's issued accessories.
 - These controls are still local-record workflows; no automatic stock posting or server-side concurrency protection is claimed. Browser and shop-floor acceptance testing remains pending.
+
+
+### Cutting-to-stitching output reconciliation (implementation update)
+
+- Production routing now displays a colour-size reconciliation of MO planned quantity, actual saved cutting-batch pieces, Cutting-stage good/rejected/rework output, first-pass Stitching input, and good pieces awaiting handover.
+- The same view shows fabric issued, used, wastage and reusable returns from cutting batches.
+- New Cutting-stage good-output entries are blocked when they exceed the recorded cutting-batch piece balance for that exact garment colour and size. Existing Stitching input remains constrained by the prior stage's good output through the production-route audit.
+- Unmatched or untagged cutting and routing records are reported as exceptions; no retrospective allocation or automatic stock transfer is performed. Browser and shop-floor acceptance testing remains pending.
