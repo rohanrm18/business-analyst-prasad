@@ -330,6 +330,24 @@ function paFProductionAcceptedCost(costAudit,acceptanceAudit){
  return costs.map(c=>{const a=acceptance.find(x=>String(x.moId)===String(c.moId)),ready=!!c.complete&&!!a&&a.acceptedOutputCostReady&&Number(a.verifiedAccepted)>0;return {...c,packedGoodQty:Number(a?.packedGood||0),verifiedAcceptedQty:Number(a?.verifiedAccepted||0),costPerVerifiedAcceptedPiece:ready?Math.round(Number(c.knownTotal)/Number(a.verifiedAccepted)*100)/100:null};});
 }
 
+
+function paFProductionVariantCostAudit(orders,cuts,trimMoves,jobs,jobCosts,materialRates,extraCosts,acceptanceAudit){
+ const os=Array.isArray(orders)?orders:[],cs=Array.isArray(cuts)?cuts:[],tm=Array.isArray(trimMoves)?trimMoves:[],js=Array.isArray(jobs)?jobs:[],jc=Array.isArray(jobCosts)?jobCosts:[],rs=Array.isArray(materialRates)?materialRates:[],xs=Array.isArray(extraCosts)?extraCosts:[],accepted=acceptanceAudit?.orders||[];
+ return os.filter(o=>!['Cancelled','cancelled'].includes(o.status||'')).map(o=>{
+  const mo=String(o.id),plan=paFProductionVariantMaterialPlan(o),cells=plan.rows.map(v=>({colour:v.colour,size:v.size,key:paFVariantKey(v.colour,v.size),plannedQty:v.qty,materials:0,operations:0,other:0,knownTotal:0,issues:[]})),byKey=new Map(cells.map(v=>[v.key,v])),rates=new Map(rs.filter(r=>String(r.moId)===mo).map(r=>[String(r.materialType)+'|'+String(r.materialId),Number(r.rate)])),issue=(v,type,detail)=>v.issues.push({type,detail}),find=(colour,size)=>byKey.get(paFVariantKey(colour,size));
+  if(!plan.valid)cells.forEach(v=>issue(v,'invalid-variant-plan',plan.issues.join('; ')));
+  cs.filter(x=>String(x.moId||x.orderId)===mo).forEach(x=>{const qty=Number(x.used||0)+Number(x.wastage??x.waste??0);if(qty<=0)return;const v=find(x.garmentColour||x.colour||o.colour,x.size);if(!v){cells.forEach(y=>issue(y,'fabric-cost-unallocated',String(x.id||x.rollId||'cut row')));return;}const rate=rates.get('Fabric|'+String(x.rollId||''));if(!Number.isFinite(rate)||rate<0){issue(v,'fabric-rate-missing',String(x.rollId||''));return;}v.materials+=qty*rate;});
+  tm.filter(x=>String(x.orderId||'')===mo).forEach(x=>{const qty=(x.kind==='OUT'?1:-1)*Number(x.qty||0);if(qty<=0)return;const v=find(x.garmentColour||x.colour||o.colour,x.size);if(!v){cells.forEach(y=>issue(y,'accessory-cost-unallocated',String(x.id||x.itemId||'')));return;}const rate=rates.get('Accessory|'+String(x.itemId||''));if(!Number.isFinite(rate)||rate<0){issue(v,'accessory-rate-missing',String(x.itemId||''));return;}v.materials+=qty*rate;});
+  const jm=new Map(js.filter(x=>String(x.mo||'')===mo).map(x=>[String(x.id),x]));jc.filter(x=>jm.has(String(x.jobId))).forEach(x=>{const j=jm.get(String(x.jobId)),v=find(j.colour||o.colour,j.size);if(!v){cells.forEach(y=>issue(y,'job-cost-unallocated',String(x.jobId)));return;}v.operations+=Math.max(0,Number(x.amount)||0);});
+  const extras=xs.filter(x=>String(x.moId)===mo),shared=extras.filter(x=>!String(x.colour||'').trim()||!String(x.size||'').trim()),direct=extras.filter(x=>String(x.colour||'').trim()&&String(x.size||'').trim());
+  direct.forEach(x=>{const v=find(x.colour,x.size);if(!v){cells.forEach(y=>issue(y,'extra-cost-variant-invalid',String(x.id||x.category||'')));return;}v.other+=Math.max(0,Number(x.amount)||0);});
+  const sharedTotal=shared.reduce((n,x)=>n+Math.max(0,Number(x.amount)||0),0);if(sharedTotal>0){if(!plan.valid)cells.forEach(v=>issue(v,'shared-cost-cannot-allocate','Invalid variant plan'));else cells.forEach(v=>v.other+=sharedTotal*v.plannedQty/plan.total);}
+  const a=accepted.find(x=>String(x.moId)===mo),verified=a?.verifiedByVariant||{};
+  cells.forEach(v=>{v.materials=Math.round(v.materials*100)/100;v.operations=Math.round(v.operations*100)/100;v.other=Math.round(v.other*100)/100;v.knownTotal=Math.round((v.materials+v.operations+v.other)*100)/100;v.verifiedAcceptedQty=Number(verified[v.key]||0);v.complete=v.issues.length===0&&!!a&&!a.issues?.length;v.costPerVerifiedAcceptedPiece=v.complete&&v.verifiedAcceptedQty>0?Math.round(v.knownTotal/v.verifiedAcceptedQty*100)/100:null;});
+  return {moId:mo,validPlan:plan.valid,variants:cells,knownTotal:Math.round(cells.reduce((n,v)=>n+v.knownTotal,0)*100)/100};
+ });
+}
+
 function paFParseProductionVariantPlan(o){
  const rows=[];
  if(Array.isArray(o?.variants)&&o.variants.length)o.variants.forEach(v=>rows.push({colour:String(v.colour||'').trim(),size:String(v.size||'').trim(),qty:Number(v.qty)}));
