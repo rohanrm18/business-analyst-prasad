@@ -49,3 +49,6 @@ jobs:
 
       - name: Run month-end accounting checklist regression tests
         run: node --test tests/month-end-closing.test.cjs
+
+      - name: Run bank reconciliation regression tests
+        run: node --test tests/bank-reconciliation.test.cjs
