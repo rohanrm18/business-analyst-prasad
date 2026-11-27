@@ -361,3 +361,27 @@ test('variant movement guard rejects missing or unknown garment colour-size cell
  assert.equal(context.paFProductionVariantMovementCheck(mo,'Peach','20',1,[]).valid,false);
  assert.equal(context.paFProductionVariantMovementCheck(mo,'Navy','20',0,[]).valid,false);
 });
+
+test('cutting handover audit reconciles plan, cut output, cutting good and stitching handover by variant',()=>{
+ const mo={id:'MO-HAND',qty:5,variants:[{colour:'Navy',size:'20',qty:2},{colour:'Peach',size:'20',qty:3}]};
+ const cuts=[{id:'C1',moId:'MO-HAND',garmentColour:'Navy',size:'20',pieces:2,issued:2.2,used:2,wastage:.1,returned:.1},{id:'C2',moId:'MO-HAND',garmentColour:'Peach',size:'20',pieces:3,issued:3.3,used:3,wastage:.2,returned:.1}];
+ const routes=[{orderId:'MO-HAND',stage:'Cutting',colour:'Navy',size:'20',good:2,rejected:0,rework:0},{orderId:'MO-HAND',stage:'Cutting',colour:'Peach',size:'20',good:3,rejected:0,rework:0},{orderId:'MO-HAND',stage:'Stitching',colour:'Navy',size:'20',qtyIn:1},{orderId:'MO-HAND',stage:'Stitching',colour:'Peach',size:'20',qtyIn:3}];
+ const out=context.paFProductionCuttingHandoverAudit([mo],cuts,routes)[0];
+ const navy=out.variants.find(v=>v.colour==='Navy'),peach=out.variants.find(v=>v.colour==='Peach');
+ assert.equal(navy.cutPieces,2);assert.equal(navy.cuttingGood,2);assert.equal(navy.stitchingHandover,1);assert.equal(navy.unhandedGood,1);assert.equal(navy.fabricWastage,.1);
+ assert.equal(peach.unhandedGood,0);assert.equal(peach.fabricUsed,3);
+ assert.equal(out.issues.length,0);
+});
+test('cutting handover audit flags overcut, missing cut batch and excess stitching handover',()=>{
+ const mo={id:'MO-HAND-ERR',qty:2,variants:[{colour:'Navy',size:'20',qty:2}]};
+ const out=context.paFProductionCuttingHandoverAudit([mo],[{moId:'MO-HAND-ERR',garmentColour:'Navy',size:'20',pieces:3}],[{orderId:'MO-HAND-ERR',stage:'Cutting',colour:'Navy',size:'20',good:4},{orderId:'MO-HAND-ERR',stage:'Stitching',colour:'Navy',size:'20',qtyIn:5}])[0];
+ assert.ok(out.variants[0].issues.some(x=>x.includes('exceed planned')));
+ assert.ok(out.variants[0].issues.some(x=>x.includes('exceeds recorded cut-batch')));
+ assert.ok(out.variants[0].issues.some(x=>x.includes('Stitching handover exceeds')));
+});
+test('cutting handover audit leaves untagged legacy batches unallocated',()=>{
+ const mo={id:'MO-HAND-OLD',qty:1,variants:[{colour:'Navy',size:'20',qty:1}]};
+ const out=context.paFProductionCuttingHandoverAudit([mo],[{moId:'MO-HAND-OLD',pieces:1} ],[])[0];
+ assert.ok(out.issues.some(x=>x.type==='unallocated-cut-batch'));
+ assert.equal(out.variants[0].cutPieces,0);
+});
