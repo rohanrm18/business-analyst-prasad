@@ -16,5 +16,15 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
+  ],
+  "description": "Prasad Apparels business management workspace for orders, production, inventory, accounts and dispatch.",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "categories": [
+    "business",
+    "productivity"
+  ],
+  "prefer_related_applications": false
 }
