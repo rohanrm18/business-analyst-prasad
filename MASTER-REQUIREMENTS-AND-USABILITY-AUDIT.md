@@ -1180,3 +1180,11 @@ Manufacturing orders support `Colour|Size:Qty,Size:Qty; Colour|Size:Qty`. Produc
 - MO-wide other production charges without a colour-size tag are allocated by planned quantity across the MO variants. Charges carrying a valid colour and size are assigned directly to that cell.
 - Cost per verified accepted garment is shown per colour-size cell only when that cell's costing inputs and the MO's production/QC receipt audit are clean. The MO-level accepted denominator now uses total variant acceptance, including multi-colour MOs.
 - This is a costing worksheet, not accounting or stock valuation. Historical untagged cutting, trim or job-work rows remain unallocated and need correction; material reservation and automatic consumption posting are not yet implemented. Browser/shop-floor testing remains pending.
+
+
+### Variant-specific BOM demand and material reservation (implementation update)
+
+- BOM components can now be tagged with a garment colour separately from the component's own fabric shade/colour, plus an optional garment size.
+- For colour-size MOs, the material requirement calculator filters each BOM line to its exact garment-colour/size cell; size-only lines aggregate that size across colours, colour-only lines aggregate that colour across sizes, and untagged lines apply to the whole MO.
+- The existing reservation workflow now uses these calculated quantities and reserves the resulting shared physical material requirement by material identity. This avoids double-reserving the same shared fabric/trim stock across colour cells while preserving variant-specific demand calculation.
+- This is still a material reservation gate, not automatic variant-wise stock issue. Fabric cutting and accessory issue movements remain separately recorded; legacy BOM snapshots without garment-colour tags continue to behave as shared/common components.
