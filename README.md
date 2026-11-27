@@ -316,3 +316,12 @@ Production routing now records garment size against each operation. QC accepted 
 ### Multi-colour production planning
 
 Manufacturing orders support a colour × size matrix using `Colour|Size:Qty,Size:Qty; Colour|Size:Qty`. All cells must total the MO quantity. Routing and QC reconcile by exact colour and size. BOM/cutting/accessory/job-work cost allocation still needs matrix integration before live production use.
+
+
+### Colour-size material planning and cutting control (implementation update)
+
+- The locked MO colour × size matrix is validated for duplicate cells, positive whole-piece quantities and exact total against the MO quantity.
+- BOM material requirements aggregate each size across the MO's colour cells, so size-specific consumption is calculated from all planned colours rather than a legacy single-colour size string. Common BOM components continue to apply across the full MO.
+- The production cutting register now captures garment colour separately from the fabric roll shade and blocks cutting for a colour-size cell not in the MO matrix or above that cell's planned pieces. Existing legacy single-colour size-plan behaviour remains as fallback.
+- Cutting quantities are recorded per garment colour and size for reconciliation. Fabric roll issue/used/waste/return remains the existing fabric ledger movement; it is not yet an automatic colour-wise fabric consumption allocation or a full variant-level reservation ledger. Accessory issue and contractor job-work still need the same variant-level enforcement before live use.
+- Added a unit test for colour aggregation into size-specific BOM demand and duplicate-cell rejection. Browser/shop-floor acceptance testing remains pending.
