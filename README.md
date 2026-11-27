@@ -349,3 +349,8 @@ Manufacturing orders support a colour × size matrix using `Colour|Size:Qty,Size
 ### Variant-wise material consumption audit
 
 The production costing workspace now includes a read-only colour-size material reconciliation. It compares BOM demand with exact-variant fabric cutting movements (issue, return, used and wastage) and accessory OUT/IN movements. Fabric shade is mapped through the fabric roll master and is not confused with garment colour. Fabric issue is not treated as consumption when used quantity is absent; accessory net issue is labelled custody, not proven consumption. Untagged legacy movements and missing mappings remain exceptions rather than being guessed or auto-posted. Shop-floor acceptance testing is still required.
+
+
+### Variant-specific cutting and accessory issue controls
+
+For colour-size manufacturing orders, cutting records require garment colour and size and cannot exceed the remaining planned quantity for that cell. Accessory OUT/IN movements require the exact garment variant, whole-piece quantities and valid dates; returns are capped at the outstanding issue for that same cell. BOM matching includes garment colour and size. Legacy untagged records are not guessed into a variant. These are local-record controls pending browser/shop-floor acceptance testing.
