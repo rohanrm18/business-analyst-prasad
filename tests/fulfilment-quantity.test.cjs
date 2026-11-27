@@ -295,3 +295,20 @@ test('multi-colour matrix blocks cross-colour substitution',()=>{const orders=[{
 test('multi-colour matrix total must equal MO quantity',()=>{const a=context.paFProductionVariantAcceptanceAudit([{id:'MO-O',qty:5,variantPlan:'Navy|20:2; Peach|20:2'}],['Packing'],[],[],[]).orders[0];assert.ok(a.issues.some(x=>x.type==='variant-plan-total-mismatch'));});
 
 test('variant material plan aggregates size demand across colours and rejects duplicate cells',()=>{const a=context.paFProductionVariantMaterialPlan({id:'MO-MAT',qty:9,variantPlan:'Navy|20:2,22:3; Peach|20:4'});assert.equal(a.valid,true);assert.equal(a.qtyBySize['20'],6);assert.equal(a.qtyBySize['22'],3);assert.equal(a.total,9);const b=context.paFProductionVariantMaterialPlan({qty:5,variantPlan:'Navy|20:2; navy|20:3'});assert.equal(b.valid,false);assert.ok(b.issues.some(x=>x.includes('Duplicate')));});
+
+test('variant manufacturing costs reconcile separately by colour and size',()=>{
+ const orders=[{id:'MO-COST',qty:3,variants:[{colour:'Navy',size:'20',qty:1},{colour:'Peach',size:'20',qty:2}]}];
+ const cuts=[{moId:'MO-COST',rollId:'R1',garmentColour:'Navy',size:'20',used:1},{moId:'MO-COST',rollId:'R1',garmentColour:'Peach',size:'20',used:2}];
+ const trims=[{orderId:'MO-COST',itemId:'T1',garmentColour:'Navy',size:'20',kind:'OUT',qty:2},{orderId:'MO-COST',itemId:'T1',garmentColour:'Peach',size:'20',kind:'OUT',qty:3}];
+ const jobs=[{id:'J1',mo:'MO-COST',colour:'Navy',size:'20'},{id:'J2',mo:'MO-COST',colour:'Peach',size:'20'}],jobCosts=[{jobId:'J1',amount:20},{jobId:'J2',amount:40}];
+ const rates=[{moId:'MO-COST',materialType:'Fabric',materialId:'R1',rate:10},{moId:'MO-COST',materialType:'Accessory',materialId:'T1',rate:5}],extra=[{moId:'MO-COST',amount:90}],k1=context.paFVariantKey('Navy','20'),k2=context.paFVariantKey('Peach','20');
+ const acceptance={orders:[{moId:'MO-COST',verifiedByVariant:{[k1]:1,[k2]:2},issues:[]}]};
+ const out=context.paFProductionVariantCostAudit(orders,cuts,trims,jobs,jobCosts,rates,extra,acceptance)[0];
+ assert.equal(out.knownTotal,205);assert.equal(out.variants.find(x=>x.colour==='Navy').knownTotal,70);assert.equal(out.variants.find(x=>x.colour==='Peach').knownTotal,135);
+ assert.equal(out.variants.find(x=>x.colour==='Navy').costPerVerifiedAcceptedPiece,70);assert.equal(out.variants.find(x=>x.colour==='Peach').costPerVerifiedAcceptedPiece,67.5);
+});
+test('variant costing blocks unallocated material movements',()=>{
+ const orders=[{id:'MO-MISS',qty:1,variants:[{colour:'Navy',size:'20',qty:1}]}],acceptance={orders:[{moId:'MO-MISS',verifiedByVariant:{'navy¦20':1},issues:[]}]};
+ const out=context.paFProductionVariantCostAudit(orders,[{moId:'MO-MISS',rollId:'R1',used:2}],[],[],[],[{moId:'MO-MISS',materialType:'Fabric',materialId:'R1',rate:10}],[],acceptance)[0];
+ assert.ok(out.variants[0].issues.some(x=>x.type==='fabric-cost-unallocated'));assert.equal(out.variants[0].costPerVerifiedAcceptedPiece,null);
+});
