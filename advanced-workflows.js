@@ -174,7 +174,7 @@ function postMappedJournalLines(event,sourceEventId,date,lines,memo,sourceRefere
  if(!mapping||mapping.status!=='CA reviewed')throw Error('A locally CA-reviewed mapping is required before posting.');
  const eventId=String(sourceEventId||'').trim(),day=String(date||'');
  if(!eventId||eventId.length>180)throw Error('A stable source event ID (1–180 characters) is required.');
- if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(day)||!Number.isFinite(Date.parse(day+'T00:00:00Z'))||new Date(day+'T00:00:00Z').toISOString().slice(0,10)!==day)throw Error('A valid YYYY-MM-DD transaction date is required.');
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(day)||!Number.isFinite(Date.parse(day+'T00:00:00Z'))||new Date(day+'T00:00:00Z').toISOString().slice(0,10)!==day)throw Error('A valid YYYY-MM-DD transaction date is required.');
  if(!Array.isArray(lines)||lines.length<2||lines.length>100)throw Error('A multi-line journal must contain 2–100 lines.');
  const normalized=lines.map((line,i)=>{const account=String(line&&line.account||'').trim(),dp=Math.round(Number(line&&line.debit||0)*100),cp=Math.round(Number(line&&line.credit||0)*100);if(!accounts.some(a=>a.code===account)||!Number.isSafeInteger(dp)||!Number.isSafeInteger(cp)||dp<0||cp<0||(dp>0&&cp>0)||(dp===0&&cp===0))throw Error('Invalid account or debit/credit amount on journal line '+(i+1)+'.');return {account,debit:dp/100,credit:cp/100};});
  const debit=normalized.reduce((n,l)=>n+Math.round(l.debit*100),0),credit=normalized.reduce((n,l)=>n+Math.round(l.credit*100),0);
