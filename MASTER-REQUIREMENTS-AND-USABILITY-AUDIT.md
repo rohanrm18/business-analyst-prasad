@@ -1272,3 +1272,12 @@ Manufacturing orders support `Colour|Size:Qty,Size:Qty; Colour|Size:Qty`. Produc
 - Added a TDS Voucher Evidence worksheet to the CA working Excel export, filtered to the selected financial year and quarter. It lists voucher date/type, party, amount, reference, linked record ID/type, image-presence status and OCR text for manual review.
 - Evidence does not create or change a TDS deduction or challan. Voucher image bytes remain in the browser-local business backup and are not embedded into Excel; the export carries evidence metadata only.
 - This remains local-device working data. No statutory return filing, challan validation, secure cloud attachment storage or accountant acceptance is claimed.
+
+
+## Production stock handoff reconciliation — 28 November 2026
+
+- Added a read-only production stock audit to the Garment Stock → Inventory Migration Preview. It checks cutting batch to fabric-roll posting identity and quantities, issued-meter reconciliation, accepted QC batches against exactly one posted finished-garment receipt, and accessory issue/return movements against accessory masters, manufacturing orders, on-hand balances and variant-wise return limits.
+- The audit is diagnostic only: it does not post, repair, migrate or change fabric, accessory, QC or finished-garment stock. Existing production and QC posting workflows remain authoritative while reconciliation is evaluated.
+- Added five functional tests covering matched records, mismatched fabric postings, missing/duplicate QC receipts, excess accessory returns, negative accessory balance, orphan fabric postings and missing accessory masters.
+- Added the module to PWA loading/service-worker caching and CI syntax + functional test steps. The initial module and test commits passed GitHub Actions; the final workflow update is still running and must be checked before declaring the complete CI green.
+- Limitations: this checks browser-local registers and selected reference/quantity invariants only. It does not verify physical fabric meters, physical accessory counts, supplier GRN completeness, cutting yield, actual consumption correctness, or accounting valuation. No ledger cutover is performed.
