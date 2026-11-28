@@ -64,3 +64,6 @@ jobs:
 
       - name: Run PhonePe transaction validation tests
         run: node --test tests/payment-vouchers.test.cjs
+
+      - name: Run TDS voucher evidence handover tests
+        run: node --test tests/tds-evidence-handover.test.cjs
