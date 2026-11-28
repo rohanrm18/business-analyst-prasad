@@ -61,3 +61,6 @@ jobs:
 
       - name: Run general expense voucher regression tests
         run: node --test tests/general-expenses.test.cjs
+
+      - name: Run PhonePe transaction validation tests
+        run: node --test tests/payment-vouchers.test.cjs
