@@ -1,0 +1,8 @@
+const test=require('node:test');const assert=require('node:assert/strict');const fs=require('node:fs');
+const source=fs.readFileSync('tds-ca-handover.js','utf8'),match=source.match(/function evidenceRows\(\)\{[\s\S]*?\n/);assert.ok(match,'evidenceRows helper must exist');
+const rowsFn=new Function('read','periodOf','selected',match[0]+';return evidenceRows;');
+function fixture(evidence,tds=[],deposits=[],period=['2026-27','Q3']){const data={'pa_tds_voucher_evidence_v1':evidence,'pa_tds_entries_v1':tds,'pa_tds_deposits_v1':deposits};return rowsFn((k,d)=>data[k]||d,d=>{const [y,m]=d.split('-').map(Number),fy=m>=4?y:y-1,q=m>=4?Math.floor((m-4)/3)+1:4;return {fy:fy+'-'+String(fy+1).slice(-2),q:'Q'+q};},()=>period)();}
+test('lists voucher evidence linked to a TDS deduction without creating a new deduction',()=>{const r=fixture([{id:'EV1',date:'2026-11-10',kind:'Deduction proof',party:'ABC',amount:200,reference:'CERT1',linkedId:'T1',image:'data:image/jpeg;base64,x'}],[{id:'T1',contractor:'ABC'}]);assert.equal(r.length,1);assert.equal(r[0].linkedType,'TDS deduction');assert.equal(r[0].imageAttached,true);assert.equal(r[0].amount,200);});
+test('identifies a government challan link',()=>{const r=fixture([{date:'2026-11-10',kind:'Government challan',linkedId:'D1'}],[],[{id:'D1'}]);assert.equal(r[0].linkedType,'TDS challan');});
+test('marks missing links and filters by selected financial quarter',()=>{const r=fixture([{date:'2026-11-10',linkedId:'MISSING'},{date:'2026-07-10',linkedId:''},{date:'2027-02-10',linkedId:''}]);assert.equal(r.length,2);assert.ok(r.every(x=>x.linkedType==='Unlinked / missing'));});
+test('handles empty evidence register',()=>assert.deepEqual(fixture([]),[]));
