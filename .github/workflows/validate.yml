@@ -55,3 +55,6 @@ jobs:
 
       - name: Run mapped journal posting regression tests
         run: node --test tests/mapped-journal-posting.test.cjs
+
+      - name: Run cheque register regression tests
+        run: node --test tests/cheque-register.test.cjs
