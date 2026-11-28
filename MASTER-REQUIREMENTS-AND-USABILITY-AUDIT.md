@@ -1247,3 +1247,12 @@ Manufacturing orders support `Colour|Size:Qty,Size:Qty; Colour|Size:Qty`. Produc
 - Added automated checks for post-dated received/issued cheque transitions, received cheque deposit flow, issued cheque clearing flow, deposited cheque clearing flow, and terminal Cleared/Bounced/Cancelled states.
 - The tests exercise the existing cheque transition function; they do not represent live bank confirmation or automatically update accounting journals.
 - GitHub Actions passed the bank reconciliation, mapped journal posting and cheque lifecycle regression steps in run 46096974745.
+
+
+## General expense vouchers and mapped journal integration — 28 November 2026
+
+- Added a local general business expense voucher screen to the Accounts Ledger. Voucher reference, valid transaction date, description and positive paise-rounded amount are validated; voucher references are unique case-insensitively.
+- Posting is locked unless the locally configured `expense` mapping is marked CA reviewed, its debit account is typed Expense, and its credit account is typed Asset (cash/bank). The voucher posts a balanced debit/credit journal through the existing mapped journal engine using a stable source ID derived from the voucher reference; duplicate source events reuse the matching journal and conflicting duplicates are blocked.
+- Added a local expense register with voucher count and posted voucher totals. Expense vouchers and journals are included in the existing browser-local backup key set.
+- Added six regression tests for valid paise normalization, missing reference, invalid/impossible dates, invalid descriptions, invalid amounts and case-insensitive duplicate voucher references. GitHub Actions validation passed in run 46097491088, including JavaScript syntax and the full existing regression suite.
+- This is local-browser workflow integration only. It does not verify that an expense was actually paid, import bank transactions, calculate GST/TDS, enforce server-side authorization or concurrency, or provide cloud backups. A reversed journal is visible in the journal register; users must review reversal effects before relying on the expense summary. CA/accountant review and browser acceptance testing remain required.
