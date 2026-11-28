@@ -1240,3 +1240,10 @@ Manufacturing orders support `Colour|Size:Qty,Size:Qty; Colour|Size:Qty`. Produc
 - The test exposed an over-escaped ISO-date regex in the mapped journal posting function. Corrected it so valid YYYY-MM-DD journal dates can pass the intended date validation.
 - GitHub Actions validation passed for both bank reconciliation and mapped journal tests (run 46096921204). This is automated source-level regression validation, not a browser/accountant acceptance test.
 - Bank statement imports and accounting records remain local-first. No bank API connection, server-side concurrency control or automatic reconciliation posting is claimed.
+
+
+## Cheque register lifecycle regression coverage — 28 November 2026
+
+- Added automated checks for post-dated received/issued cheque transitions, received cheque deposit flow, issued cheque clearing flow, deposited cheque clearing flow, and terminal Cleared/Bounced/Cancelled states.
+- The tests exercise the existing cheque transition function; they do not represent live bank confirmation or automatically update accounting journals.
+- GitHub Actions passed the bank reconciliation, mapped journal posting and cheque lifecycle regression steps in run 46096974745.
