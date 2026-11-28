@@ -1230,3 +1230,13 @@ Manufacturing orders support `Colour|Size:Qty,Size:Qty; Colour|Size:Qty`. Produc
 - The production Packing stage is an operational output record. It does not itself create a sales-order carton packing slip, post finished stock, or authorize invoicing. Existing approved carton packing slips and invoice controls remain the separate commercial fulfilment process; explicit MO-to-sales-order traceability and full carton-level production allocation remain to be integrated.
 - Added a desktop-install action for supported Chrome/Edge PWA installation, plus fallback installation instructions. The app remains the same responsive web app, installable as a desktop app window; this is not a compiled Windows `.exe`.
 - Desktop install depends on the deployed HTTPS site, valid manifest icons, browser install eligibility and successful service-worker registration. Verify on an actual Windows desktop after Pages deployment.
+
+
+## Bank reconciliation and mapped journal regression hardening — 28 November 2026
+
+- Bank match suggestions now exclude cash movements, invalid dates and non-finite/non-positive amounts, and explicitly inactive records (draft, pending, reversed, cancelled, void, deleted or rejected). This is a suggestion filter only; it does not confirm matches or create accounting postings.
+- Added regression coverage for bank source eligibility, Indian day-first/ISO date parsing, Indian rupee/negative amount parsing and stable statement-row fingerprints.
+- Added mapped multi-line journal tests for CA-reviewed mapping requirement, valid chart-of-account references, paise-balanced debit/credit totals, duplicate-source idempotency, conflicting duplicate rejection and locked financial-year posting prevention.
+- The test exposed an over-escaped ISO-date regex in the mapped journal posting function. Corrected it so valid YYYY-MM-DD journal dates can pass the intended date validation.
+- GitHub Actions validation passed for both bank reconciliation and mapped journal tests (run 46096921204). This is automated source-level regression validation, not a browser/accountant acceptance test.
+- Bank statement imports and accounting records remain local-first. No bank API connection, server-side concurrency control or automatic reconciliation posting is claimed.
