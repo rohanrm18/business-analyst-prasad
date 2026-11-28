@@ -58,3 +58,6 @@ jobs:
 
       - name: Run cheque register regression tests
         run: node --test tests/cheque-register.test.cjs
+
+      - name: Run general expense voucher regression tests
+        run: node --test tests/general-expenses.test.cjs
