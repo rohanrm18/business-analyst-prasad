@@ -1265,3 +1265,10 @@ Manufacturing orders support `Colour|Size:Qty,Size:Qty; Colour|Size:Qty`. Produc
 - Added PhonePe and TDS evidence arrays to the existing business backup and restore validation, loaded the new module in the installed PWA and added five PhonePe validation tests to CI.
 - Local validation of the production PhonePe validator passed five checks. GitHub Actions run 46097807467 was still in progress at the time of this audit update; its final result must be checked before claiming the complete CI run passed. Pages deployment was also pending.
 - OCR is an assist only and requires an internet connection to load Tesseract.js. Images are compressed into browser-local storage; storage capacity is limited and records remain on this device. PhonePe entries are not yet linked to the customer receipt / supplier payment allocation workflows or automatically journal-posted / bank-reconciled. TDS evidence links to existing records but does not independently validate statutory applicability, rates, PAN consequences or challan payment. CA review is required.
+
+ 
+## TDS voucher evidence in CA handover export — 28 November 2026
+
+- Added a TDS Voucher Evidence worksheet to the CA working Excel export, filtered to the selected financial year and quarter. It lists voucher date/type, party, amount, reference, linked record ID/type, image-presence status and OCR text for manual review.
+- Evidence does not create or change a TDS deduction or challan. Voucher image bytes remain in the browser-local business backup and are not embedded into Excel; the export carries evidence metadata only.
+- This remains local-device working data. No statutory return filing, challan validation, secure cloud attachment storage or accountant acceptance is claimed.
