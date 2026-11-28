@@ -52,3 +52,6 @@ jobs:
 
       - name: Run bank reconciliation regression tests
         run: node --test tests/bank-reconciliation.test.cjs
+
+      - name: Run mapped journal posting regression tests
+        run: node --test tests/mapped-journal-posting.test.cjs
